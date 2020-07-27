@@ -68,20 +68,25 @@ threads = dependency('threads')
 
 agentd_include = include_directories('include')
 
+#add vcblockchain include directories
+vcblockchain_sub = subproject('vcblockchain')
+vcblockchain_include_directories = \
+    vcblockchain_sub.get_variable('vcblockchain_include_directories')
+
 agentd_exe = executable(
     'agentd',
     './src/agentd/main.c',
     src_not_main,
     lfiles,
     pfiles,
-    include_directories : agentd_include,
+    include_directories : [agentd_include, vcblockchain_include_directories],
     dependencies : [threads, vcblockchain]
 )
 
 agentd_test = executable(
     'agentd-test',
     src_not_main, test_src, lfiles, pfiles,
-    include_directories : agentd_include,
+    include_directories : [agentd_include, vcblockchain_include_directories],
     dependencies : [threads, vcblockchain, gtest]
 )
 
