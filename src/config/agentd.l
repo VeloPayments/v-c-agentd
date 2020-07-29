@@ -110,6 +110,12 @@ field {
     return FIELD;
 }
 
+key {
+    /* key keyword */
+    yylval->string = "key";
+    return KEY;
+}
+
 listen {
     /* listen keyword */
     yylval->string = "listen";
@@ -144,6 +150,12 @@ milliseconds {
     /* milliseconds keyword */
     yylval->string = "milliseconds";
     return MILLISECONDS;
+}
+
+private {
+    /* private keyword */
+    yylval->string = "private";
+    return PRIVATE;
 }
 
 rootblock {

@@ -204,6 +204,8 @@ typedef union config_val
     config_materialized_artifact_type_t* view_artifact;
     config_materialized_transaction_type_t* view_transaction;
     config_materialized_field_type_t* view_field;
+    config_private_key_entry_t* private_key;
+    config_public_key_entry_t* public_key;
 } config_val_t;
 
 /* forward decl for config_context. */
