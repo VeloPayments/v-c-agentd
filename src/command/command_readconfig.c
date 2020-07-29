@@ -67,6 +67,8 @@ int command_readconfig(struct bootstrap_config* bconf)
         printf("User:Group: %s:%s\n",
             conf.usergroup->user,
             conf.usergroup->group);
+    if (NULL != conf.private_key)
+        printf("Private Key File: %s\n", conf.private_key->filename);
 
     /* output listen addresses. */
     config_listen_address_t* ptr = conf.listen_head;
@@ -78,6 +80,15 @@ int command_readconfig(struct bootstrap_config* bconf)
             inet_ntop(AF_INET, ptr->addr, txt, sizeof(txt)), ptr->port);
 
         ptr = (config_listen_address_t*)ptr->hdr.next;
+    }
+
+    /* output public keys. */
+    config_public_key_entry_t* pub = conf.public_key_head;
+    while (NULL != pub)
+    {
+        printf("Authorized entity public key file: %s\n", pub->filename);
+
+        pub = (config_public_key_entry_t*)pub->hdr.next;
     }
 
     /* clean up config. */

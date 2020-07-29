@@ -24,6 +24,8 @@ static int config_write_datastore(int s, agent_config_t* conf);
 static int config_write_listen_addr(int s, agent_config_t* conf);
 static int config_write_chroot(int s, agent_config_t* conf);
 static int config_write_usergroup(int s, agent_config_t* conf);
+static int config_write_private_key(int s, agent_config_t* conf);
+static int config_write_public_key(int s, agent_config_t* conf);
 
 /**
  * \brief Write a config structure to a blocking stream.
@@ -95,6 +97,16 @@ int config_write_block(int s, agent_config_t* conf)
 
     /* usergroup */
     retval = config_write_usergroup(s, conf);
+    if (AGENTD_STATUS_SUCCESS != retval)
+        return retval;
+
+    /* private key */
+    retval = config_write_private_key(s, conf);
+    if (AGENTD_STATUS_SUCCESS != retval)
+        return retval;
+
+    /* public keys (authorized entities) */
+    retval = config_write_public_key(s, conf);
     if (AGENTD_STATUS_SUCCESS != retval)
         return retval;
 
@@ -422,6 +434,71 @@ static int config_write_usergroup(int s, agent_config_t* conf)
         /* write the group to the stream. */
         if (AGENTD_STATUS_SUCCESS != ipc_write_string_block(s, conf->usergroup->group))
             return AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE;
+    }
+
+    /* success. */
+    return AGENTD_STATUS_SUCCESS;
+}
+
+/**
+ * \brief Write the private key filename to the config output stream.
+ *
+ * \param s             The config output stream.
+ * \param conf          The config structure from which this value is obtained.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE if writing data to the
+ *        socket failed.
+ */
+static int config_write_private_key(int s, agent_config_t* conf)
+{
+    /* write the private key if set. */
+    if (NULL != conf->private_key)
+    {
+        /* write the private key type to the stream. */
+        uint8_t type = CONFIG_STREAM_TYPE_PRIVATE_KEY;
+        if (AGENTD_STATUS_SUCCESS != ipc_write_uint8_block(s, type))
+            return AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE;
+
+        /* write the private key filename to the stream. */
+        if (AGENTD_STATUS_SUCCESS !=
+                ipc_write_string_block(s, conf->private_key->filename))
+            return AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE;
+    }
+
+    /* success. */
+    return AGENTD_STATUS_SUCCESS;
+}
+
+/**
+ * \brief Write the public keys to the config output stream.
+ *
+ * \param s             The config output stream.
+ * \param conf          The config structure from which this value is obtained.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE if writing data to the
+ *        socket failed.
+ */
+static int config_write_public_key(int s, agent_config_t* conf)
+{
+    /* Write all public keys to the stream. */
+    config_public_key_entry_t* ptr = conf->public_key_head;
+    while (NULL != ptr)
+    {
+        /* write the public key type to the stream. */
+        uint8_t type = CONFIG_STREAM_TYPE_PUBLIC_KEY;
+        if (AGENTD_STATUS_SUCCESS != ipc_write_uint8_block(s, type))
+            return AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE;
+
+        /* write the public key filename to the stream. */
+        if (AGENTD_STATUS_SUCCESS != ipc_write_string_block(s, ptr->filename))
+            return AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE;
+
+        /* skip to the next public key. */
+        ptr = (config_public_key_entry_t*)ptr->hdr.next;
     }
 
     /* success. */
