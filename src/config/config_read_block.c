@@ -26,6 +26,10 @@ static int config_read_datastore(int s, agent_config_t* conf);
 static int config_read_chroot(int s, agent_config_t* conf);
 static int config_read_usergroup(int s, agent_config_t* conf);
 static int config_read_listen_addr(int s, agent_config_t* conf);
+static int config_read_private_key(int s, agent_config_t* conf);
+static int config_read_public_key(int s, agent_config_t* conf);
+void private_key_dispose(void*);
+void public_key_dispose(void*);
 
 /**
  * \brief Initialize and read an agent config structure from a blocking stream.
@@ -151,6 +155,22 @@ int config_read_block(int s, agent_config_t* conf)
             case CONFIG_STREAM_TYPE_BLOCK_MAX_TRANSACTIONS:
                 /* attempt to read the block max txns from the stream. */
                 retval = config_read_block_max_transactions(s, conf);
+                if (AGENTD_STATUS_SUCCESS != retval)
+                    return retval;
+                break;
+
+            /* private key */
+            case CONFIG_STREAM_TYPE_PRIVATE_KEY:
+                /* attempt to read the private key from the stream. */
+                retval = config_read_private_key(s, conf);
+                if (AGENTD_STATUS_SUCCESS != retval)
+                    return retval;
+                break;
+
+            /* public key */
+            case CONFIG_STREAM_TYPE_PUBLIC_KEY:
+                /* attempt to read the public key from the stream. */
+                retval = config_read_public_key(s, conf);
                 if (AGENTD_STATUS_SUCCESS != retval)
                     return retval;
                 break;
@@ -561,4 +581,100 @@ cleanup:
 
 done:
     return retval;
+}
+
+/**
+ * \brief Read the private key from the config stream.
+ *
+ * \param s             The socket from which the private key is read.
+ * \param conf          The config structure instance to write this value.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered during this operation.
+ *      - AGENTD_ERROR_CONFIG_IPC_READ_DATA_FAILURE if there was a failure
+ *        reading from the config socket.
+ *      - AGENTD_ERROR_CONFIG_INVALID_STREAM the stream data was corrupted or
+ *        invalid.
+ */
+static int config_read_private_key(int s, agent_config_t* conf)
+{
+    /* it's an error to provide this value more than once. */
+    if (NULL != conf->private_key)
+        return AGENTD_ERROR_CONFIG_INVALID_STREAM;
+
+    /* allocate a private key structure. */
+    config_private_key_entry_t* private_key =
+        (config_private_key_entry_t*)malloc(sizeof(config_private_key_entry_t));
+    if (NULL == private_key)
+        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+
+    /* clear this structure. */
+    memset(private_key, 0, sizeof(config_private_key_entry_t));
+
+    /* set the dispose method. */
+    private_key->hdr.dispose = &private_key_dispose;
+
+    /* attempt to read the private key filename. */
+    if (AGENTD_STATUS_SUCCESS !=
+        ipc_read_string_block(s, (char**)&private_key->filename))
+    {
+        free(private_key);
+        return AGENTD_ERROR_CONFIG_IPC_READ_DATA_FAILURE;
+    }
+
+    /* set the private key. */
+    conf->private_key = private_key;
+
+    /* success */
+    return AGENTD_STATUS_SUCCESS;
+}
+
+/**
+ * \brief Read a public key from the config stream.
+ *
+ * \param s             The socket from which the public key is read.
+ * \param conf          The config structure instance to write this value.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered during this operation.
+ *      - AGENTD_ERROR_CONFIG_IPC_READ_DATA_FAILURE if there was a failure
+ *        reading from the config socket.
+ *      - AGENTD_ERROR_CONFIG_INVALID_STREAM the stream data was corrupted or
+ *        invalid.
+ */
+static int config_read_public_key(int s, agent_config_t* conf)
+{
+    /* allocate a public key structure. */
+    config_public_key_entry_t* public_key =
+        (config_public_key_entry_t*)malloc(sizeof(config_public_key_entry_t));
+    if (NULL == public_key)
+        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+
+    /* clear this structure. */
+    memset(public_key, 0, sizeof(config_public_key_entry_t));
+
+    /* set the dispose method. */
+    public_key->hdr.hdr.dispose = &public_key_dispose;
+
+    /* attempt to read the public key filename. */
+    if (AGENTD_STATUS_SUCCESS !=
+        ipc_read_string_block(s, (char**)&public_key->filename))
+    {
+        free(public_key);
+        return AGENTD_ERROR_CONFIG_IPC_READ_DATA_FAILURE;
+    }
+
+    /* save the previous public key head. */
+    public_key->hdr.next =
+        (config_disposable_list_node_t*)conf->public_key_head;
+
+    /* set the public key. */
+    conf->public_key_head = public_key;
+
+    /* success */
+    return AGENTD_STATUS_SUCCESS;
 }
