@@ -74,6 +74,12 @@ artifact {
     return ARTIFACT;
 }
 
+authorized {
+    /* authorized keyword */
+    yylval->string = "authorized";
+    return AUTHORIZED;
+}
+
 canonization {
     /* canonization keyword */
     yylval->string = "canonization";
@@ -102,6 +108,12 @@ delete {
     /* delete keyword */
     yylval->string = "delete";
     return DELETE;
+}
+
+entities {
+    /* entities keyword */
+    yylval->string = "entities";
+    return ENTITIES;
 }
 
 field {
