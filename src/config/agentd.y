@@ -97,6 +97,12 @@ static config_materialized_field_type_t* view_field_new(
 static config_materialized_field_type_t* view_field_add_uuid(
     config_context_t*, config_materialized_field_type_t*, vpr_uuid*);
 void view_field_dispose(void* disp);
+static agent_config_t* fold_private_key(
+    config_context_t* context, agent_config_t* cfg,
+    config_private_key_entry_t* private_key);
+static config_private_key_entry_t* private_key_new(
+    config_context_t* context, const char*);
+void private_key_dispose(void* disp);
 %}
 
 /* use the full pure API for Bison. */
@@ -123,6 +129,7 @@ void view_field_dispose(void* disp);
 %token <addr> IP
 %token <string> INVALID
 %token <string> INVALID_IP
+%token <string> KEY
 %token <string> LBRACE
 %token <string> LISTEN
 %token <string> LOGDIR
@@ -131,6 +138,7 @@ void view_field_dispose(void* disp);
 %token <string> MAX
 %token <number> NUMBER
 %token <string> PATH
+%token <string> PRIVATE
 %token <string> RBRACE
 %token <string> ROOTBLOCK
 %token <string> MILLISECONDS
@@ -153,6 +161,7 @@ void view_field_dispose(void* disp);
 %type <listenaddr> listen
 %type <string> logdir
 %type <number> loglevel
+%type <private_key> private_key
 %type <string> rootblock
 %type <string> secret
 %type <usergroup> usergroup
@@ -204,6 +213,9 @@ conf : {
     | conf view {
             /* fold in a materialized view. */
             MAYBE_ASSIGN($$, fold_view(context, $1, $2)); }
+    | conf private_key {
+            /* fold in a private key. */
+            MAYBE_ASSIGN($$, fold_private_key(context, $1, $2)); }
     ;
 
 /* Provide a log directory that is either a simple identifier or a path. */
@@ -391,6 +403,13 @@ view_field_block
     | view_field_block DELETE {
             /* add DELETE crud flag. */
             $$->field_crud_flags |= MATERIALIZED_VIEW_CRUD_DELETE; }
+    ;
+
+/* handle private key. */
+private_key
+    : PRIVATE KEY PATH {
+        /* create a new private_key. */
+        MAYBE_ASSIGN($$, private_key_new(context, $3)); }
     ;
 %%
 
@@ -1081,6 +1100,55 @@ static config_materialized_field_type_t* view_field_add_uuid(
     memcpy(&field->field_code, uuid, sizeof(vpr_uuid));
 
     return field;
+}
+
+/**
+ * \brief Fold private key into the config.
+ */
+static agent_config_t* fold_private_key(
+    config_context_t* context, agent_config_t* cfg,
+    config_private_key_entry_t* private_key)
+{
+    /* has a private key already been set? */
+    if (NULL != cfg->private_key)
+    {
+        CONFIG_ERROR("Duplicate private key entry in config.");
+    }
+
+    /* if this is the only private key, then add it. */
+    cfg->private_key = private_key;
+
+    return cfg;
+}
+
+/**
+ * \brief Create a new private key entry with the given path.
+ */
+static config_private_key_entry_t* private_key_new(
+    config_context_t* context, const char* path)
+{
+    config_private_key_entry_t* ret =
+        (config_private_key_entry_t*)malloc(sizeof(config_private_key_entry_t));
+    if (NULL == ret)
+    {
+        CONFIG_ERROR("Out of memory in private_key_new().");
+    }
+
+    memset(ret, 0, sizeof(config_private_key_entry_t));
+    ret->hdr.dispose = &private_key_dispose;
+    ret->filename = strdup(path);
+
+    return ret;
+}
+
+/**
+ * \brief Dispose of a private key entry.
+ */
+void private_key_dispose(void* disp)
+{
+    config_private_key_entry_t* private_key = (config_private_key_entry_t*)disp;
+
+    free((char*)private_key->filename);
 }
 
 /**

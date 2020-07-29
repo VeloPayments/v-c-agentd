@@ -107,6 +107,8 @@ TEST(config_test, empty_config)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -148,6 +150,8 @@ TEST(config_test, logdir_config)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -189,6 +193,8 @@ TEST(config_test, logdir_dotpath_config)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -280,6 +286,8 @@ TEST(config_test, loglevel_config)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -349,6 +357,8 @@ TEST(config_test, secret_config)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -390,6 +400,8 @@ TEST(config_test, secret_dotpath_config)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -483,6 +495,8 @@ TEST(config_test, rootblock_conf)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -526,6 +540,8 @@ TEST(config_test, rootblock_path_conf)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -569,6 +585,8 @@ TEST(config_test, rootblock_dot_path_conf)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -664,6 +682,8 @@ TEST(config_test, datastore_config)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -705,6 +725,8 @@ TEST(config_test, datastore_dotpath)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -795,6 +817,8 @@ TEST(config_test, listen_single)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* check listeners. */
     ASSERT_NE(nullptr, user_context.config->listen_head);
@@ -846,6 +870,8 @@ TEST(config_test, listen_double)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* check listeners. */
     config_listen_address_t* listen = user_context.config->listen_head;
@@ -897,6 +923,8 @@ TEST(config_test, chroot_config)
     ASSERT_STREQ("root", user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -938,6 +966,8 @@ TEST(config_test, chroot_dot)
     ASSERT_STREQ("./root", user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1028,6 +1058,8 @@ TEST(config_test, usergroup_config)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
     ASSERT_NE(nullptr, user_context.config->usergroup);
     ASSERT_STREQ("foo", user_context.config->usergroup->user);
     ASSERT_STREQ("bar", user_context.config->usergroup->group);
@@ -1074,6 +1106,8 @@ TEST(config_test, empty_canonization_block)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1120,6 +1154,8 @@ TEST(config_test, block_max_milliseconds)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1227,6 +1263,8 @@ TEST(config_test, block_max_transactions)
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
     ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1330,6 +1368,8 @@ TEST(config_test, empty_materialized_view)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -1422,6 +1462,8 @@ TEST(config_test, empty_artifact_type)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -1531,6 +1573,8 @@ TEST(config_test, empty_transaction_type)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -1656,6 +1700,8 @@ TEST(config_test, artifact_create_crud_flag)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -1745,6 +1791,8 @@ TEST(config_test, artifact_update_crud_flag)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -1834,6 +1882,8 @@ TEST(config_test, artifact_append_crud_flag)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -1923,6 +1973,8 @@ TEST(config_test, artifact_delete_crud_flag)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -2012,6 +2064,8 @@ TEST(config_test, artifact_mix_crud_flags)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -2109,6 +2163,8 @@ TEST(config_test, empty_field_type)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -2254,6 +2310,8 @@ TEST(config_test, field_create_crud)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -2361,6 +2419,8 @@ TEST(config_test, field_update_crud)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -2468,6 +2528,8 @@ TEST(config_test, field_append_crud)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -2575,6 +2637,8 @@ TEST(config_test, field_delete_crud)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -2682,6 +2746,8 @@ TEST(config_test, field_mix_crud_flags)
     ASSERT_EQ(nullptr, user_context.config->listen_head);
     ASSERT_EQ(nullptr, user_context.config->chroot);
     ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
 
     /* a view entry should be populated. */
     ASSERT_NE(nullptr, user_context.config->view_head);
@@ -2726,6 +2792,90 @@ TEST(config_test, field_mix_crud_flags)
           MATERIALIZED_VIEW_CRUD_CREATE | MATERIALIZED_VIEW_CRUD_UPDATE
         | MATERIALIZED_VIEW_CRUD_APPEND | MATERIALIZED_VIEW_CRUD_DELETE,
         field->field_crud_flags);
+
+    dispose((disposable_t*)&user_context);
+}
+
+/**
+ * Test that we can set a private key.
+ */
+TEST(config_test, private_key_config)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(nullptr, state = yy_scan_string("private key private/123.cert", scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are no errors. */
+    ASSERT_EQ(0U, user_context.errors.size());
+
+    /* verify user config. */
+    ASSERT_NE(nullptr, user_context.config);
+    ASSERT_EQ(nullptr, user_context.config->logdir);
+    ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_EQ(nullptr, user_context.config->secret);
+    ASSERT_EQ(nullptr, user_context.config->rootblock);
+    ASSERT_EQ(nullptr, user_context.config->datastore);
+    ASSERT_EQ(nullptr, user_context.config->listen_head);
+    ASSERT_EQ(nullptr, user_context.config->chroot);
+    ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+
+    /* the private key is NOT NULL. */
+    ASSERT_NE(nullptr, user_context.config->private_key);
+
+    /* the private key file is set. */
+    ASSERT_NE(nullptr, user_context.config->private_key->filename);
+    /* the filename is what we set above. */
+    EXPECT_EQ(
+        0,
+        strcmp("private/123.cert", user_context.config->private_key->filename));
+
+    dispose((disposable_t*)&user_context);
+}
+
+/**
+ * Test that duplicate private key entries fail.
+ */
+TEST(config_test, private_key_duplicates)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(nullptr,
+        state = yy_scan_string(
+            "private key private/123.cert "
+            "private key private/456.cert ",
+            scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are errors. */
+    ASSERT_EQ(1U, user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
