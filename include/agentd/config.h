@@ -129,6 +129,24 @@ typedef struct config_materialized_view
     config_materialized_artifact_type_t* artifact_head;
 } config_materialized_view_t;
 
+/**
+ * \brief Private key entry.
+ */
+typedef struct config_private_key_entry
+{
+    disposable_t hdr;
+    const char* filename;
+} config_private_key_entry_t;
+
+/**
+ * \brief Public key entry.
+ */
+typedef struct config_public_key_entry
+{
+    config_disposable_list_node_t hdr;
+    const char* filename;
+} config_public_key_entry_t;
+
 #define CONFIG_STREAM_TYPE_BOM 0x00
 #define CONFIG_STREAM_TYPE_LOGDIR 0x01
 #define CONFIG_STREAM_TYPE_LOGLEVEL 0x02
@@ -165,6 +183,8 @@ typedef struct agent_config
     const char* chroot;
     config_user_group_t* usergroup;
     config_materialized_view_t* view_head;
+    config_private_key_entry_t* private_key;
+    config_public_key_entry_t* public_key_head;
 } agent_config_t;
 
 /**

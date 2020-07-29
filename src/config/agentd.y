@@ -627,6 +627,22 @@ void config_dispose(void* disp)
         free(cfg->view_head);
         cfg->view_head = tmp;
     }
+
+    if (NULL != cfg->private_key)
+    {
+        dispose((disposable_t*)cfg->private_key);
+        free(cfg->private_key);
+    }
+
+    while (NULL != cfg->public_key_head)
+    {
+        config_public_key_entry_t* tmp =
+            (config_public_key_entry_t*)cfg->public_key_head->hdr.next;
+        cfg->public_key_head->hdr.next = NULL;
+        dispose((disposable_t*)cfg->public_key_head);
+        free(cfg->public_key_head);
+        cfg->public_key_head = tmp;
+    }
 }
 
 /**
