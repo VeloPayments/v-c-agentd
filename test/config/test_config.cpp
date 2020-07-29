@@ -2879,3 +2879,186 @@ TEST(config_test, private_key_duplicates)
 
     dispose((disposable_t*)&user_context);
 }
+
+/**
+ * Test that an empty authorized entity block has no effect on the config.
+ */
+TEST(config_test, empty_authorized_entities)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(
+        nullptr,
+        state =
+            yy_scan_string(
+                "authorized entities { }",
+                scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are no errors. */
+    ASSERT_EQ(0U, user_context.errors.size());
+
+    /* verify user config. */
+    ASSERT_NE(nullptr, user_context.config);
+    ASSERT_EQ(nullptr, user_context.config->logdir);
+    ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_EQ(nullptr, user_context.config->secret);
+    ASSERT_EQ(nullptr, user_context.config->rootblock);
+    ASSERT_EQ(nullptr, user_context.config->datastore);
+    ASSERT_EQ(nullptr, user_context.config->listen_head);
+    ASSERT_EQ(nullptr, user_context.config->chroot);
+    ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+
+    dispose((disposable_t*)&user_context);
+}
+
+/**
+ * Test that we can add an authorized entity.
+ */
+TEST(config_test, authorized_entity_single)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(
+        nullptr,
+        state =
+            yy_scan_string(
+                "authorized entities { "
+                    "public/foo.cert }",
+                scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are no errors. */
+    ASSERT_EQ(0U, user_context.errors.size());
+
+    /* verify user config. */
+    ASSERT_NE(nullptr, user_context.config);
+    ASSERT_EQ(nullptr, user_context.config->logdir);
+    ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_EQ(nullptr, user_context.config->secret);
+    ASSERT_EQ(nullptr, user_context.config->rootblock);
+    ASSERT_EQ(nullptr, user_context.config->datastore);
+    ASSERT_EQ(nullptr, user_context.config->listen_head);
+    ASSERT_EQ(nullptr, user_context.config->chroot);
+    ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+
+    /* the public key list is NOT NULL. */
+    ASSERT_NE(nullptr, user_context.config->public_key_head);
+
+    /* the public key file is set. */
+    ASSERT_NE(nullptr, user_context.config->public_key_head->filename);
+    /* the filename is what we set above. */
+    EXPECT_EQ(
+        0,
+        strcmp(
+            "public/foo.cert",
+            user_context.config->public_key_head->filename));
+    /* this is the only entry. */
+    EXPECT_EQ(nullptr, user_context.config->public_key_head->hdr.next);
+
+    dispose((disposable_t*)&user_context);
+}
+
+/**
+ * Test that we can add multiple authorized entities.
+ */
+TEST(config_test, authorized_entities)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(
+        nullptr,
+        state =
+            yy_scan_string(
+                "authorized entities { "
+                    "public/foo.cert "
+                    "public/bar.cert "
+                    "public/baz.cert }",
+                scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are no errors. */
+    ASSERT_EQ(0U, user_context.errors.size());
+
+    /* verify user config. */
+    ASSERT_NE(nullptr, user_context.config);
+    ASSERT_EQ(nullptr, user_context.config->logdir);
+    ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_EQ(nullptr, user_context.config->secret);
+    ASSERT_EQ(nullptr, user_context.config->rootblock);
+    ASSERT_EQ(nullptr, user_context.config->datastore);
+    ASSERT_EQ(nullptr, user_context.config->listen_head);
+    ASSERT_EQ(nullptr, user_context.config->chroot);
+    ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+
+    /* the public key list is NOT NULL. */
+    ASSERT_NE(nullptr, user_context.config->public_key_head);
+    config_public_key_entry_t* pub = user_context.config->public_key_head;
+
+    /* the public key file is set. */
+    ASSERT_NE(nullptr, pub->filename);
+    /* the last filename appears first. */
+    EXPECT_EQ(0, strcmp( "public/baz.cert", pub->filename));
+    /* this is the first entry. */
+    ASSERT_NE(nullptr, pub->hdr.next);
+    pub = (config_public_key_entry_t*)pub->hdr.next;
+
+    /* it's the second filename. */
+    EXPECT_EQ(0, strcmp( "public/bar.cert", pub->filename));
+    /* there is one more entry. */
+    ASSERT_NE(nullptr, pub->hdr.next);
+    pub = (config_public_key_entry_t*)pub->hdr.next;
+
+    /* it's the first filename. */
+    EXPECT_EQ(0, strcmp( "public/foo.cert", pub->filename));
+    /* there are no more entries. */
+    EXPECT_EQ(nullptr, pub->hdr.next);
+
+    dispose((disposable_t*)&user_context);
+}

@@ -103,6 +103,13 @@ static agent_config_t* fold_private_key(
 static config_private_key_entry_t* private_key_new(
     config_context_t* context, const char*);
 void private_key_dispose(void* disp);
+static agent_config_t* fold_public_key(
+    config_context_t* context, agent_config_t* cfg,
+    config_public_key_entry_t* public_key);
+static config_public_key_entry_t* public_key_add_path(
+    config_context_t* context, config_public_key_entry_t* head,
+    const char* path);
+void public_key_dispose(void* disp);
 %}
 
 /* use the full pure API for Bison. */
@@ -116,6 +123,7 @@ void private_key_dispose(void* disp);
 
 /* Tokens. */
 %token <string> APPEND
+%token <string> AUTHORIZED
 %token <string> ARTIFACT
 %token <string> CANONIZATION
 %token <string> CHROOT
@@ -124,6 +132,7 @@ void private_key_dispose(void* disp);
 %token <string> CREATE
 %token <string> DATASTORE
 %token <string> DELETE
+%token <string> ENTITIES
 %token <string> FIELD
 %token <string> IDENTIFIER
 %token <addr> IP
@@ -162,6 +171,8 @@ void private_key_dispose(void* disp);
 %type <string> logdir
 %type <number> loglevel
 %type <private_key> private_key
+%type <public_key> public_key
+%type <public_key> public_key_block
 %type <string> rootblock
 %type <string> secret
 %type <usergroup> usergroup
@@ -216,6 +227,9 @@ conf : {
     | conf private_key {
             /* fold in a private key. */
             MAYBE_ASSIGN($$, fold_private_key(context, $1, $2)); }
+    | conf public_key {
+            /* fold in public key. */
+            MAYBE_ASSIGN($$, fold_public_key(context, $1, $2)); }
     ;
 
 /* Provide a log directory that is either a simple identifier or a path. */
@@ -410,6 +424,21 @@ private_key
     : PRIVATE KEY PATH {
         /* create a new private_key. */
         MAYBE_ASSIGN($$, private_key_new(context, $3)); }
+    ;
+
+/* handle public key. */
+public_key
+    : AUTHORIZED ENTITIES LBRACE public_key_block RBRACE {
+        /* ownership is forwarded. */
+        $$ = $4; }
+    ;
+
+public_key_block
+    : {
+        /* start with a null block. */
+        $$ = NULL; }
+    | public_key_block PATH {
+        MAYBE_ASSIGN($$, public_key_add_path(context, $1, $2)); }
     ;
 %%
 
@@ -1149,6 +1178,77 @@ void private_key_dispose(void* disp)
     config_private_key_entry_t* private_key = (config_private_key_entry_t*)disp;
 
     free((char*)private_key->filename);
+}
+
+/**
+ * \brief Fold public key into the config.
+ */
+static agent_config_t* fold_public_key(
+    config_context_t* UNUSED(context), agent_config_t* cfg,
+    config_public_key_entry_t* public_key)
+{
+    /* if there are no entries, exit. */
+    if (NULL == public_key)
+    {
+        return cfg;
+    }
+
+    /* if there are no entries, add them. */
+    if (NULL == cfg->public_key_head)
+    {
+        cfg->public_key_head = public_key;
+    }
+    /* otherwise, iterate through the entries to find the last entry, and fix up
+     * the head with these entries. This preserves the list in reverse order. */
+    else
+    {
+        config_public_key_entry_t* tmp = public_key;
+
+        /* get to the last new entry. */
+        while (NULL != tmp->hdr.next)
+        {
+            tmp = (config_public_key_entry_t*)tmp->hdr.next;
+        }
+
+        /* set the head of this entry to our current head. */
+        tmp->hdr.next = (config_disposable_list_node_t*)cfg->public_key_head;
+
+        /* set the public key head to the first entry. */
+        cfg->public_key_head = public_key;
+    }
+
+    return cfg;
+}
+
+/**
+ * \brief Add a public key file path to the config. */
+static config_public_key_entry_t* public_key_add_path(
+    config_context_t* context, config_public_key_entry_t* head,
+    const char* path)
+{
+    config_public_key_entry_t* ret =
+        (config_public_key_entry_t*)malloc(sizeof(config_public_key_entry_t));
+    if (NULL == ret)
+    {
+        CONFIG_ERROR("Out of memory in public_key_new().");
+    }
+
+    memset(ret, 0, sizeof(config_public_key_entry_t));
+    ret->hdr.hdr.dispose = &public_key_dispose;
+    ret->hdr.next = (config_disposable_list_node_t*)head;
+    ret->filename = strdup(path);
+
+    return ret;
+}
+
+/**
+ * \brief Dispose of a public key entry.
+ */
+void public_key_dispose(void* disp)
+{
+    config_public_key_entry_t* public_key = (config_public_key_entry_t*)disp;
+
+    free((char*)public_key->filename);
 }
 
 /**
