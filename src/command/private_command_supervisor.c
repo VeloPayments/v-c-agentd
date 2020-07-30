@@ -123,6 +123,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     int data_for_canonization_svc_log_dummy_sock = -1;
     int unauth_protocol_svc_random_sock = -1;
     int unauth_protocol_svc_accept_sock = -1;
+    int unauth_protocol_svc_control_sock = -1;
     int auth_protocol_svc_data_sock = -1;
     int canonization_svc_data_sock = -1;
     int canonization_svc_random_sock = -1;
@@ -224,8 +225,8 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     TRY_OR_FAIL(
         supervisor_create_protocol_service(
             &protocol_service, bconf, &conf, &unauth_protocol_svc_random_sock,
-            &unauth_protocol_svc_accept_sock, &auth_protocol_svc_data_sock,
-            &unauth_protocol_svc_log_sock),
+            &unauth_protocol_svc_accept_sock, &unauth_protocol_svc_control_sock,
+            &auth_protocol_svc_data_sock, &unauth_protocol_svc_log_sock),
         cleanup_data_for_auth_protocol_service);
 
 #if AUTHSERVICE

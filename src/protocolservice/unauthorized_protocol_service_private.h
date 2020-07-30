@@ -88,6 +88,16 @@ typedef enum unauthorized_protocol_connection_state
 } unauthorized_protocol_connection_state_t;
 
 /**
+ * \brief An entity authorized to connect to this service.
+ */
+typedef struct ups_authorized_entity ups_authorized_entity_t;
+
+/**
+ * \brief The private key for this instance.
+ */
+typedef struct ups_private_key ups_private_key_t;
+
+/**
  * \brief Context for an unauthorized protocol connection.
  */
 typedef struct unauthorized_protocol_connection
@@ -130,6 +140,7 @@ struct unauthorized_protocol_service_instance
      * dynamically determined. */
     unauthorized_protocol_connection_t* dataservice_child_map[1024];
     ipc_socket_context_t random;
+    ipc_socket_context_t control;
     ipc_socket_context_t data;
     ipc_socket_context_t proto;
     ipc_event_loop_context_t loop;
@@ -140,6 +151,34 @@ struct unauthorized_protocol_service_instance
     vccrypt_buffer_t authorized_entity_pubkey;
     uint8_t agent_id[16];
     uint8_t authorized_entity_id[16];
+    ups_private_key_t* private_key;
+    ups_authorized_entity_t* entity_head;
+};
+
+/**
+ * \brief An entity authorized to connect to this service.
+ */
+struct ups_authorized_entity
+{
+    disposable_t hdr;
+    ups_authorized_entity_t* next;
+    uint8_t id[16];
+    vccrypt_buffer_t enc_pubkey;
+    vccrypt_buffer_t sign_pubkey;
+};
+
+/**
+ * \brief A private key for this service.
+ */
+struct ups_private_key
+{
+    disposable_t hdr;
+    ups_authorized_entity_t* next;
+    uint8_t id[16];
+    vccrypt_buffer_t enc_pubkey;
+    vccrypt_buffer_t enc_privkey;
+    vccrypt_buffer_t sign_pubkey;
+    vccrypt_buffer_t sign_privkey;
 };
 
 /**
@@ -195,6 +234,7 @@ void unauthorized_protocol_connection_push_front(
  *
  * \param inst          The service instance to initialize.
  * \param random        The random socket to use for this instance.
+ * \param control       The control socket to use for this instance.
  * \param data          The dataservice socket to use for this instance.
  * \param proto         The protocol socket to use for this instance.
  * \param max_socks     The maximum number of socket connections to accept.
@@ -202,8 +242,8 @@ void unauthorized_protocol_connection_push_front(
  * \returns a status code indicating success or failure.
  */
 int unauthorized_protocol_service_instance_init(
-    unauthorized_protocol_service_instance_t* inst, int random, int data,
-    int proto, size_t max_socks);
+    unauthorized_protocol_service_instance_t* inst, int random, int control,
+    int data, int proto, size_t max_socks);
 
 /**
  * \brief Handle read events on the protocol socket.
@@ -258,6 +298,168 @@ void unauthorized_protocol_service_random_read(
  */
 void unauthorized_protocol_service_random_write(
     ipc_socket_context_t* ctx, int event_flags, void* user_context);
+
+/**
+ * \brief Read data from the control socket.
+ *
+ * \param ctx           The socket context triggering this event.
+ * \param event_flags   The flags for this event.
+ * \param user_context  The user context for this event.
+ */
+void unauthorized_protocol_service_control_read(
+    ipc_socket_context_t* ctx, int event_flags, void* user_context);
+
+/**
+ * \brief Write data to the control socket.
+ *
+ * \param ctx           The socket context triggering this event.
+ * \param event_flags   The flags for this event.
+ * \param user_context  The user context for this event.
+ */
+void unauthorized_protocol_service_control_write(
+    ipc_socket_context_t* ctx, int event_flags, void* user_context);
+
+/**
+ * \brief Decode and dispatch requests received by the protocol service on
+ * the control socket.
+ *
+ * Returns \ref AGENTD_STATUS_SUCCESS on success or non-fatal error.  If a
+ * non-zero error message is returned, then a fatal error has occurred that
+ * should not be recovered from. Any additional information on the socket is
+ * suspect.
+ *
+ * \param instance      The instance on which the dispatch occurs.
+ * \param sock          The socket on which the request was received and the
+ *                      response is to be written.
+ * \param req           The request to be decoded and dispatched.
+ * \param size          The size of the request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_PROTOCOLSERVICE_REQUEST_PACKET_INVALID_SIZE if the
+ *        request packet size is invalid.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered in this operation.
+ *      - AGENTD_ERROR_PROTOCOLSERVICE_IPC_WRITE_DATA_FAILURE if data could
+ *        not be written to the control socket.
+ */
+int unauthorized_protocol_service_control_decode_and_dispatch(
+    unauthorized_protocol_service_instance_t* instance,
+    ipc_socket_context_t* sock, const void* req, size_t size);
+
+/**
+ * \brief Write a status response to the socket.
+ *
+ * Returns \ref AGENTD_STATUS_SUCCESS on success or non-fatal error.  If a
+ * non-zero error message is returned, then a fatal error has occurred that
+ * should not be recovered from.
+ *
+ * \param sock          The socket on which the request was received and the
+ *                      response is to be written.
+ * \param method        The API method of this request.
+ * \param offset        The offset for the child context.
+ * \param status        The status returned from this API method.
+ * \param data          Additional payload data for this call.  May be NULL.
+ * \param data_size     The size of this additional payload data.  Must be 0 if
+ *                      data is NULL.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered in this operation.
+ *      - AGENTD_ERROR_PROTOCOLSERVICE_IPC_WRITE_DATA_FAILURE if data could
+ *        not be written to the client socket
+ */
+int ups_control_decode_and_dispatch_write_status(
+    ipc_socket_context_t* sock, uint32_t method, uint32_t offset,
+    uint32_t status, void* data, size_t data_size);
+
+/**
+ * \brief Decode and dispatch an authorized entity add request.
+ *
+ * Returns \ref AGENTD_STATUS_SUCCESS on success or non-fatal error.  If a
+ * non-zero error message is returned, then a fatal error has occurred that
+ * should not be recovered from. Any additional information on the socket is
+ * suspect.
+ *
+ * \param instance      The instance on which the dispatch occurs.
+ * \param sock          The socket on which the request was received and the
+ *                      response is to be written.
+ * \param req           The request to be decoded and dispatched.
+ * \param size          The size of the request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered in this operation.
+ *      - AGENTD_ERROR_PROTOCOLSERVICE_IPC_WRITE_DATA_FAILURE if data could
+ *        not be written to the client socket.
+ */
+int ups_control_decode_and_dispatch_auth_entity_add(
+    unauthorized_protocol_service_instance_t* instance,
+    ipc_socket_context_t* sock, const void* req, size_t size);
+
+/**
+ * \brief Decode and dispatch a private key set request
+ *
+ * Returns \ref AGENTD_STATUS_SUCCESS on success or non-fatal error.  If a
+ * non-zero error message is returned, then a fatal error has occurred that
+ * should not be recovered from. Any additional information on the socket is
+ * suspect.
+ *
+ * \param instance      The instance on which the dispatch occurs.
+ * \param sock          The socket on which the request was received and the
+ *                      response is to be written.
+ * \param req           The request to be decoded and dispatched.
+ * \param size          The size of the request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered in this operation.
+ *      - AGENTD_ERROR_PROTOCOLSERVICE_IPC_WRITE_DATA_FAILURE if data could
+ *        not be written to the client socket.
+ */
+int ups_control_decode_and_dispatch_private_key_set(
+    unauthorized_protocol_service_instance_t* instance,
+    ipc_socket_context_t* sock, const void* req, size_t size);
+
+/**
+ * \brief Add an authorized entity to the protocol service.
+ *
+ * \param instance      The instance to which the authorized entity is added.
+ * \param entity_id     The UUID of this entity.
+ * \param enckey        The raw bytes of the encryption public key.
+ * \param signkey       The raw bytes of the signing public key.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered in this operation.
+ */
+int ups_authorized_entity_add(
+    unauthorized_protocol_service_instance_t* instance,
+    const uint8_t* entity_id, const uint8_t* enckey, const uint8_t* signkey);
+
+/**
+ * \brief Set the private key for the protocol service.
+ *
+ * \param instance      The instance for which the private key is set.
+ * \param entity_id     The UUID of the blockchain agent entity.
+ * \param encpub        The raw bytes of the encryption public key.
+ * \param encpriv       The raw bytes of the encryption private key.
+ * \param signpub       The raw bytes of the signing public key.
+ * \param signpriv      The raw bytes of the signing private key.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered in this operation.
+ */
+int ups_private_key_set(
+    unauthorized_protocol_service_instance_t* instance,
+    const uint8_t* entity_id, const uint8_t* encpub, const uint8_t* encpriv,
+    const uint8_t* signpub, const uint8_t* signpriv);
 
 /**
  * \brief Read data from the data service socket.

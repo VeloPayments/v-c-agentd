@@ -128,6 +128,12 @@ extern "C" {
  */
 #define AGENTD_FD_UNAUTHORIZED_PROTOSVC_RANDOM ((int)3)
 
+/**
+ * \brief File descriptor for the unauthorized protocol service control socket.
+ * Used by the unauthorized protocol service private command.
+ */
+#define AGENTD_FD_UNAUTHORIZED_PROTOSVC_CONTROL ((int)4)
+
 /******************************************************************************/
 /* Random Service                                                             */
 /******************************************************************************/
