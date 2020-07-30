@@ -35,6 +35,7 @@
  * \param randomsock    Socket used to communicate with the random service.
  * \param logsock       Socket used to communicate with the logger.
  * \param acceptsock    Socket used to receive accepted peers.
+ * \param controlsock   Socket used to send commands to this service.
  * \param datasock      Socket used to communicate with the data service.
  * \param protopid      Pointer to the protocol service pid, to be updated on
  *                      the successful completion of this function.
@@ -65,7 +66,8 @@
  */
 int unauthorized_protocol_proc(
     const bootstrap_config_t* bconf, const agent_config_t* conf, int randomsock,
-    int logsock, int acceptsock, int datasock, pid_t* protopid, bool runsecure)
+    int logsock, int acceptsock, int controlsock, int datasock, pid_t* protopid,
+    bool runsecure)
 {
     int retval = 1;
     uid_t uid;
@@ -134,7 +136,8 @@ int unauthorized_protocol_proc(
         /* move the fds out of the way. */
         if (AGENTD_STATUS_SUCCESS !=
             privsep_protect_descriptors(
-                &randomsock, &acceptsock, &logsock, &datasock, NULL))
+                &randomsock, &acceptsock, &controlsock, &logsock, &datasock,
+                NULL))
         {
             retval = AGENTD_ERROR_CONFIG_PRIVSEP_SETFDS_FAILURE;
             goto done;
@@ -154,6 +157,7 @@ int unauthorized_protocol_proc(
             privsep_setfds(
                 randomsock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_RANDOM,
                 acceptsock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_ACCEPT,
+                controlsock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_CONTROL,
                 logsock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_LOG,
                 datasock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_DATA,
                 -1);
@@ -166,7 +170,7 @@ int unauthorized_protocol_proc(
 
         /* close any socket above the given value. */
         retval =
-            privsep_close_other_fds(AGENTD_FD_UNAUTHORIZED_PROTOSVC_RANDOM);
+            privsep_close_other_fds(AGENTD_FD_UNAUTHORIZED_PROTOSVC_CONTROL);
         if (0 != retval)
         {
             perror("privsep_close_other_fds");

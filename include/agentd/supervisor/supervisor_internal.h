@@ -116,6 +116,7 @@ int supervisor_create_data_service_for_canonizationservice(
  *                              valid for the lifetime of the service.
  * \param random_socket         The random socket descriptor.
  * \param accept_socket         The accept socket descriptor.
+ * \param control_socket        The control socket descriptor.
  * \param data_socket           The data socket descriptor.
  * \param log_socket            The log socket descriptor.
  *
@@ -126,7 +127,7 @@ int supervisor_create_data_service_for_canonizationservice(
 int supervisor_create_protocol_service(
     process_t** svc, const bootstrap_config_t* bconf,
     const agent_config_t* conf, int* random_socket, int* accept_socket,
-    int* data_socket, int* log_socket);
+    int* control_socket, int* data_socket, int* log_socket);
 
 /**
  * \brief Create the auth service as a process that can be started.

@@ -3,7 +3,7 @@
  *
  * Private header for the unauthorized data service isolation tests.
  *
- * \copyright 2019 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2020 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_UNAUTHORIZED_PROTOCOL_SERVICE_ISOLATION_HEADER_GUARD
@@ -46,6 +46,7 @@ protected:
     bootstrap_config_t bconf;
     agent_config_t conf;
     int acceptsock;
+    int controlsock;
     int datasock;
     int logsock;
     int protosock;

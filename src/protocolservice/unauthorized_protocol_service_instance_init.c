@@ -31,6 +31,7 @@ static int convert_hexstring(
  *
  * \param inst          The service instance to initialize.
  * \param random        The random socket to use for this instance.
+ * \param control       The control socket to use for this instance.
  * \param data          The dataservice socket to use for this instance.
  * \param proto         The protocol socket to use for this instance.
  * \param max_socks     The maximum number of socket connections to accept.
@@ -38,8 +39,8 @@ static int convert_hexstring(
  * \returns a status code indicating success or failure.
  */
 int unauthorized_protocol_service_instance_init(
-    unauthorized_protocol_service_instance_t* inst, int random, int data,
-    int proto, size_t max_socks)
+    unauthorized_protocol_service_instance_t* inst, int random, int control,
+    int data, int proto, size_t max_socks)
 {
     int retval = AGENTD_STATUS_SUCCESS;
 
@@ -47,6 +48,7 @@ int unauthorized_protocol_service_instance_init(
     MODEL_ASSERT(NULL != inst);
     MODEL_ASSERT(proto >= 0);
     MODEL_ASSERT(random >= 0);
+    MODEL_ASSERT(control >= 0);
     MODEL_ASSERT(data >= 0);
     MODEL_ASSERT(max_socks > 0);
 
@@ -117,11 +119,19 @@ int unauthorized_protocol_service_instance_init(
         goto cleanup_proto;
     }
 
+    /* set the control socket to non-blocking. */
+    if (AGENTD_STATUS_SUCCESS !=
+        ipc_make_noblock(control, &inst->control, inst))
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_IPC_MAKE_NOBLOCK_FAILURE;
+        goto cleanup_random;
+    }
+
     /* set the data socket to non-blocking. */
     if (AGENTD_STATUS_SUCCESS != ipc_make_noblock(data, &inst->data, inst))
     {
         retval = AGENTD_ERROR_PROTOCOLSERVICE_IPC_MAKE_NOBLOCK_FAILURE;
-        goto cleanup_random;
+        goto cleanup_control;
     }
 
     /* initialize the IPC event loop instance. */
@@ -173,6 +183,9 @@ cleanup_loop:
 
 cleanup_data:
     dispose((disposable_t*)&inst->data);
+
+cleanup_control:
+    dispose((disposable_t*)&inst->control);
 
 cleanup_random:
     dispose((disposable_t*)&inst->random);
@@ -232,11 +245,31 @@ static void unauthorized_protocol_service_instance_dispose(void* disposable)
         inst->num_connections * sizeof(unauthorized_protocol_connection_t));
     free(inst->connections);
 
+    /* dispose of authorized entities. */
+    while (NULL != inst->entity_head)
+    {
+        ups_authorized_entity_t* tmp = inst->entity_head->next;
+        inst->entity_head->next = NULL;
+        dispose((disposable_t*)inst->entity_head);
+        free(inst->entity_head);
+        inst->entity_head = tmp;
+    }
+
+    /* dispose of private key if set. */
+    if (NULL != inst->private_key)
+    {
+        dispose((disposable_t*)inst->private_key);
+        free(inst->private_key);
+    }
+
     /* dispose of the proto socket. */
     dispose((disposable_t*)&inst->proto);
 
     /* dispose of the random socket. */
     dispose((disposable_t*)&inst->random);
+
+    /* dispose of the control socket. */
+    dispose((disposable_t*)&inst->control);
 
     /* dispose of the data socket. */
     dispose((disposable_t*)&inst->data);

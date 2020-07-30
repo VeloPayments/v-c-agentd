@@ -3,7 +3,7 @@
  *
  * Helpers for the unauthorized protocol service isolation test.
  *
- * \copyright 2019 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2020 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/protocolservice.h>
@@ -157,6 +157,10 @@ void unauthorized_protocol_service_isolation_test::SetUp()
     int acceptsock_srv;
     ipc_socketpair(AF_UNIX, SOCK_DGRAM, 0, &acceptsock, &acceptsock_srv);
 
+    /* create the socket pair for the controlsock. */
+    int controlsock_srv;
+    ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &controlsock, &controlsock_srv);
+
     /* create the bootstrap config. */
     bootstrap_config_init(&bconf);
 
@@ -172,8 +176,8 @@ void unauthorized_protocol_service_isolation_test::SetUp()
     /* spawn the unauthorized protocol service process. */
     proto_proc_status =
         unauthorized_protocol_proc(
-            &bconf, &conf, rprotosock, logsock, acceptsock_srv, datasock_srv,
-            &protopid, false);
+            &bconf, &conf, rprotosock, logsock, acceptsock_srv, controlsock_srv,
+            datasock_srv, &protopid, false);
 
     /* create the mock dataservice. */
     dataservice = make_unique<mock_dataservice::mock_dataservice>(datasock);
@@ -226,6 +230,7 @@ void unauthorized_protocol_service_isolation_test::TearDown()
         close(rlogsock);
     close(datasock);
     close(acceptsock);
+    close(controlsock);
     free(path);
     if (suite_instance_initialized)
     {

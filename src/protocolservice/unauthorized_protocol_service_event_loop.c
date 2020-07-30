@@ -19,6 +19,8 @@
  * \param randomsock    The socket to the RNG service.
  * \param protosock     The protocol service socket.  The protocol service
  *                      listens for connections on this socket.
+ * \param controlsock   The control socket. The supervisor sends commands to the
+ *                      protocol service over this socket.
  * \param datasock      The data service socket.  The protocol service
  *                      communicates with the dataservice using this socket.
  * \param logsock       The logging service socket.  The protocol service logs
@@ -36,7 +38,8 @@
  *            the protocol service event loop failed.
  */
 int unauthorized_protocol_service_event_loop(
-    int randomsock, int protosock, int datasock, int UNUSED(logsock))
+    int randomsock, int protosock, int controlsock, int datasock,
+    int UNUSED(logsock))
 {
     int retval = 0;
     unauthorized_protocol_service_instance_t inst;
@@ -50,7 +53,7 @@ int unauthorized_protocol_service_event_loop(
     /* TODO - get the number of connections from config. */
     retval =
         unauthorized_protocol_service_instance_init(
-            &inst, randomsock, datasock, protosock, 1000);
+            &inst, randomsock, controlsock, datasock, protosock, 1000);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         goto done;
@@ -62,6 +65,17 @@ int unauthorized_protocol_service_event_loop(
 
     /* add the protocol socket to the event loop. */
     if (AGENTD_STATUS_SUCCESS != ipc_event_loop_add(&inst.loop, &inst.proto))
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_IPC_EVENT_LOOP_ADD_FAILURE;
+        goto cleanup_inst;
+    }
+
+    /* set the read callback for the control socket. */
+    ipc_set_readcb_noblock(
+        &inst.control, &unauthorized_protocol_service_control_read, NULL);
+
+    /* add the control socket to the event loop. */
+    if (AGENTD_STATUS_SUCCESS != ipc_event_loop_add(&inst.loop, &inst.control))
     {
         retval = AGENTD_ERROR_PROTOCOLSERVICE_IPC_EVENT_LOOP_ADD_FAILURE;
         goto cleanup_inst;

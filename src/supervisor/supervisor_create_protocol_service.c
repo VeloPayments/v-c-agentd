@@ -21,6 +21,7 @@ typedef struct protocol_process
     const agent_config_t* conf;
     int* random_socket;
     int* accept_socket;
+    int control_socket;
     int* data_socket;
     int* log_socket;
 } protocol_process_t;
@@ -40,6 +41,7 @@ static int supervisor_start_protocol_service(process_t* proc);
  *                              valid for the lifetime of the service.
  * \param random_socket         The random socket descriptor.
  * \param accept_socket         The accept socket descriptor.
+ * \param control_socket        The control socket descriptor.
  * \param data_socket           The data socket descriptor.
  * \param log_socket            The log socket descriptor.
  *
@@ -50,7 +52,7 @@ static int supervisor_start_protocol_service(process_t* proc);
 int supervisor_create_protocol_service(
     process_t** svc, const bootstrap_config_t* bconf,
     const agent_config_t* conf, int* random_socket, int* accept_socket,
-    int* data_socket, int* log_socket)
+    int* control_socket, int* data_socket, int* log_socket)
 {
     int retval;
 
@@ -74,10 +76,24 @@ int supervisor_create_protocol_service(
     protocol_proc->data_socket = data_socket;
     protocol_proc->log_socket = log_socket;
 
+    /* create the socketpair for the control socket. */
+    retval =
+        ipc_socketpair(
+            AF_UNIX, SOCK_STREAM, 0, control_socket,
+            &protocol_proc->control_socket);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_protocol_proc;
+    }
+
     /* success */
     retval = AGENTD_STATUS_SUCCESS;
     *svc = (process_t*)protocol_proc;
     goto done;
+
+cleanup_protocol_proc:
+    memset(protocol_proc, 0, sizeof(protocol_process_t));
+    free(protocol_proc);
 
 done:
     return retval;
@@ -96,19 +112,20 @@ static int supervisor_start_protocol_service(process_t* proc)
     protocol_process_t* protocol_proc = (protocol_process_t*)proc;
     int retval;
 
-    /* attempt to create the listener service. */
+    /* attempt to create the protocol service. */
     TRY_OR_FAIL(
         unauthorized_protocol_proc(
             protocol_proc->bconf, protocol_proc->conf,
             *protocol_proc->random_socket, *protocol_proc->log_socket,
-            *protocol_proc->accept_socket, *protocol_proc->data_socket,
-            &protocol_proc->hdr.process_id, true),
+            *protocol_proc->accept_socket, protocol_proc->control_socket,
+            *protocol_proc->data_socket, &protocol_proc->hdr.process_id, true),
         done);
 
     /* if successful, the child process owns the sockets. */
     *protocol_proc->random_socket = -1;
     *protocol_proc->log_socket = -1;
     *protocol_proc->accept_socket = -1;
+    protocol_proc->control_socket = -1;
     *protocol_proc->data_socket = -1;
 
     /* success */
@@ -144,6 +161,13 @@ static void supervisor_dispose_protocol_service(void* disposable)
     {
         close(*protocol_proc->log_socket);
         *protocol_proc->log_socket = -1;
+    }
+
+    /* clean up the control socket if valid. */
+    if (protocol_proc->control_socket > 0)
+    {
+        close(protocol_proc->control_socket);
+        protocol_proc->control_socket = -1;
     }
 
     /* clean up the data socket if valid. */
