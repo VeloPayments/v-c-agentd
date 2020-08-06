@@ -20,6 +20,7 @@
 #include <agentd/status_codes/process.h>
 #include <agentd/status_codes/protocolservice.h>
 #include <agentd/status_codes/randomservice.h>
+#include <agentd/status_codes/reader.h>
 #include <agentd/status_codes/supervisor.h>
 
 /* make this header C++ friendly. */
