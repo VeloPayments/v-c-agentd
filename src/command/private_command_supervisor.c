@@ -108,6 +108,8 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     process_t* data_for_canonizationservice;
     process_t* protocol_service;
     process_t* canonizationservice;
+    config_public_entity_node_t* public_entities;
+    config_private_key_t private_key;
 
     int random_svc_log_sock = -1;
     int random_svc_log_dummy_sock = -1;
@@ -142,54 +144,64 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     /* read config. */
     TRY_OR_FAIL(config_read_proc(bconf, &conf), done);
 
+    /* Spawn a process to read the public entities. */
+    TRY_OR_FAIL(
+        config_read_public_entities_proc(bconf, &conf, &public_entities),
+        cleanup_config);
+
+    /* Spawn a process to read the private key. */
+    TRY_OR_FAIL(
+        config_read_private_key_proc(bconf, &conf, &private_key),
+        cleanup_public_entities);
+
     /* TODO - replace with log service. */
     TRY_OR_FAIL(
         ipc_socketpair(
             AF_UNIX, SOCK_STREAM, 0,
             &random_svc_log_sock, &random_svc_log_dummy_sock),
-        cleanup_config);
+        cleanup_private_key);
     TRY_OR_FAIL(
         ipc_socketpair(
             AF_UNIX, SOCK_STREAM, 0,
             &random_svc_for_canonization_log_sock,
             &random_svc_for_canonization_log_dummy_sock),
-        cleanup_config);
+        cleanup_private_key);
     TRY_OR_FAIL(
         ipc_socketpair(
             AF_UNIX, SOCK_STREAM, 0,
             &listen_svc_log_sock, &listen_svc_log_dummy_sock),
-        cleanup_config);
+        cleanup_private_key);
     TRY_OR_FAIL(
         ipc_socketpair(
             AF_UNIX, SOCK_STREAM, 0,
             &unauth_protocol_svc_log_sock,
             &unauth_protocol_svc_log_dummy_sock),
-        cleanup_config);
+        cleanup_private_key);
     TRY_OR_FAIL(
         ipc_socketpair(
             AF_UNIX, SOCK_STREAM, 0,
             &data_for_auth_protocol_svc_log_sock,
             &data_for_auth_protocol_svc_log_dummy_sock),
-        cleanup_config);
+        cleanup_private_key);
     TRY_OR_FAIL(
         ipc_socketpair(
             AF_UNIX, SOCK_STREAM, 0,
             &data_for_canonization_svc_log_sock,
             &data_for_canonization_svc_log_dummy_sock),
-        cleanup_config);
+        cleanup_private_key);
     TRY_OR_FAIL(
         ipc_socketpair(
             AF_UNIX, SOCK_STREAM, 0,
             &canonization_svc_log_sock,
             &canonization_svc_log_dummy_sock),
-        cleanup_config);
+        cleanup_private_key);
 #if AUTHSERVICE
     TRY_OR_FAIL(
         ipc_socketpair(
             AF_UNIX, SOCK_STREAM, 0,
             &auth_svc_log_sock,
             &auth_svc_log_dummy_sock),
-        cleanup_config);
+        cleanup_private_key);
 #endif /*AUTHSERVICE*/
 
     /* create random service. */
@@ -197,7 +209,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
         supervisor_create_random_service(
             &random_service, bconf, &conf, &random_svc_log_sock,
             &unauth_protocol_svc_random_sock),
-        cleanup_config);
+        cleanup_private_key);
 
     /* create random service for canonization service. */
     TRY_OR_FAIL(
@@ -330,6 +342,20 @@ cleanup_random_for_canonizationservice:
 
 cleanup_random_service:
     CLEANUP_PROCESS(random_service);
+
+cleanup_private_key:
+    dispose((disposable_t*)&private_key);
+
+cleanup_public_entities:
+    while (NULL != public_entities)
+    {
+        config_public_entity_node_t* tmp =
+            (config_public_entity_node_t*)public_entities->hdr.next;
+
+        dispose((disposable_t*)public_entities);
+        free(public_entities);
+        public_entities = tmp;
+    }
 
 cleanup_config:
     dispose((disposable_t*)&conf);

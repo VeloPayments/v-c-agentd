@@ -38,6 +38,11 @@ int command_readconfig(struct bootstrap_config* bconf);
 void private_command_readconfig(bootstrap_config_t* bconf);
 
 /**
+ * \brief Read public entities.
+ */
+void private_command_read_public_entities(bootstrap_config_t* bconf);
+
+/**
  * \brief Run an unauthorized auth service instance.
  */
 void private_command_authservice(bootstrap_config_t* bconf);

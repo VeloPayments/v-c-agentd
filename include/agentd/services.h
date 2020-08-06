@@ -83,6 +83,11 @@ enum agentd_services
      * \brief Random Service.
      */
     AGENTD_SERVICE_RANDOM = 0x0CU,
+
+    /**
+     * \brief Reader Service.
+     */
+    AGENTD_SERVICE_READER = 0x0DU,
 };
 
 /* make this header C++ friendly. */

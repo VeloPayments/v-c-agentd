@@ -19,6 +19,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <vccrypt/suite.h>
 #include <vpr/disposable.h>
 #include <vpr/uuid.h>
 
@@ -146,6 +147,31 @@ typedef struct config_public_key_entry
     config_disposable_list_node_t hdr;
     const char* filename;
 } config_public_key_entry_t;
+
+/**
+ * \brief Public entity node.
+ */
+typedef struct config_public_entity_node
+{
+    config_disposable_list_node_t hdr;
+    uint8_t id[16];
+    vccrypt_buffer_t enc_pubkey;
+    vccrypt_buffer_t sign_pubkey;
+} config_public_entity_node_t;
+
+/**
+ * \brief Private key.
+ */
+typedef struct config_private_key
+{
+    disposable_t hdr;
+    bool found;
+    uint8_t id[16];
+    vccrypt_buffer_t enc_pubkey;
+    vccrypt_buffer_t enc_privkey;
+    vccrypt_buffer_t sign_pubkey;
+    vccrypt_buffer_t sign_privkey;
+} config_private_key_t;
 
 #define CONFIG_STREAM_TYPE_BOM 0x00
 #define CONFIG_STREAM_TYPE_LOGDIR 0x01
@@ -350,6 +376,90 @@ int config_set_defaults(agent_config_t* conf, const bootstrap_config_t* bconf);
  */
 int config_read_proc(
     const struct bootstrap_config* bconf, agent_config_t* conf);
+
+/**
+ * \brief Spawn a process to read the public entities, populating the provided
+ * public entities structure.
+ *
+ * On success, a public entities structure is initialized with data from the
+ * public entity reader process. This is owned by the caller and must be
+ * disposed by calling \ref dispose() when no longer needed.
+ *
+ * \param bconf         The bootstrap configuration used to spawn the process.
+ * \param conf          The config structure used to spawn the process.
+ * \param entities      The \ref config_public_entity_node_t list to populate.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_READER_PROC_RUNSECURE_ROOT_USER_REQUIRED if spawning this
+ *        process failed because the user is not root and runsecure is true.
+ *      - AGENTD_ERROR_READER_IPC_SOCKETPAIR_FAILURE if creating a socketpair
+ *        for the dataservice process failed.
+ *      - AGENTD_ERROR_READER_FORK_FAILURE if forking the private process
+ *        failed.
+ *      - AGENTD_ERROR_READER_PRIVSEP_LOOKUP_USERGROUP_FAILURE if there was a
+ *        failure looking up the configured user and group for the process.
+ *      - AGENTD_ERROR_READER_PRIVSEP_CHROOT_FAILURE if chrooting failed.
+ *      - AGENTD_ERROR_READER_PRIVSEP_DROP_PRIVILEGES_FAILURE if dropping
+ *        privileges failed.
+ *      - AGENTD_ERROR_READER_PRIVSEP_SETFDS_FAILURE if setting file descriptors
+ *        failed.
+ *      - AGENTD_ERROR_READER_PRIVSEP_EXEC_PRIVATE_FAILURE if executing the
+ *        private command failed.
+ *      - AGENTD_ERROR_READER_PRIVSEP_EXEC_SURVIVAL_WEIRDNESS if the process
+ *        survived execution (weird!).      
+ *      - AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE if reading data from the
+ *        config stream failed.
+ *      - AGENTD_ERROR_READER_PROC_EXIT_FAILURE if the config proc did not
+ *        properly exit.
+ */
+int config_read_public_entities_proc(
+    const struct bootstrap_config* bconf, agent_config_t* conf,
+    config_public_entity_node_t** entities);
+
+/**
+ * \brief Spawn a process to read the private key file, populating the
+ * provided private key structure.
+ *
+ * On success, a private key file structure is initialized with data from the
+ * private key reader process. This is owned by the caller and must be
+ * disposed by calling \ref dispose() when no longer needed.
+ *
+ * \param bconf         The bootstrap configuration used to spawn the process.
+ * \param conf          The config structure used to spawn the process.
+ * \param private_key   The \ref config_private_key_t to populate.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_CONFIG_PROC_RUNSECURE_ROOT_USER_REQUIRED if spawning this
+ *        process failed because the user is not root and runsecure is true.
+ *      - AGENTD_ERROR_CONFIG_IPC_SOCKETPAIR_FAILURE if creating a socketpair
+ *        for the dataservice process failed.
+ *      - AGENTD_ERROR_CONFIG_FORK_FAILURE if forking the private process
+ *        failed.
+ *      - AGENTD_ERROR_CONFIG_PRIVSEP_LOOKUP_USERGROUP_FAILURE if there was a
+ *        failure looking up the configured user and group for the process.
+ *      - AGENTD_ERROR_CONFIG_PRIVSEP_CHROOT_FAILURE if chrooting failed.
+ *      - AGENTD_ERROR_CONFIG_PRIVSEP_DROP_PRIVILEGES_FAILURE if dropping
+ *        privileges failed.
+ *      - AGENTD_ERROR_CONFIG_OPEN_CONFIG_FILE_FAILURE if opening the config
+ *        file failed.
+ *      - AGENTD_ERROR_CONFIG_PRIVSEP_SETFDS_FAILURE if setting file descriptors
+ *        failed.
+ *      - AGENTD_ERROR_CONFIG_PRIVSEP_EXEC_PRIVATE_FAILURE if executing the
+ *        private command failed.
+ *      - AGENTD_ERROR_CONFIG_PRIVSEP_EXEC_SURVIVAL_WEIRDNESS if the process
+ *        survived execution (weird!).      
+ *      - AGENTD_ERROR_CONFIG_IPC_READ_DATA_FAILURE if reading data from the
+ *        config stream failed.
+ *      - AGENTD_ERROR_CONFIG_PROC_EXIT_FAILURE if the config proc did not
+ *        properly exit.
+ *      - AGENTD_ERROR_CONFIG_DEFAULTS_SET_FAILURE if setting the config
+ *        defaults failed.
+ */
+int config_read_private_key_proc(
+    const struct bootstrap_config* bconf, agent_config_t* conf,
+    config_private_key_t* private_key);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
