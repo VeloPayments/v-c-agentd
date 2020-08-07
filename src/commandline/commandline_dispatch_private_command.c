@@ -36,6 +36,12 @@ void commandline_dispatch_private_command(
         bootstrap_config_set_private_command(
             bconf, private_command_read_public_entities);
     }
+    /* is this the read_private_key command? */
+    else if (!strcmp(command, "read_private_key"))
+    {
+        bootstrap_config_set_private_command(
+            bconf, private_command_read_private_key);
+    }
     /* is this the dataservice private command? */
     else if (!strcmp(command, "dataservice"))
     {
