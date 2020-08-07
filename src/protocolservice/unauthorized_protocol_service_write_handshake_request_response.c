@@ -41,6 +41,13 @@ int unauthorized_protocol_service_write_handshake_request_response(
     /* |    server_cr_hmac                                   |  32 bytes    | */
     /* | --------------------------------------------------- | ------------ | */
 
+    /* verify that the private key instance has been set. */
+    if (NULL == conn->svc->private_key)
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_MISSING_PRIVATE_KEY;
+        goto done;
+    }
+
     /* create key agreement instance. */
     vccrypt_key_agreement_context_t agreement;
     retval =
@@ -54,9 +61,9 @@ int unauthorized_protocol_service_write_handshake_request_response(
     /* Derive the shared secret using the key nonces. */
     retval =
         vccrypt_key_agreement_short_term_secret_create(
-            &agreement, &conn->svc->agent_privkey, &conn->entity_public_key,
-            &conn->server_key_nonce, &conn->client_key_nonce,
-            &conn->shared_secret);
+            &agreement, &conn->svc->private_key->enc_privkey,
+            &conn->entity_public_key, &conn->server_key_nonce,
+            &conn->client_key_nonce, &conn->shared_secret);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         goto cleanup_agreement;
@@ -69,8 +76,16 @@ int unauthorized_protocol_service_write_handshake_request_response(
     uint32_t crypto_suite = htonl(VCCRYPT_SUITE_VELO_V1);
     int32_t status = htonl(AGENTD_STATUS_SUCCESS);
     size_t payload_size =
-        sizeof(request_id) + sizeof(offset) + sizeof(status) + sizeof(protocol_version) + sizeof(crypto_suite) + 16 /* agent id */
-        + conn->svc->agent_pubkey.size + conn->server_key_nonce.size + conn->server_challenge_nonce.size + conn->svc->suite.mac_short_opts.mac_size;
+          sizeof(request_id)
+        + sizeof(offset)
+        + sizeof(status)
+        + sizeof(protocol_version)
+        + sizeof(crypto_suite)
+        + 16 /* agent id */
+        + conn->svc->private_key->enc_pubkey.size
+        + conn->server_key_nonce.size
+        + conn->server_challenge_nonce.size
+        + conn->svc->suite.mac_short_opts.mac_size;
 
     /* Create the response packet payload buffer. */
     vccrypt_buffer_t payload;
@@ -96,10 +111,12 @@ int unauthorized_protocol_service_write_handshake_request_response(
     pbuf += sizeof(protocol_version);
     memcpy(pbuf, &crypto_suite, sizeof(crypto_suite));
     pbuf += sizeof(crypto_suite);
-    memcpy(pbuf, conn->svc->agent_id, 16);
+    memcpy(pbuf, conn->svc->private_key->id, 16);
     pbuf += 16;
-    memcpy(pbuf, conn->svc->agent_pubkey.data, conn->svc->agent_pubkey.size);
-    pbuf += conn->svc->agent_pubkey.size;
+    memcpy(
+        pbuf, conn->svc->private_key->enc_pubkey.data,
+        conn->svc->private_key->enc_pubkey.size);
+    pbuf += conn->svc->private_key->enc_pubkey.size;
     memcpy(pbuf, conn->server_key_nonce.data, conn->server_key_nonce.size);
     pbuf += conn->server_key_nonce.size;
     memcpy(

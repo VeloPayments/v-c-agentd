@@ -154,6 +154,12 @@ extern "C" {
 #define AGENTD_ERROR_PROTOCOLSERVICE_PRIVATE_KEY_ALREADY_SET \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x0017U)
 
+/**
+ * \brief The private key is missing.
+ */
+#define AGENTD_ERROR_PROTOCOLSERVICE_MISSING_PRIVATE_KEY \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x0018U)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }

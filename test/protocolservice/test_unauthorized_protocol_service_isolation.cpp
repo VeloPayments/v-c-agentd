@@ -338,6 +338,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, handshake_request_happy)
     /* we must have a valid crypto suite for this to work. */
     ASSERT_TRUE(suite_initialized);
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* write the handshake request to the socket. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         protocolservice_api_sendreq_handshake_request_block(
@@ -365,7 +368,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, handshake_request_happy)
     /* the server public key is correct. */
     EXPECT_EQ(32U, server_public_key.size);
     EXPECT_EQ(0,
-        memcmp(server_public_key.data, agent_pubkey, server_public_key.size));
+        memcmp(
+            server_public_key.data, agent_enc_pubkey_buffer,
+            server_public_key.size));
 
     dispose((disposable_t*)&client_key_nonce);
     dispose((disposable_t*)&client_challenge_nonce);
@@ -393,6 +398,9 @@ TEST_F(unauthorized_protocol_service_isolation_test,
 
     /* we must have a valid crypto suite for this to work. */
     ASSERT_TRUE(suite_initialized);
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* write the handshake request to the socket. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -472,6 +480,9 @@ TEST_F(unauthorized_protocol_service_isolation_test,
 
     /* we must have a valid crypto suite for this to work. */
     ASSERT_TRUE(suite_initialized);
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* write the handshake request to the socket. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -565,6 +576,9 @@ TEST_F(unauthorized_protocol_service_isolation_test,
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -671,6 +685,9 @@ TEST_F(unauthorized_protocol_service_isolation_test,
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -761,6 +778,9 @@ TEST_F(unauthorized_protocol_service_isolation_test,
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -837,6 +857,9 @@ TEST_F(unauthorized_protocol_service_isolation_test,
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -925,6 +948,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, block_get_by_id_not_found)
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -1026,6 +1052,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, block_get_by_id_happy_path)
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -1137,6 +1166,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, block_get_next_id)
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -1244,6 +1276,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, block_get_next_id_end)
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -1346,6 +1381,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, block_get_prev_id)
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -1454,6 +1492,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, block_get_prev_id_end)
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -1554,6 +1595,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, txn_get_by_id_happy_path)
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -1665,6 +1709,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, txn_get_next_id_happy_path)
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -1772,6 +1819,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, txn_get_next_id_end)
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -1874,6 +1924,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, txn_get_prev_id_happy_path)
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -1982,6 +2035,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, txn_get_prev_id_end)
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -2084,6 +2140,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, txn_get_block_id_happy_path
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -2190,6 +2249,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, artifact_first_txn_happy)
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -2295,6 +2357,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, artifact_last_txn_happy)
     /* start the mock. */
     dataservice->start();
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         do_handshake(&shared_secret, &server_iv, &client_iv));
@@ -2366,6 +2431,9 @@ TEST_F(unauthorized_protocol_service_isolation_test, status_happy)
 
     /* start the mock. */
     dataservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     /* do the handshake, populating the shared secret on success. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,

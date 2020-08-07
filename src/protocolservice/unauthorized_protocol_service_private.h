@@ -146,11 +146,6 @@ struct unauthorized_protocol_service_instance
     ipc_event_loop_context_t loop;
     allocator_options_t alloc_opts;
     vccrypt_suite_options_t suite;
-    vccrypt_buffer_t agent_pubkey;
-    vccrypt_buffer_t agent_privkey;
-    vccrypt_buffer_t authorized_entity_pubkey;
-    uint8_t agent_id[16];
-    uint8_t authorized_entity_id[16];
     ups_private_key_t* private_key;
     ups_authorized_entity_t* entity_head;
 };

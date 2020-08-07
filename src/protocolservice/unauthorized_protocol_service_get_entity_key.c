@@ -26,18 +26,26 @@
 int unauthorized_protocol_service_get_entity_key(
     unauthorized_protocol_connection_t* conn)
 {
-    /* verify that the entity id is authorized. */
+    /* iterate through the authorized entities. */
     /* TODO - this should perform a database lookup. */
-    if (0 != crypto_memcmp(conn->entity_uuid, conn->svc->authorized_entity_id, 16))
+    ups_authorized_entity_t* tmp = conn->svc->entity_head;
+    while (NULL != tmp)
     {
-        return 1;
+        /* does this entry match the authorized entity? */
+        if (0 == crypto_memcmp(conn->entity_uuid, tmp->id, 16))
+        {
+            /* copy the entity public key. */
+            memcpy(
+                conn->entity_public_key.data, tmp->enc_pubkey.data,
+                conn->entity_public_key.size);
+
+            return AGENTD_STATUS_SUCCESS;
+        }
+
+        /* try the next entry. */
+        tmp = (ups_authorized_entity_t*)tmp->next;
     }
 
-    /* the entity id is valid, so copy the entity public key. */
-    memcpy(
-        conn->entity_public_key.data, conn->svc->authorized_entity_pubkey.data,
-        conn->entity_public_key.size);
-
-    /* success */
-    return AGENTD_STATUS_SUCCESS;
+    /* the entity wasn't found. */
+    return 1;
 }

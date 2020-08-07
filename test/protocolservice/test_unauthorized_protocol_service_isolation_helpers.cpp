@@ -7,6 +7,7 @@
  */
 
 #include <agentd/protocolservice.h>
+#include <agentd/protocolservice/control_api.h>
 #include <agentd/randomservice.h>
 #include <agentd/status_codes.h>
 #include <vpr/allocator/malloc_allocator.h>
@@ -19,66 +20,84 @@ const uint8_t unauthorized_protocol_service_isolation_test::dir_key[32] = {
     0x7e, 0x4b, 0xb1, 0x5d, 0xb5, 0x00, 0x41, 0x95,
     0xb0, 0xed, 0x43, 0x59, 0x43, 0x20, 0x9b, 0x72,
     0x28, 0x07, 0xad, 0xbb, 0x87, 0x70, 0x49, 0x8a,
-    0xac, 0x89, 0x44, 0xcb, 0x23, 0x56, 0x67, 0x3f
-};
+    0xac, 0x89, 0x44, 0xcb, 0x23, 0x56, 0x67, 0x3f };
 
 const uint8_t
     unauthorized_protocol_service_isolation_test::authorized_entity_id[16] = {
         0x6c, 0x36, 0x2b, 0x3e, 0x90, 0x81, 0x4f, 0xcb,
-        0x80, 0xfe, 0x16, 0x35, 0x4e, 0x0a, 0xe2, 0x8f
-    };
-
-const char*
-    unauthorized_protocol_service_isolation_test::authorized_entity_id_string =
-        "6c362b3e-9081-4fcb-80fe-16354e0ae28f";
+        0x80, 0xfe, 0x16, 0x35, 0x4e, 0x0a, 0xe2, 0x8f };
 
 const uint8_t
-    unauthorized_protocol_service_isolation_test::authorized_entity_privkey[32] = {
+unauthorized_protocol_service_isolation_test::
+authorized_entity_enc_privkey_buffer[32] = {
         0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5, 0x7d,
         0x3c, 0x16, 0xc1, 0x72, 0x51, 0xb2, 0x66, 0x45,
         0xdf, 0x4c, 0x2f, 0x87, 0xeb, 0xc0, 0x99, 0x2a,
-        0xb1, 0x77, 0xfb, 0xa5, 0x1d, 0xb9, 0x2c, 0x2a
-    };
+        0xb1, 0x77, 0xfb, 0xa5, 0x1d, 0xb9, 0x2c, 0x2a };
 
 const uint8_t
-    unauthorized_protocol_service_isolation_test::authorized_entity_pubkey[32] = {
+unauthorized_protocol_service_isolation_test::
+authorized_entity_enc_pubkey_buffer[32] = {
         0x85, 0x20, 0xf0, 0x09, 0x89, 0x30, 0xa7, 0x54,
         0x74, 0x8b, 0x7d, 0xdc, 0xb4, 0x3e, 0xf7, 0x5a,
         0x0d, 0xbf, 0x3a, 0x0d, 0x26, 0x38, 0x1a, 0xf4,
-        0xeb, 0xa4, 0xa9, 0x8e, 0xaa, 0x9b, 0x4e, 0x6a
-    };
+        0xeb, 0xa4, 0xa9, 0x8e, 0xaa, 0x9b, 0x4e, 0x6a };
 
-const char*
-    unauthorized_protocol_service_isolation_test::authorized_entity_pubkey_string =
-        "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a";
+const uint8_t
+unauthorized_protocol_service_isolation_test::
+authorized_entity_sign_privkey_buffer[64] = {
+        0x8a, 0x8f, 0xba, 0x09, 0xd4, 0xa7, 0xd6, 0x16,
+        0x9b, 0x2a, 0xf6, 0xc2, 0x79, 0x69, 0xf7, 0x05,
+        0xeb, 0x7a, 0x68, 0x53, 0xb6, 0x46, 0xa2, 0xec,
+        0x8d, 0x75, 0x26, 0xa8, 0x0d, 0x86, 0x6b, 0x2d,
+        0x99, 0xc8, 0x12, 0x1a, 0x69, 0xbb, 0x8e, 0x32,
+        0x9f, 0xf6, 0xc6, 0xcd, 0x5d, 0x48, 0x7e, 0x47,
+        0x3e, 0xb1, 0xbf, 0x04, 0xbf, 0xdf, 0x30, 0xcb,
+        0x57, 0xf2, 0xdb, 0xe0, 0x93, 0xeb, 0xa5, 0x14 };
+
+const uint8_t
+unauthorized_protocol_service_isolation_test::
+authorized_entity_sign_pubkey_buffer[32] = {
+        0x99, 0xc8, 0x12, 0x1a, 0x69, 0xbb, 0x8e, 0x32,
+        0x9f, 0xf6, 0xc6, 0xcd, 0x5d, 0x48, 0x7e, 0x47,
+        0x3e, 0xb1, 0xbf, 0x04, 0xbf, 0xdf, 0x30, 0xcb,
+        0x57, 0xf2, 0xdb, 0xe0, 0x93, 0xeb, 0xa5, 0x14 };
 
 const uint8_t unauthorized_protocol_service_isolation_test::agent_id[16] = {
     0x3d, 0x96, 0x3f, 0x54, 0x83, 0xe2, 0x4b, 0x0d,
-    0x86, 0xa1, 0x81, 0xb6, 0xaa, 0xaa, 0x5c, 0x1b
-};
+    0x86, 0xa1, 0x81, 0xb6, 0xaa, 0xaa, 0x5c, 0x1b };
 
-const char* unauthorized_protocol_service_isolation_test::agent_id_string =
-    "3d963f54-83e2-4b0d-86a1-81b6aaaa5c1b";
-
-const uint8_t unauthorized_protocol_service_isolation_test::agent_pubkey[32] = {
+const uint8_t
+unauthorized_protocol_service_isolation_test::agent_enc_pubkey_buffer[32] = {
     0xde, 0x9e, 0xdb, 0x7d, 0x7b, 0x7d, 0xc1, 0xb4,
     0xd3, 0x5b, 0x61, 0xc2, 0xec, 0xe4, 0x35, 0x37,
     0x3f, 0x83, 0x43, 0xc8, 0x5b, 0x78, 0x67, 0x4d,
-    0xad, 0xfc, 0x7e, 0x14, 0x6f, 0x88, 0x2b, 0x4f
-};
+    0xad, 0xfc, 0x7e, 0x14, 0x6f, 0x88, 0x2b, 0x4f };
 
-const char* unauthorized_protocol_service_isolation_test::agent_pubkey_string =
-    "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f";
-
-const uint8_t unauthorized_protocol_service_isolation_test::agent_privkey[32] = {
+const uint8_t
+unauthorized_protocol_service_isolation_test::agent_enc_privkey_buffer[32] = {
     0x5d, 0xab, 0x08, 0x7e, 0x62, 0x4a, 0x8a, 0x4b,
     0x79, 0xe1, 0x7f, 0x8b, 0x83, 0x80, 0x0e, 0xe6,
     0x6f, 0x3b, 0xb1, 0x29, 0x26, 0x18, 0xb6, 0xfd,
-    0x1c, 0x2f, 0x8b, 0x27, 0xff, 0x88, 0xe0, 0xeb
-};
+    0x1c, 0x2f, 0x8b, 0x27, 0xff, 0x88, 0xe0, 0xeb };
 
-const char* unauthorized_protocol_service_isolation_test::agent_privkey_string =
-    "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb";
+const uint8_t
+unauthorized_protocol_service_isolation_test::agent_sign_pubkey_buffer[32] = {
+    0x3b, 0xcb, 0xc2, 0xdc, 0x1e, 0xed, 0x49, 0xa4,
+    0x99, 0x0a, 0x12, 0xe8, 0x73, 0x79, 0xa0, 0x64,
+    0xeb, 0x20, 0xc7, 0xe8, 0x16, 0x7d, 0x9e, 0x82,
+    0xa3, 0xf0, 0x1e, 0x34, 0x36, 0x23, 0x9e, 0x2a };
+
+const uint8_t
+unauthorized_protocol_service_isolation_test::agent_sign_privkey_buffer[64] = {
+    0x01, 0xa8, 0xc4, 0xe2, 0xcf, 0x41, 0xd2, 0x4f,
+    0x80, 0x43, 0x14, 0xc8, 0xc2, 0x4a, 0x46, 0xc4,
+    0xb1, 0x31, 0x74, 0xc3, 0x0d, 0xcd, 0xe0, 0x80,
+    0xd8, 0x2d, 0x87, 0x75, 0xc1, 0x74, 0x47, 0xf3,
+    0x3b, 0xcb, 0xc2, 0xdc, 0x1e, 0xed, 0x49, 0xa4,
+    0x99, 0x0a, 0x12, 0xe8, 0x73, 0x79, 0xa0, 0x64,
+    0xeb, 0x20, 0xc7, 0xe8, 0x16, 0x7d, 0x9e, 0x82,
+    0xa3, 0xf0, 0x1e, 0x34, 0x36, 0x23, 0x9e, 0x2a };
 
 const uint32_t
     unauthorized_protocol_service_isolation_test::EXPECTED_CHILD_INDEX = 17U;
@@ -103,10 +122,13 @@ void unauthorized_protocol_service_isolation_test::SetUp()
     }
 
     /* set up the client private key. */
-    if (VCCRYPT_STATUS_SUCCESS == vccrypt_buffer_init(&client_private_key, &alloc_opts, sizeof(authorized_entity_privkey)))
+    if (VCCRYPT_STATUS_SUCCESS ==
+        vccrypt_buffer_init(
+            &client_private_key, &alloc_opts,
+            sizeof(authorized_entity_enc_privkey_buffer)))
     {
         memcpy(
-            client_private_key.data, authorized_entity_privkey,
+            client_private_key.data, authorized_entity_enc_privkey_buffer,
             client_private_key.size);
         client_private_key_initialized = true;
     }
@@ -136,14 +158,6 @@ void unauthorized_protocol_service_isolation_test::SetUp()
     }
 
     setenv("PATH", path, 1);
-
-    /* hard-code some details for testing the agent. */
-    setenv("AGENTD_AUTHORIZED_ENTITY_ID", authorized_entity_id_string, 1);
-    setenv(
-        "AGENTD_AUTHORIZED_ENTITY_PUBKEY", authorized_entity_pubkey_string, 1);
-    setenv("AGENTD_ID", agent_id_string, 1);
-    setenv("AGENTD_PUBLIC_KEY", agent_pubkey_string, 1);
-    setenv("AGENTD_PRIVATE_KEY", agent_privkey_string, 1);
 
     /* log to standard error. */
     logsock = dup(STDERR_FILENO);
@@ -394,4 +408,182 @@ int unauthorized_protocol_service_isolation_test::
         return 1;
 
     return 0;
+}
+
+int unauthorized_protocol_service_isolation_test::add_hardcoded_keys()
+{
+    int retval;
+    uint32_t offset, status;
+    vccrypt_buffer_t agent_enc_pubkey;
+    vccrypt_buffer_t agent_enc_privkey;
+    vccrypt_buffer_t agent_sign_pubkey;
+    vccrypt_buffer_t agent_sign_privkey;
+    vccrypt_buffer_t entity_enc_pubkey;
+    vccrypt_buffer_t entity_sign_pubkey;
+
+    /* initialize agent_enc_pubkey. */
+    retval =
+        vccrypt_buffer_init(
+            &agent_enc_pubkey, suite.alloc_opts,
+            sizeof(agent_enc_pubkey_buffer));
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto done;
+    }
+
+    /* copy the encryption pubkey. */
+    memcpy(
+        agent_enc_pubkey.data, agent_enc_pubkey_buffer, agent_enc_pubkey.size);
+
+    /* initialize agent_enc_privkey. */
+    retval =
+        vccrypt_buffer_init(
+            &agent_enc_privkey, suite.alloc_opts,
+            sizeof(agent_enc_privkey_buffer));
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_agent_enc_pubkey;
+    }
+
+    /* copy the encryption privkey. */
+    memcpy(
+        agent_enc_privkey.data, agent_enc_privkey_buffer,
+        agent_enc_privkey.size);
+
+    /* initialize agent_sign_pubkey. */
+    retval =
+        vccrypt_buffer_init(
+            &agent_sign_pubkey, suite.alloc_opts,
+            sizeof(agent_sign_pubkey_buffer));
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_agent_enc_privkey;
+    }
+
+    /* copy the signature pubkey. */
+    memcpy(
+        agent_sign_pubkey.data, agent_sign_pubkey_buffer,
+        agent_sign_pubkey.size);
+
+    /* initialize agent_sign_privkey. */
+    retval =
+        vccrypt_buffer_init(
+            &agent_sign_privkey, suite.alloc_opts,
+            sizeof(agent_sign_privkey_buffer));
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_agent_sign_pubkey;
+    }
+
+    /* copy the signature privkey. */
+    memcpy(
+        agent_sign_privkey.data, agent_sign_privkey_buffer,
+        agent_sign_privkey.size);
+
+    /* initialize entity_enc_pubkey. */
+    retval =
+        vccrypt_buffer_init(
+            &entity_enc_pubkey, suite.alloc_opts,
+            sizeof(authorized_entity_enc_pubkey_buffer));
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_agent_sign_privkey;
+    }
+
+    /* copy the entity encryption pubkey. */
+    memcpy(
+        entity_enc_pubkey.data, authorized_entity_enc_pubkey_buffer,
+        entity_enc_pubkey.size);
+
+    /* initialize entity_sign_pubkey. */
+    retval =
+        vccrypt_buffer_init(
+            &entity_sign_pubkey, suite.alloc_opts,
+            sizeof(authorized_entity_sign_pubkey_buffer));
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_enc_pubkey;
+    }
+
+    /* copy the entity signature pubkey. */
+    memcpy(
+        entity_sign_pubkey.data, authorized_entity_sign_pubkey_buffer,
+        entity_sign_pubkey.size);
+
+    /* send the private key request. */
+    retval =
+        protocolservice_control_api_sendreq_private_key_set(
+            controlsock, suite.alloc_opts, agent_id, &agent_enc_pubkey,
+            &agent_enc_privkey, &agent_sign_pubkey, &agent_sign_privkey);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_sign_pubkey;
+    }
+
+    /* receive the private key response. */
+    retval =
+        protocolservice_control_api_recvresp_private_key_set(
+            controlsock, &offset, &status);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_sign_pubkey;
+    }
+
+    /* verify that the key was set. */
+    if (AGENTD_STATUS_SUCCESS != (int)status)
+    {
+        retval = (int)status;
+        goto cleanup_entity_sign_pubkey;
+    }
+
+    /* send the authorized entity add request. */
+    retval =
+        protocolservice_control_api_sendreq_authorized_entity_add(
+            controlsock, suite.alloc_opts, authorized_entity_id,
+            &entity_enc_pubkey, &entity_sign_pubkey);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_sign_pubkey;
+    }
+
+    /* receive the authorized entity add response. */
+    retval =
+        protocolservice_control_api_recvresp_authorized_entity_add(
+            controlsock, &offset, &status);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_sign_pubkey;
+    }
+
+    /* verify that the authorized entity was added. */
+    if (AGENTD_STATUS_SUCCESS != (int)status)
+    {
+        retval = (int)status;
+        goto cleanup_entity_sign_pubkey;
+    }
+
+    /* success. */
+    retval = AGENTD_STATUS_SUCCESS;
+    goto cleanup_entity_sign_pubkey;
+
+cleanup_entity_sign_pubkey:
+    dispose((disposable_t*)&entity_sign_pubkey);
+
+cleanup_entity_enc_pubkey:
+    dispose((disposable_t*)&entity_enc_pubkey);
+
+cleanup_agent_sign_privkey:
+    dispose((disposable_t*)&agent_sign_privkey);
+
+cleanup_agent_sign_pubkey:
+    dispose((disposable_t*)&agent_sign_pubkey);
+
+cleanup_agent_enc_privkey:
+    dispose((disposable_t*)&agent_enc_privkey);
+
+cleanup_agent_enc_pubkey:
+    dispose((disposable_t*)&agent_enc_pubkey);
+
+done:
+    return retval;
 }
