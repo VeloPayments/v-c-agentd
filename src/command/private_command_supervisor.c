@@ -236,9 +236,10 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     /* create protocol service. */
     TRY_OR_FAIL(
         supervisor_create_protocol_service(
-            &protocol_service, bconf, &conf, &unauth_protocol_svc_random_sock,
-            &unauth_protocol_svc_accept_sock, &unauth_protocol_svc_control_sock,
-            &auth_protocol_svc_data_sock, &unauth_protocol_svc_log_sock),
+            &protocol_service, bconf, &conf, &private_key, public_entities,
+            &unauth_protocol_svc_random_sock, &unauth_protocol_svc_accept_sock,
+            &unauth_protocol_svc_control_sock, &auth_protocol_svc_data_sock,
+            &unauth_protocol_svc_log_sock),
         cleanup_data_for_auth_protocol_service);
 
 #if AUTHSERVICE

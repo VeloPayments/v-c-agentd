@@ -2445,8 +2445,8 @@ TEST_F(unauthorized_protocol_service_isolation_test, ctrl_auth_entity_add)
     /* send an authorized entity add request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               protocolservice_control_api_sendreq_authorized_entity_add(
-                    controlsock, &suite, entity_id, &entity_encryption_key,
-                    &entity_signing_key));
+                    controlsock, suite.alloc_opts, entity_id,
+                    &entity_encryption_key, &entity_signing_key));
 
     /* read the response. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -2512,7 +2512,7 @@ TEST_F(unauthorized_protocol_service_isolation_test, ctrl_set_private_key)
     /* send the private key set request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               protocolservice_control_api_sendreq_private_key_set(
-                    controlsock, &suite, entity_id,
+                    controlsock, suite.alloc_opts, entity_id,
                     &entity_encryption_pubkey, &entity_encryption_privkey,
                     &entity_signing_pubkey, &entity_signing_privkey));
 
