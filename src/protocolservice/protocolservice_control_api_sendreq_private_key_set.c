@@ -18,7 +18,7 @@
  * \brief Set the private key for the protocol service.
  *
  * \param sock                  The socket to which this request is written.
- * \param suite                 The crypto suite.
+ * \param alloc_opts            The allocator options.
  * \param entity_id             The blockchain agent entity UUID.
  * \param entity_enc_pubkey     The entity's encryption public key.
  * \param entity_enc_privkey    The entity's encryption private key.
@@ -34,7 +34,7 @@
  *      - a non-zero error response if something else has failed.
  */
 int protocolservice_control_api_sendreq_private_key_set(
-    int sock, vccrypt_suite_options_t* suite, const uint8_t* entity_id,
+    int sock, allocator_options_t* alloc_opts, const uint8_t* entity_id,
     const vccrypt_buffer_t* entity_enc_pubkey,
     const vccrypt_buffer_t* entity_enc_privkey,
     const vccrypt_buffer_t* entity_sign_pubkey,
@@ -59,7 +59,7 @@ int protocolservice_control_api_sendreq_private_key_set(
     vccrypt_buffer_t req;
     if (VCCRYPT_STATUS_SUCCESS !=
         vccrypt_buffer_init(
-            &req, suite->alloc_opts, req_size))
+            &req, alloc_opts, req_size))
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
         goto done;

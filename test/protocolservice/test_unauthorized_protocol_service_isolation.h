@@ -69,16 +69,15 @@ protected:
 
     static const uint8_t dir_key[32];
     static const uint8_t authorized_entity_id[16];
-    static const char* authorized_entity_id_string;
-    static const uint8_t authorized_entity_pubkey[32];
-    static const char* authorized_entity_pubkey_string;
-    static const uint8_t authorized_entity_privkey[32];
+    static const uint8_t authorized_entity_enc_pubkey_buffer[32];
+    static const uint8_t authorized_entity_enc_privkey_buffer[32];
+    static const uint8_t authorized_entity_sign_pubkey_buffer[32];
+    static const uint8_t authorized_entity_sign_privkey_buffer[64];
     static const uint8_t agent_id[16];
-    static const char* agent_id_string;
-    static const uint8_t agent_pubkey[32];
-    static const char* agent_pubkey_string;
-    static const uint8_t agent_privkey[32];
-    static const char* agent_privkey_string;
+    static const uint8_t agent_enc_pubkey_buffer[32];
+    static const uint8_t agent_enc_privkey_buffer[32];
+    static const uint8_t agent_sign_pubkey_buffer[32];
+    static const uint8_t agent_sign_privkey_buffer[64];
 
     static const uint32_t EXPECTED_CHILD_INDEX;
 
@@ -95,6 +94,9 @@ protected:
 
     /** \brief Helper to verify dataservice calls on connection teardown. */
     int dataservice_mock_valid_connection_teardown();
+
+    /** \brief Add hardcoded keys to the protocol service. */
+    int add_hardcoded_keys();
 };
 
 #endif /*TEST_UNAUTHORIZED_PROTOCOL_SERVICE_ISOLATION_HEADER_GUARD*/
