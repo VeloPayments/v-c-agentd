@@ -168,7 +168,6 @@ struct ups_authorized_entity
 struct ups_private_key
 {
     disposable_t hdr;
-    ups_authorized_entity_t* next;
     uint8_t id[16];
     vccrypt_buffer_t enc_pubkey;
     vccrypt_buffer_t enc_privkey;
