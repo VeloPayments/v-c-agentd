@@ -268,9 +268,9 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     /* create canonization service. */
     TRY_OR_FAIL(
         supervisor_create_canonizationservice(
-            &canonizationservice, bconf, &conf, &canonization_svc_data_sock,
-            &canonization_svc_random_sock, &canonization_svc_log_sock,
-            &canonization_svc_control_sock),
+            &canonizationservice, bconf, &conf, &private_key,
+            &canonization_svc_data_sock, &canonization_svc_random_sock,
+            &canonization_svc_log_sock, &canonization_svc_control_sock),
         cleanup_data_service_for_canonizationservice);
 
     /* if we've made it this far, attempt to start each service. */
