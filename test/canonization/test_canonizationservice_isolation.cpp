@@ -76,6 +76,68 @@ TEST_F(canonizationservice_isolation_test, configure)
 }
 
 /**
+ * Test that we can set the private key for the canonization service.
+ */
+TEST_F(canonizationservice_isolation_test, set_private_key)
+{
+    uint32_t offset = 999, status = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+    const uint8_t entity_id[16] = {
+        0x33, 0xa5, 0x17, 0x73, 0xbd, 0x72, 0x41, 0xc9,
+        0xba, 0xba, 0xe1, 0xb5, 0x98, 0x94, 0x9e, 0x05 };
+    vccrypt_buffer_t entity_encryption_pubkey;
+    vccrypt_buffer_t entity_encryption_privkey;
+    vccrypt_buffer_t entity_signing_pubkey;
+    vccrypt_buffer_t entity_signing_privkey;
+
+    /* create dummy entity encryption pubkey. */
+    ASSERT_EQ(
+        VCCRYPT_STATUS_SUCCESS,
+        vccrypt_buffer_init(&entity_encryption_pubkey, &alloc_opts, 32));
+    memset(entity_encryption_pubkey.data, 0xFF, 32);
+
+    /* create dummy entity encryption privkey. */
+    ASSERT_EQ(
+        VCCRYPT_STATUS_SUCCESS,
+        vccrypt_buffer_init(&entity_encryption_privkey, &alloc_opts, 32));
+    memset(entity_encryption_privkey.data, 0xFF, 32);
+
+    /* create dummy entity signing pubkey. */
+    ASSERT_EQ(
+        VCCRYPT_STATUS_SUCCESS,
+        vccrypt_buffer_init(&entity_signing_pubkey, &alloc_opts, 32));
+    memset(entity_signing_pubkey.data, 0xFF, 32);
+
+    /* create dummy entity signing privkey. */
+    ASSERT_EQ(
+        VCCRYPT_STATUS_SUCCESS,
+        vccrypt_buffer_init(&entity_signing_privkey, &alloc_opts, 64));
+    memset(entity_signing_privkey.data, 0xFF, 64);
+
+    /* we should be able to successfully call private_key_set. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        canonization_api_sendreq_private_key_set(
+            controlsock, &alloc_opts, entity_id,
+            &entity_encryption_pubkey, &entity_encryption_privkey,
+            &entity_signing_pubkey, &entity_signing_privkey));
+
+    /* we should be able to receive a response from private_key_set. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        canonization_api_recvresp_private_key_set(
+            controlsock, &offset, &status));
+
+    /* the status should be success. */
+    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    /* the offset should be zero. */
+    EXPECT_EQ(0U, offset);
+
+    /* clean up. */
+    dispose((disposable_t*)&entity_encryption_pubkey);
+    dispose((disposable_t*)&entity_encryption_privkey);
+    dispose((disposable_t*)&entity_signing_pubkey);
+    dispose((disposable_t*)&entity_signing_privkey);
+}
+
+/**
  * Test that we can start the canonization service after configuring it.
  */
 TEST_F(canonizationservice_isolation_test, start)
