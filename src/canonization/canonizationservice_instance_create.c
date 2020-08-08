@@ -108,6 +108,14 @@ static void canonizationservice_instance_dispose(void* disposable)
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != instance);
 
+    /* clean up private key if set. */
+    if (NULL != instance->private_key)
+    {
+        dispose((disposable_t*)instance->private_key);
+        free(instance->private_key);
+        instance->private_key = NULL;
+    }
+
     /* clean up the linked list instance, if allocated. */
     if (NULL != instance->transaction_list)
     {

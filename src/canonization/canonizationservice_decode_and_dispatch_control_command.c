@@ -76,6 +76,11 @@ int canonizationservice_decode_and_dispatch_control_command(
             return canonizationservice_decode_and_dispatch_control_command_configure(
                 instance, sock, breq, payload_size);
 
+        /* set the private key. */
+        case CANONIZATIONSERVICE_API_METHOD_PRIVATE_KEY_SET:
+            return canonizationservice_decode_and_dispatch_control_command_private_key_set(
+                instance, sock, breq, payload_size);
+
         /* start the canonization service. */
         case CANONIZATIONSERVICE_API_METHOD_START:
             return canonizationservice_decode_and_dispatch_control_command_start(

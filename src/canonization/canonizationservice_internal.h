@@ -30,6 +30,10 @@ typedef struct canonizationservice_transaction
 enum canonizationservice_state;
 typedef enum canonizationservice_state canonizationservice_state_t;
 
+/* forward declaration for canonizationservice_private_key_t */
+typedef struct canonizationservice_private_key
+canonizationservice_private_key_t;
+
 typedef struct canonizationservice_instance
 {
     disposable_t hdr;
@@ -38,6 +42,7 @@ typedef struct canonizationservice_instance
     bool force_exit;
     int64_t block_max_milliseconds;
     size_t block_max_transactions;
+    canonizationservice_private_key_t* private_key;
     ipc_event_loop_context_t* loop_context;
     ipc_socket_context_t* data;
     ipc_socket_context_t* random;
@@ -73,6 +78,16 @@ enum canonizationservice_state
     CANONIZATIONSERVICE_STATE_WAITRESP_PQ_TXN_GET,
     CANONIZATIONSERVICE_STATE_WAITRESP_BLOCK_MAKE,
     CANONIZATIONSERVICE_STATE_WAITRESP_CHILD_CONTEXT_CLOSE
+};
+
+struct canonizationservice_private_key
+{
+    disposable_t hdr;
+    uint8_t id[16];
+    vccrypt_buffer_t enc_pubkey;
+    vccrypt_buffer_t enc_privkey;
+    vccrypt_buffer_t sign_pubkey;
+    vccrypt_buffer_t sign_privkey;
 };
 
 /**
@@ -164,6 +179,31 @@ int canonizationservice_decode_and_dispatch_control_command(
  *        not be written to the client socket.
  */
 int canonizationservice_decode_and_dispatch_control_command_configure(
+    canonizationservice_instance_t* instance, ipc_socket_context_t* sock,
+    const void* req, size_t size);
+
+/**
+ * \brief Decode and dispatch a private key set request.
+ *
+ * Returns \ref AGENTD_STATUS_SUCCESS on success or non-fatal error.  If a
+ * non-zero error message is returned, then a fatal error has occurred that
+ * should not be recovered from. Any additional information on the socket is
+ * suspect.
+ *
+ * \param instance      The instance on which the dispatch occurs.
+ * \param sock          The socket on which the request was received and the
+ *                      response is to be written.
+ * \param req           The request to be decoded and dispatched.
+ * \param size          The size of the request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered in this operation.
+ *      - AGENTD_ERROR_CANONIZATIONSERVICE_IPC_WRITE_DATA_FAILURE if data could
+ *        not be written to the client socket.
+ */
+int canonizationservice_decode_and_dispatch_control_command_private_key_set(
     canonizationservice_instance_t* instance, ipc_socket_context_t* sock,
     const void* req, size_t size);
 
