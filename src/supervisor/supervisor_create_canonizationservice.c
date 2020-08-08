@@ -11,6 +11,7 @@
 #include <agentd/canonizationservice/api.h>
 #include <agentd/supervisor/supervisor_internal.h>
 #include <agentd/ipc.h>
+#include <vpr/allocator/malloc_allocator.h>
 
 #include "supervisor_private.h"
 
@@ -22,6 +23,7 @@ typedef struct canonization_process
     process_t hdr;
     const bootstrap_config_t* bconf;
     const agent_config_t* conf;
+    const config_private_key_t* private_key;
     int* data_socket;
     int* random_socket;
     int* log_socket;
@@ -43,6 +45,7 @@ static int supervisor_start_canonizationservice(process_t* proc);
  * \param conf                  Agentd configuration to be used to build the
  *                              canonization service.  This configuration must
  *                              be valid for the lifetime of the service.
+ * \param private_key           The private key for this service.
  * \param data_socket           The data socket descriptor.
  * \param random_socket         The random socket descriptor.
  * \param log_socket            The log socket descriptor.
@@ -54,8 +57,9 @@ static int supervisor_start_canonizationservice(process_t* proc);
  */
 int supervisor_create_canonizationservice(
     process_t** svc, const bootstrap_config_t* bconf,
-    const agent_config_t* conf, int* data_socket, int* random_socket,
-    int* log_socket, int* control_socket)
+    const agent_config_t* conf, config_private_key_t* private_key,
+    int* data_socket, int* random_socket, int* log_socket,
+    int* control_socket)
 {
     int retval;
 
@@ -75,6 +79,7 @@ int supervisor_create_canonizationservice(
     canonization_proc->hdr.init_method = &supervisor_start_canonizationservice;
     canonization_proc->bconf = bconf;
     canonization_proc->conf = conf;
+    canonization_proc->private_key = private_key;
     canonization_proc->data_socket = data_socket;
     canonization_proc->random_socket = random_socket;
     canonization_proc->log_socket = log_socket;
@@ -116,6 +121,10 @@ static int supervisor_start_canonizationservice(process_t* proc)
     canonization_process_t* canonization_proc = (canonization_process_t*)proc;
     int retval;
     uint32_t offset, status;
+    allocator_options_t alloc_opts;
+
+    /* create an allocator instance. */
+    malloc_allocator_options_init(&alloc_opts);
 
     /* attempt to create the canonization service. */
     TRY_OR_FAIL(
@@ -141,6 +150,26 @@ static int supervisor_start_canonizationservice(process_t* proc)
         terminate_proc);
 
     /* verify that the configure operation completed successfully. */
+    TRY_OR_FAIL(status, terminate_proc);
+
+    /* attempt to set the private key. */
+    TRY_OR_FAIL(
+        canonization_api_sendreq_private_key_set(
+            canonization_proc->control_srv_socket, &alloc_opts,
+            canonization_proc->private_key->id,
+            &canonization_proc->private_key->enc_pubkey,
+            &canonization_proc->private_key->enc_privkey,
+            &canonization_proc->private_key->sign_pubkey,
+            &canonization_proc->private_key->sign_privkey),
+        terminate_proc);
+
+    /* attempt to read the response from this key set operation. */
+    TRY_OR_FAIL(
+        canonization_api_recvresp_private_key_set(
+            canonization_proc->control_srv_socket, &offset, &status),
+        terminate_proc);
+
+    /* verify that the private key set operation completed successfully. */
     TRY_OR_FAIL(status, terminate_proc);
 
     /* attempt to start the canonization proc. */
@@ -170,6 +199,8 @@ terminate_proc:
     process_kill((process_t*)canonization_proc);
 
 done:
+    dispose((disposable_t*)&alloc_opts);
+
     return retval;
 }
 

@@ -162,6 +162,7 @@ int supervisor_create_auth_service(
  * \param conf                  Agentd configuration to be used to build the
  *                              canonization service.  This configuration must
  *                              be valid for the lifetime of the service.
+ * \param private_key           The private key for this service.
  * \param data_socket           The data socket descriptor.
  * \param random_socket         The random socket descriptor.
  * \param log_socket            The log socket descriptor.
@@ -173,8 +174,9 @@ int supervisor_create_auth_service(
  */
 int supervisor_create_canonizationservice(
     process_t** svc, const bootstrap_config_t* bconf,
-    const agent_config_t* conf, int* data_socket, int* random_socket,
-    int* log_socket, int* control_socket);
+    const agent_config_t* conf, config_private_key_t* private_key,
+    int* data_socket, int* random_socket, int* log_socket,
+    int* control_socket);
 
 /**
  * \brief Install the signal handler for the supervisor.
