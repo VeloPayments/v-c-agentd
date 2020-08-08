@@ -51,7 +51,7 @@ int canonizationservice_decode_and_dispatch_control_command_configure(
     if (instance->configured)
     {
         canonizationservice_decode_and_dispatch_write_status(
-            sock, CANONIZATIONSERVICE_API_METHOD_START, 0U,
+            sock, CANONIZATIONSERVICE_API_METHOD_CONFIGURE, 0U,
             AGENTD_ERROR_CANONIZATIONSERVICE_ALREADY_CONFIGURED, NULL, 0);
 
         return AGENTD_STATUS_SUCCESS;
@@ -64,7 +64,7 @@ int canonizationservice_decode_and_dispatch_control_command_configure(
     if (payload_size != size)
     {
         canonizationservice_decode_and_dispatch_write_status(
-            sock, CANONIZATIONSERVICE_API_METHOD_START, 0U,
+            sock, CANONIZATIONSERVICE_API_METHOD_CONFIGURE, 0U,
             AGENTD_ERROR_CANONIZATIONSERVICE_REQUEST_PACKET_INVALID_SIZE, NULL,
             0);
 
