@@ -19,6 +19,38 @@ using namespace std;
 const uint32_t
     canonizationservice_isolation_test::EXPECTED_CHILD_INDEX = 19U;
 
+const uint8_t canonizationservice_isolation_test::agent_id[16] = {
+    0x3d, 0x96, 0x3f, 0x54, 0x83, 0xe2, 0x4b, 0x0d,
+    0x86, 0xa1, 0x81, 0xb6, 0xaa, 0xaa, 0x5c, 0x1b };
+
+const uint8_t canonizationservice_isolation_test::agent_enc_pubkey[32] = {
+    0xde, 0x9e, 0xdb, 0x7d, 0x7b, 0x7d, 0xc1, 0xb4,
+    0xd3, 0x5b, 0x61, 0xc2, 0xec, 0xe4, 0x35, 0x37,
+    0x3f, 0x83, 0x43, 0xc8, 0x5b, 0x78, 0x67, 0x4d,
+    0xad, 0xfc, 0x7e, 0x14, 0x6f, 0x88, 0x2b, 0x4f };
+
+const uint8_t canonizationservice_isolation_test::agent_enc_privkey[32] = {
+    0x5d, 0xab, 0x08, 0x7e, 0x62, 0x4a, 0x8a, 0x4b,
+    0x79, 0xe1, 0x7f, 0x8b, 0x83, 0x80, 0x0e, 0xe6,
+    0x6f, 0x3b, 0xb1, 0x29, 0x26, 0x18, 0xb6, 0xfd,
+    0x1c, 0x2f, 0x8b, 0x27, 0xff, 0x88, 0xe0, 0xeb };
+
+const uint8_t canonizationservice_isolation_test::agent_sign_pubkey[32] = {
+    0x3b, 0xcb, 0xc2, 0xdc, 0x1e, 0xed, 0x49, 0xa4,
+    0x99, 0x0a, 0x12, 0xe8, 0x73, 0x79, 0xa0, 0x64,
+    0xeb, 0x20, 0xc7, 0xe8, 0x16, 0x7d, 0x9e, 0x82,
+    0xa3, 0xf0, 0x1e, 0x34, 0x36, 0x23, 0x9e, 0x2a };
+
+const uint8_t canonizationservice_isolation_test::agent_sign_privkey[64] = {
+    0x01, 0xa8, 0xc4, 0xe2, 0xcf, 0x41, 0xd2, 0x4f,
+    0x80, 0x43, 0x14, 0xc8, 0xc2, 0x4a, 0x46, 0xc4,
+    0xb1, 0x31, 0x74, 0xc3, 0x0d, 0xcd, 0xe0, 0x80,
+    0xd8, 0x2d, 0x87, 0x75, 0xc1, 0x74, 0x47, 0xf3,
+    0x3b, 0xcb, 0xc2, 0xdc, 0x1e, 0xed, 0x49, 0xa4,
+    0x99, 0x0a, 0x12, 0xe8, 0x73, 0x79, 0xa0, 0x64,
+    0xeb, 0x20, 0xc7, 0xe8, 0x16, 0x7d, 0x9e, 0x82,
+    0xa3, 0xf0, 0x1e, 0x34, 0x36, 0x23, 0x9e, 0x2a };
+
 void canonizationservice_isolation_test::SetUp()
 {
     vccrypt_suite_register_velo_v1();
@@ -193,6 +225,10 @@ int canonizationservice_isolation_test::
     int retval;
     uint32_t status, offset;
     agent_config_t conf;
+    vccrypt_buffer_t entity_encryption_pubkey;
+    vccrypt_buffer_t entity_encryption_privkey;
+    vccrypt_buffer_t entity_signing_pubkey;
+    vccrypt_buffer_t entity_signing_privkey;
 
     /* set config values for canonization service. */
     conf.block_max_milliseconds_set = true;
@@ -200,12 +236,56 @@ int canonizationservice_isolation_test::
     conf.block_max_transactions_set = true;
     conf.block_max_transactions = max_txns;
 
+    /* initialize the entity encryption pubkey buffer. */
+    retval =
+        vccrypt_buffer_init(&entity_encryption_pubkey, &alloc_opts, 32);
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto done;
+    }
+
+    /* copy the key to the buffer. */
+    memcpy(entity_encryption_pubkey.data, agent_enc_pubkey, 32);
+
+    /* initialize the entity encryption privkey buffer. */
+    retval =
+        vccrypt_buffer_init(&entity_encryption_privkey, &alloc_opts, 32);
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_encryption_pubkey;
+    }
+
+    /* copy the key to the buffer. */
+    memcpy(entity_encryption_privkey.data, agent_enc_privkey, 32);
+
+    /* initialize the entity signing pubkey buffer. */
+    retval =
+        vccrypt_buffer_init(&entity_signing_pubkey, &alloc_opts, 32);
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_encryption_privkey;
+    }
+
+    /* copy the key to the buffer. */
+    memcpy(entity_signing_pubkey.data, agent_sign_pubkey, 32);
+
+    /* initialize the entity signing privkey buffer. */
+    retval =
+        vccrypt_buffer_init(&entity_signing_privkey, &alloc_opts, 64);
+    if (VCCRYPT_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_signing_pubkey;
+    }
+
+    /* copy the key to the buffer. */
+    memcpy(entity_signing_privkey.data, agent_sign_privkey, 64);
+
     /* send the configure service request. */
     retval =
         canonization_api_sendreq_configure(controlsock, &conf);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
-        return retval;
+        goto cleanup_entity_signing_privkey;
     }
 
     /* receive the configure service response. */
@@ -213,37 +293,78 @@ int canonizationservice_isolation_test::
         canonization_api_recvresp_configure(controlsock, &offset, &status);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
-        return retval;
+        goto cleanup_entity_signing_privkey;
     }
 
     /* verify that the configure request was successful. */
     retval = (int)status;
     if (AGENTD_STATUS_SUCCESS != retval)
     {
-        return retval;
+        goto cleanup_entity_signing_privkey;
+    }
+
+    /* send the private key set request. */
+    retval =
+        canonization_api_sendreq_private_key_set(
+            controlsock, &alloc_opts, agent_id,
+            &entity_encryption_pubkey, &entity_encryption_privkey,
+            &entity_signing_pubkey, &entity_signing_privkey);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_signing_privkey;
+    }
+
+    retval =
+        canonization_api_recvresp_private_key_set(
+            controlsock, &offset, &status);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_signing_privkey;
+    }
+
+    /* verify that the private key set request was successful. */
+    retval = (int)status;
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity_signing_privkey;
     }
 
     /* send the start request. */
     retval = canonization_api_sendreq_start(controlsock);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
-        return retval;
+        goto cleanup_entity_signing_privkey;
     }
 
     /* receive the start response. */
     retval = canonization_api_recvresp_start(controlsock, &offset, &status);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
-        return retval;
+        goto cleanup_entity_signing_privkey;
     }
 
     /* verify that the start request was successful. */
     retval = (int)status;
     if (AGENTD_STATUS_SUCCESS != retval)
     {
-        return retval;
+        goto cleanup_entity_signing_privkey;
     }
 
     /* success. */
-    return AGENTD_STATUS_SUCCESS;
+    retval = AGENTD_STATUS_SUCCESS;
+
+cleanup_entity_signing_privkey:
+    dispose((disposable_t*)&entity_signing_privkey);
+
+cleanup_entity_signing_pubkey:
+    dispose((disposable_t*)&entity_signing_pubkey);
+
+cleanup_entity_encryption_privkey:
+    dispose((disposable_t*)&entity_encryption_privkey);
+
+cleanup_entity_encryption_pubkey:
+    dispose((disposable_t*)&entity_encryption_pubkey);
+
+done:
+    return retval;
 }

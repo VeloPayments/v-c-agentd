@@ -66,6 +66,12 @@ protected:
 
     static const uint32_t EXPECTED_CHILD_INDEX;
 
+    static const uint8_t agent_id[16];
+    static const uint8_t agent_enc_pubkey[32];
+    static const uint8_t agent_enc_privkey[32];
+    static const uint8_t agent_sign_pubkey[32];
+    static const uint8_t agent_sign_privkey[64];
+
     /** \brief Helper to register dataservice boilerplate methods. */
     int dataservice_mock_register_helper();
 
