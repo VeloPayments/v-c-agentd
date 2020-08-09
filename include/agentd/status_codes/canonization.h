@@ -168,6 +168,13 @@ extern "C" {
 #define AGENTD_ERROR_CANONIZATIONSERVICE_PRIVATE_KEY_ALREADY_SET \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_CANONIZATION, 0x0019U)
 
+/**
+ * \brief Attempt to start the canonization service without setting the private
+ * key.
+ */
+#define AGENTD_ERROR_CANONIZATIONSERVICE_START_BEFORE_PRIVATE_KEY_SET \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_CANONIZATION, 0x001AU)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }

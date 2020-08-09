@@ -58,6 +58,17 @@ int canonizationservice_decode_and_dispatch_control_command_start(
         goto done;
     }
 
+    /* if the private key has not been set, then it can't be started. */
+    if (NULL == instance->private_key)
+    {
+        retval =
+            canonizationservice_decode_and_dispatch_write_status(
+                sock, CANONIZATIONSERVICE_API_METHOD_START, 0U,
+                AGENTD_ERROR_CANONIZATIONSERVICE_START_BEFORE_PRIVATE_KEY_SET,
+                NULL, 0);
+        goto done;
+    }
+
     /* if this instance is running, then it can't be started again. */
     if (instance->running)
     {
