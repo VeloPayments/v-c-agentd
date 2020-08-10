@@ -55,6 +55,7 @@ typedef struct canonizationservice_instance
     linked_list_options_t transaction_list_opts;
     uint8_t block_id[16];
     uint8_t previous_block_id[16];
+    uint8_t previous_block_signature[64];
     uint64_t block_height;
     linked_list_t* transaction_list;
 } canonizationservice_instance_t;

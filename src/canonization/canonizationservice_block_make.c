@@ -60,9 +60,9 @@ int canonizationservice_block_make(
         + FIELD_TYPE_SIZE + FIELD_SIZE_SIZE + 16
         /* previous block id. */
         + FIELD_TYPE_SIZE + FIELD_SIZE_SIZE + 16
-        /* previous block hash. */
+        /* previous block signature. */
         + FIELD_TYPE_SIZE + FIELD_SIZE_SIZE +
-        instance->crypto_suite.hash_opts.hash_size
+        instance->crypto_suite.sign_opts.signature_size
         /* block height. */
         + FIELD_TYPE_SIZE + FIELD_SIZE_SIZE + sizeof(uint64_t)
         /* signer id. */
@@ -93,9 +93,6 @@ int canonizationservice_block_make(
         canonizationservice_exit_event_loop(instance);
         goto done;
     }
-
-    /* TODO - add previous block uuid. */
-    /* TODO - add previous block signature. */
 
     /* add certificate version. */
     uint32_t cert_version = 0x00010000;
@@ -172,7 +169,17 @@ int canonizationservice_block_make(
         goto cleanup_builder;
     }
 
-    /* TODO - add previous block hash to the builder. */
+    /* add previous block signature to the builder. */
+    retval =
+        vccert_builder_add_short_buffer(
+            &builder, VCCERT_FIELD_TYPE_PREVIOUS_BLOCK_HASH,
+            instance->previous_block_signature,
+            sizeof(instance->previous_block_signature));
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        canonizationservice_exit_event_loop(instance);
+        goto cleanup_builder;
+    }
 
     /* add block height to the builder. */
     retval =
@@ -207,9 +214,18 @@ int canonizationservice_block_make(
         elem = elem->next;
     }
 
-    /* TODO - sign certificate. */
+    /* sign certificate. */
+    retval =
+        vccert_builder_sign(
+            &builder, instance->private_key->id,
+            &instance->private_key->sign_privkey);
+    if (VCCERT_STATUS_SUCCESS != retval)
+    {
+        canonizationservice_exit_event_loop(instance);
+        goto cleanup_builder;
+    }
 
-    /* TODO - hack to get block bytes.  Replace with sign above. */
+    /* get block bytes. */
     size_t block_cert_size;
     const uint8_t* block_cert_bytes =
         vccert_builder_emit(&builder, &block_cert_size);
