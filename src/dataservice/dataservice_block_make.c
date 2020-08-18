@@ -43,9 +43,9 @@ static int32_t dummy_artifact_state_resolver(
 static bool dummy_entity_key_resolver(
     void* options, void* parser, uint64_t height, const uint8_t* entity_id,
     vccrypt_buffer_t* pubenckey_buffer, vccrypt_buffer_t* pubsignkey_buffer);
-static vccert_contract_fn_t dummy_contract_resolver(
+static int dummy_contract_resolver(
     void* options, void* parser, const uint8_t* type_id,
-    const uint8_t* artifact_id);
+    const uint8_t* artifact_id, vccert_contract_closure_t* closure);
 
 /* constraint forward decls */
 static int constraint_matching_block_height(
@@ -405,11 +405,12 @@ static bool dummy_entity_key_resolver(
 /**
  * Dummy contract resolver.
  */
-static vccert_contract_fn_t dummy_contract_resolver(
+static int dummy_contract_resolver(
     void* UNUSED(options), void* UNUSED(parser), const uint8_t* UNUSED(type_id),
-    const uint8_t* UNUSED(artifact_id))
+    const uint8_t* UNUSED(artifact_id),
+    vccert_contract_closure_t* UNUSED(closure))
 {
-    return NULL;
+    return VCCERT_ERROR_PARSER_ATTEST_MISSING_CONTRACT;
 }
 
 /**
