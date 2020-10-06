@@ -65,8 +65,10 @@ int dataservice_database_open(
 
     /* TODO - expose setting below as a param instead of a hard-coded value. */
 
-    /* set the database size to an arbitrarily large value. */
-    if (0 != mdb_env_set_mapsize(details->env, 8UL * 1024UL * 1024UL * 1024UL))
+    /* set the database size to an arbitrarily large value. (16 terabytes). */
+    if (0 !=
+            mdb_env_set_mapsize(
+                details->env, 16UL * 1024UL * 1024UL * 1024UL * 1024UL))
     {
         retval = AGENTD_ERROR_DATASERVICE_MDB_ENV_SET_MAPSIZE_FAILURE;
         goto close_environment;
