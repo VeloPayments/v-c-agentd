@@ -8,6 +8,8 @@
 
 #include <vccert/fields.h>
 #include <vccert/certificate_types.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #include "../../src/dataservice/dataservice_internal.h"
 #include "test_dataservice_isolation.h"

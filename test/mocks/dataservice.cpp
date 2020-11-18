@@ -16,7 +16,6 @@
 
 #include "dataservice.h"
 
-using namespace mock_dataservice;
 using namespace std;
 
 /**

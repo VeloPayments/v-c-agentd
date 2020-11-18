@@ -54,7 +54,13 @@ int ipc_accept_noblock(
         }
         /* Linuxisms: for TCP/IP, any of these means we should retry. */
         else if (
-            ENETDOWN == errno || EPROTO == errno || ENOPROTOOPT == errno || EHOSTDOWN == errno || ENONET == errno || EHOSTUNREACH == errno || EOPNOTSUPP == errno || ENETUNREACH == errno || EINTR == errno)
+            ENETDOWN == errno || EPROTO == errno || ENOPROTOOPT == errno
+         || EHOSTDOWN == errno || EHOSTUNREACH == errno || EOPNOTSUPP == errno
+         || ENETUNREACH == errno || EINTR == errno
+        #ifdef __Linux__
+         || ENONET == errno
+        #endif
+        )
         {
             return AGENTD_ERROR_IPC_ACCEPT_SHOULD_RETRY;
         }

@@ -50,7 +50,7 @@ int command_readconfig(struct bootstrap_config* bconf)
     if (conf.loglevel_set)
         printf("Log level: %d\n", (int)conf.loglevel);
     if (conf.block_max_milliseconds_set)
-        printf("Canonization max milliseconds: %ld\n",
+        printf("Canonization max milliseconds: %lld\n",
             conf.block_max_milliseconds);
     if (conf.block_max_transactions_set)
         printf("Canonization max transactions: %d\n",

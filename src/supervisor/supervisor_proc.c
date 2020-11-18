@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/wait.h>

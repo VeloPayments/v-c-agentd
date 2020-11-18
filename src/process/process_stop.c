@@ -26,5 +26,5 @@ int process_stop(process_t* proc)
 {
     MODEL_ASSERT(NULL != proc);
 
-    return process_stop_ex(proc, WNOWAIT);
+    return process_stop_ex(proc, 0);
 }

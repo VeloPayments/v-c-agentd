@@ -7,7 +7,7 @@
  */
 
 #ifndef TEST_IPC_HEADER_GUARD
-#define IPC_HEADER_GUARD
+#define TEST_IPC_HEADER_GUARD
 
 #include <agentd/ipc.h>
 #include <gtest/gtest.h>

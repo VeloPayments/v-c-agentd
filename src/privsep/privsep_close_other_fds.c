@@ -11,6 +11,7 @@
 #include <cbmc/model_assert.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <sys/select.h>
 #include <unistd.h>
 
 /**
