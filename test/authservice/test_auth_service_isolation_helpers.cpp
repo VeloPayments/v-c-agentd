@@ -6,6 +6,9 @@
  * \copyright 2019 Velo-Payments, Inc.  All rights reserved.
  */
 
+#include <signal.h>
+#include <sys/wait.h>
+
 #include "../../src/authservice/auth_service_private.h"
 #include "test_auth_service_isolation.h"
 

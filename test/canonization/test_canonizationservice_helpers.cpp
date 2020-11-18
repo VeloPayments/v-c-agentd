@@ -10,6 +10,8 @@
 #include <agentd/canonizationservice/api.h>
 #include <agentd/randomservice.h>
 #include <agentd/status_codes.h>
+#include <signal.h>
+#include <sys/wait.h>
 #include <vpr/allocator/malloc_allocator.h>
 
 #include "test_canonizationservice_isolation.h"

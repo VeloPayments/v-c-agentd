@@ -1,6 +1,6 @@
 [wrap-git]
 directory = vpr
-revision = v0.4.0
+revision = 1b476252f23f915d0b3d463862414aee384d4752
 url = git@github.com:velopayments/v-portable-runtime.git
 push-url = git@github.com:velopayments/v-portable-runtime.git
 

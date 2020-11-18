@@ -133,8 +133,9 @@ TEST(path_resolve, canonical_relative_path_fail)
  */
 TEST(path_resolve, canonical_relative_path)
 {
+    char buf[PATH_MAX];
     char* resolved = nullptr;
-    char* pwd = getcwd(nullptr, PATH_MAX);
+    char* pwd = getcwd(buf, PATH_MAX);
     string expected_resolved = string(pwd) + "/agentd";
 
     ASSERT_EQ(0,
@@ -142,7 +143,6 @@ TEST(path_resolve, canonical_relative_path)
 
     EXPECT_STREQ(expected_resolved.c_str(), resolved);
 
-    free(pwd);
     free(resolved);
 }
 
@@ -152,8 +152,9 @@ TEST(path_resolve, canonical_relative_path)
  */
 TEST(path_resolve, canonical_relative_path2)
 {
+    char buf[PATH_MAX];
     char* resolved = nullptr;
-    char* pwd = getcwd(nullptr, PATH_MAX);
+    char* pwd = getcwd(buf, PATH_MAX);
     string expected_resolved = string(pwd) + "/agentd";
 
     ASSERT_EQ(0,
@@ -161,6 +162,5 @@ TEST(path_resolve, canonical_relative_path2)
 
     EXPECT_STREQ(expected_resolved.c_str(), resolved);
 
-    free(pwd);
     free(resolved);
 }
