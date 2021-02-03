@@ -3,7 +3,7 @@
  *
  * \brief Parser for block configuration files.
  *
- * \copyright 2018 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 %{
@@ -37,6 +37,8 @@ static agent_config_t* new_config(config_context_t*);
 static agent_config_t* add_logdir(
     config_context_t*, agent_config_t*, const char*);
 static agent_config_t* add_loglevel(
+    config_context_t*, agent_config_t*, int64_t);
+static agent_config_t* add_datasize(
     config_context_t*, agent_config_t*, int64_t);
 static agent_config_t* add_secret(
     config_context_t*, agent_config_t*, const char*);
@@ -152,6 +154,7 @@ void public_key_dispose(void* disp);
 %token <string> ROOTBLOCK
 %token <string> MILLISECONDS
 %token <string> SECRET
+%token <string> SIZE
 %token <string> TRANSACTION
 %token <string> TRANSACTIONS
 %token <string> TYPE
@@ -166,6 +169,7 @@ void public_key_dispose(void* disp);
 %type <string> chroot
 %type <canonization> canonization
 %type <canonization> canonization_block
+%type <number> datasize
 %type <string> datastore
 %type <listenaddr> listen
 %type <string> logdir
@@ -200,6 +204,9 @@ conf : {
     | conf loglevel {
             /* fold in loglevel. */
             MAYBE_ASSIGN($$, add_loglevel(context, $1, $2)); }
+    | conf datasize {
+            /* fold in datasize. */
+            MAYBE_ASSIGN($$, add_datasize(context, $1, $2)); }
     | conf secret {
             /* fold in secret. */
             MAYBE_ASSIGN($$, add_secret(context, $1, $2)); }
@@ -246,6 +253,10 @@ loglevel
     : LOGLEVEL NUMBER {
             $$ = $2; }
     ;
+
+datasize
+    : MAX DATASTORE SIZE NUMBER {
+            $$ = $4; }
 
 /* Provide a secret file that is either a simple identifier or a path. */
 secret
@@ -493,6 +504,28 @@ static agent_config_t* add_loglevel(
 
     cfg->loglevel_set = true;
     cfg->loglevel = loglevel;
+
+    return cfg;
+}
+
+/**
+ * \brief Add a data size to the config structure.
+ */
+static agent_config_t* add_datasize(
+    config_context_t* context, agent_config_t* cfg, int64_t datasize)
+{
+    if (cfg->database_max_size_set)
+    {
+        CONFIG_ERROR("Duplicate max database size settings.");
+    }
+
+    if (datasize <= 0)
+    {
+        CONFIG_ERROR("Bad max database size value.");
+    }
+
+    cfg->database_max_size_set = true;
+    cfg->database_max_size = datasize;
 
     return cfg;
 }
