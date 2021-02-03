@@ -3,7 +3,7 @@
  *
  * \brief Configuration data structure for agentd.
  *
- * \copyright 2018-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_CONFIG_HEADER_GUARD
@@ -200,6 +200,8 @@ typedef struct agent_config
     const char* logdir;
     bool loglevel_set;
     int64_t loglevel;
+    bool database_max_size_set;
+    int64_t database_max_size;
     bool block_max_milliseconds_set;
     int64_t block_max_milliseconds;
     bool block_max_transactions_set;

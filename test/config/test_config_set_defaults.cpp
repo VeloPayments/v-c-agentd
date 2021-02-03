@@ -3,7 +3,7 @@
  *
  * Test that we can set reasonable defaults for config data.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <gtest/gtest.h>
@@ -75,6 +75,7 @@ static void config_callback(config_context_t* context, agent_config_t* config)
  */
 TEST(config_set_defaults_test, empty_config)
 {
+    int64_t DEFAULT_MAX_DATABASE_SIZE = 16L * 1024L * 1024L * 1024L * 1024L;
     YY_BUFFER_STATE state;
     yyscan_t scanner;
     config_context_t context;
@@ -103,6 +104,7 @@ TEST(config_set_defaults_test, empty_config)
     /* PRECONDITIONS: all config values are unset. */
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
     ASSERT_FALSE(user_context.config->block_max_milliseconds_set);
     ASSERT_FALSE(user_context.config->block_max_transactions_set);
     ASSERT_EQ(nullptr, user_context.config->secret);
@@ -120,6 +122,8 @@ TEST(config_set_defaults_test, empty_config)
     ASSERT_STREQ("log", user_context.config->logdir);
     ASSERT_TRUE(user_context.config->loglevel_set);
     ASSERT_EQ(4, user_context.config->loglevel);
+    ASSERT_EQ(
+        DEFAULT_MAX_DATABASE_SIZE, user_context.config->database_max_size);
     ASSERT_TRUE(user_context.config->block_max_milliseconds_set);
     ASSERT_EQ(5000, user_context.config->block_max_milliseconds);
     ASSERT_TRUE(user_context.config->block_max_transactions_set);

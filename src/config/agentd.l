@@ -3,7 +3,7 @@
  *
  * \brief Lexical scanner for agentd configuration.
  *
- * \copyright 2018 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 %{
@@ -180,6 +180,12 @@ secret {
     /* secret keyword */
     yylval->string = "secret";
     return SECRET;
+}
+
+size {
+    /* size keyword */
+    yylval->string = "size";
+    return SIZE;
 }
 
 transaction {

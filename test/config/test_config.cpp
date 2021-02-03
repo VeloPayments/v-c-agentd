@@ -3,7 +3,7 @@
  *
  * Test the config parser.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <gtest/gtest.h>
@@ -100,6 +100,8 @@ TEST(config_test, empty_config)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -143,6 +145,8 @@ TEST(config_test, logdir_config)
     ASSERT_STREQ("log", user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -186,6 +190,8 @@ TEST(config_test, logdir_dotpath_config)
     ASSERT_STREQ("./log", user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -279,6 +285,8 @@ TEST(config_test, loglevel_config)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_TRUE(user_context.config->loglevel_set);
     ASSERT_EQ(7L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -350,6 +358,8 @@ TEST(config_test, secret_config)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_STREQ("dir", user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -393,6 +403,8 @@ TEST(config_test, secret_dotpath_config)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_STREQ("./dir", user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -488,6 +500,8 @@ TEST(config_test, rootblock_conf)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_STREQ("root", user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -533,6 +547,8 @@ TEST(config_test, rootblock_path_conf)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_STREQ("root/root.cert", user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -578,6 +594,8 @@ TEST(config_test, rootblock_dot_path_conf)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_STREQ("./root/root.cert", user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -675,6 +693,8 @@ TEST(config_test, datastore_config)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_STREQ("data", user_context.config->datastore);
@@ -718,6 +738,8 @@ TEST(config_test, datastore_dotpath)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_STREQ("./data", user_context.config->datastore);
@@ -811,6 +833,8 @@ TEST(config_test, listen_single)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -864,6 +888,8 @@ TEST(config_test, listen_double)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -916,6 +942,8 @@ TEST(config_test, chroot_config)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -959,6 +987,8 @@ TEST(config_test, chroot_dot)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -1052,6 +1082,8 @@ TEST(config_test, usergroup_config)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -1097,6 +1129,8 @@ TEST(config_test, empty_canonization_block)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_FALSE(user_context.config->block_max_milliseconds_set);
     ASSERT_FALSE(user_context.config->block_max_transactions_set);
     ASSERT_EQ(nullptr, user_context.config->secret);
@@ -1144,6 +1178,8 @@ TEST(config_test, block_max_milliseconds)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_TRUE(user_context.config->block_max_milliseconds_set);
     ASSERT_EQ(995, user_context.config->block_max_milliseconds);
     ASSERT_FALSE(user_context.config->block_max_transactions_set);
@@ -1253,6 +1289,8 @@ TEST(config_test, block_max_transactions)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_FALSE(user_context.config->block_max_milliseconds_set);
     ASSERT_TRUE(user_context.config->block_max_transactions_set);
     ASSERT_EQ(17, user_context.config->block_max_transactions);
@@ -1362,6 +1400,8 @@ TEST(config_test, empty_materialized_view)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -1456,6 +1496,8 @@ TEST(config_test, empty_artifact_type)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -1567,6 +1609,8 @@ TEST(config_test, empty_transaction_type)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -1694,6 +1738,8 @@ TEST(config_test, artifact_create_crud_flag)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -1785,6 +1831,8 @@ TEST(config_test, artifact_update_crud_flag)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -1876,6 +1924,8 @@ TEST(config_test, artifact_append_crud_flag)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -1967,6 +2017,8 @@ TEST(config_test, artifact_delete_crud_flag)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2058,6 +2110,8 @@ TEST(config_test, artifact_mix_crud_flags)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2157,6 +2211,8 @@ TEST(config_test, empty_field_type)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2304,6 +2360,8 @@ TEST(config_test, field_create_crud)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2413,6 +2471,8 @@ TEST(config_test, field_update_crud)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2522,6 +2582,8 @@ TEST(config_test, field_append_crud)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2631,6 +2693,8 @@ TEST(config_test, field_delete_crud)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2740,6 +2804,8 @@ TEST(config_test, field_mix_crud_flags)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2826,6 +2892,8 @@ TEST(config_test, private_key_config)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2915,6 +2983,8 @@ TEST(config_test, empty_authorized_entities)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -2964,6 +3034,8 @@ TEST(config_test, authorized_entity_single)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -3028,6 +3100,8 @@ TEST(config_test, authorized_entities)
     ASSERT_EQ(nullptr, user_context.config->logdir);
     ASSERT_FALSE(user_context.config->loglevel_set);
     ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
     ASSERT_EQ(nullptr, user_context.config->secret);
     ASSERT_EQ(nullptr, user_context.config->rootblock);
     ASSERT_EQ(nullptr, user_context.config->datastore);
@@ -3062,3 +3136,50 @@ TEST(config_test, authorized_entities)
 
     dispose((disposable_t*)&user_context);
 }
+
+/**
+ * Test that a max database size setting adds this setting to the config.
+ */
+TEST(config_test, max_database_size)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(nullptr,
+        state = yy_scan_string("max datastore size 1024", scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are no errors. */
+    ASSERT_EQ(0U, user_context.errors.size());
+
+    /* verify user config. */
+    ASSERT_NE(nullptr, user_context.config);
+    ASSERT_EQ(nullptr, user_context.config->logdir);
+    ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_TRUE(user_context.config->database_max_size_set);
+    ASSERT_EQ(1024L, user_context.config->database_max_size);
+    ASSERT_EQ(nullptr, user_context.config->secret);
+    ASSERT_EQ(nullptr, user_context.config->rootblock);
+    ASSERT_EQ(nullptr, user_context.config->datastore);
+    ASSERT_EQ(nullptr, user_context.config->listen_head);
+    ASSERT_EQ(nullptr, user_context.config->chroot);
+    ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+
+    dispose((disposable_t*)&user_context);
+}
+

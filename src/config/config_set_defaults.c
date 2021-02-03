@@ -3,7 +3,7 @@
  *
  * \brief Set defaults for config data.
  *
- * \copyright 2018 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/config.h>
@@ -40,6 +40,13 @@ int config_set_defaults(agent_config_t* conf, const bootstrap_config_t* bconf)
     {
         conf->loglevel = 4;
         conf->loglevel_set = true;
+    }
+
+    /* if database max size is not set, set it to the default of 16 TB. */
+    if (!conf->database_max_size_set)
+    {
+        conf->database_max_size = 16L * 1024L * 1024L * 1024L * 1024L;
+        conf->database_max_size_set = true;
     }
 
     /* if block_max_milliseconds is not set, set it to 5. */
