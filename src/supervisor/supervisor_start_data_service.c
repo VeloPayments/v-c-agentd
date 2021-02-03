@@ -3,7 +3,7 @@
  *
  * \brief Start the data service process.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/control.h>
@@ -38,7 +38,8 @@ int supervisor_start_data_service(process_t* proc)
     /* attempt to send the initialize root context request. */
     TRY_OR_FAIL(
         dataservice_api_sendreq_root_context_init_block(
-            *data_proc->supervisor_data_socket, data_proc->conf->datastore),
+            *data_proc->supervisor_data_socket,
+            data_proc->conf->database_max_size, data_proc->conf->datastore),
         terminate_proc);
 
     /* attempt to read the response from this init. */

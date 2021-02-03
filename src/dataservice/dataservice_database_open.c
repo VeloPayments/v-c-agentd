@@ -3,7 +3,7 @@
  *
  * \brief Open the lmdb database.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/status_codes.h>
@@ -16,8 +16,10 @@
 /**
  * \brief Open the database using the given data directory.
  *
- * \param ctx       The initialized root context that stores this database.
- * \param datadir   The directory where the database is stored.
+ * \param ctx               The initialized root context that stores this
+ *                          database.
+ * \param max_database_size The maximum size for this database.
+ * \param datadir           The directory where the database is stored.
  *
  * \returns a status code indicating success or failure.
  *      - AGENTD_STATUS_SUCCESS on success.
@@ -37,7 +39,8 @@
  *        failed to commit the database open transaction.
  */
 int dataservice_database_open(
-    dataservice_root_context_t* ctx, const char* datadir)
+    dataservice_root_context_t* ctx, uint64_t max_database_size,
+    const char* datadir)
 {
     int retval = 0;
     MDB_txn* txn;
@@ -63,12 +66,8 @@ int dataservice_database_open(
         goto free_details;
     }
 
-    /* TODO - expose setting below as a param instead of a hard-coded value. */
-
     /* set the database size to an arbitrarily large value. (16 terabytes). */
-    if (0 !=
-            mdb_env_set_mapsize(
-                details->env, 16UL * 1024UL * 1024UL * 1024UL * 1024UL))
+    if (0 != mdb_env_set_mapsize(details->env, max_database_size))
     {
         retval = AGENTD_ERROR_DATASERVICE_MDB_ENV_SET_MAPSIZE_FAILURE;
         goto close_environment;

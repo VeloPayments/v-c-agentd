@@ -3,7 +3,7 @@
  *
  * Isolation tests for the data service.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -20,6 +20,8 @@
 #include "test_dataservice_isolation.h"
 
 using namespace std;
+
+static const uint64_t DEFAULT_DATABASE_SIZE = 1024 * 1024;
 
 /**
  * Test that we can spawn the data service.
@@ -43,7 +45,7 @@ TEST_F(dataservice_isolation_test, create_root_block_blocking)
 
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_init_block(
-            datasock, DB_PATH.c_str()));
+            datasock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_init_block(
             datasock, &offset, &status));
@@ -67,7 +69,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps_blocking)
     /* open the database. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_init_block(
-            datasock, DB_PATH.c_str()));
+            datasock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_init_block(
             datasock, &offset, &status));
@@ -162,7 +164,8 @@ TEST_F(dataservice_isolation_test, create_root_block)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -209,7 +212,8 @@ TEST_F(dataservice_isolation_test, reduce_root_caps)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -353,7 +357,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close_blocking)
     /* open the database. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_init_block(
-            datasock, DB_PATH.c_str()));
+            datasock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_init_block(
             datasock, &offset, &status));
@@ -444,7 +448,8 @@ TEST_F(dataservice_isolation_test, child_context_create_close)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -569,7 +574,8 @@ TEST_F(dataservice_isolation_test, global_setting_not_found)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -677,7 +683,7 @@ TEST_F(dataservice_isolation_test, global_setting_set_get_blocking)
     /* open the database. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_init_block(
-            datasock, DB_PATH.c_str()));
+            datasock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_init_block(
             datasock, &offset, &status));
@@ -793,7 +799,8 @@ TEST_F(dataservice_isolation_test, global_setting_set_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -969,7 +976,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get_first)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -1174,7 +1182,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -1379,7 +1388,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get_drop)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -1659,7 +1669,8 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -1939,7 +1950,8 @@ TEST_F(dataservice_isolation_test, make_block_simple)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -2404,7 +2416,8 @@ TEST_F(dataservice_isolation_test, block_get_not_found)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -2541,7 +2554,8 @@ TEST_F(dataservice_isolation_test, block_id_by_height_get_not_found)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -2675,7 +2689,8 @@ TEST_F(dataservice_isolation_test, latest_block_id_get_not_found)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -2810,7 +2825,8 @@ TEST_F(dataservice_isolation_test, artifact_get_not_found)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -2942,7 +2958,8 @@ TEST_F(dataservice_isolation_test, read_block_no_cert)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 
@@ -3202,7 +3219,8 @@ TEST_F(dataservice_isolation_test, no_context_leak)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_init(
-                        &nonblockdatasock, DB_PATH.c_str());
+                        &nonblockdatasock, DEFAULT_DATABASE_SIZE,
+                        DB_PATH.c_str());
             }
         });
 

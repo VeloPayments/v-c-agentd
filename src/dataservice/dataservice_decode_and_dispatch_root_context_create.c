@@ -3,7 +3,7 @@
  *
  * \brief Decode requests and dispatch a root context create call.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/private/dataservice.h>
@@ -11,6 +11,7 @@
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
 #include <unistd.h>
+#include <vcblockchain/byteswap.h>
 #include <vpr/parameters.h>
 
 #include "dataservice_internal.h"
@@ -47,11 +48,18 @@ int dataservice_decode_and_dispatch_root_context_create(
     /* make working with the request more convenient. */
     uint8_t* breq = (uint8_t*)req;
 
-    /* the payload size should be greater than zero. */
-    if (0U == size)
+    /* the payload size should be greater than eight. */
+    if (size <= 8U)
     {
         return AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE;
     }
+
+    /* get the max database size. */
+    uint64_t net_max_database_size = 0U;
+    memcpy(&net_max_database_size, breq, sizeof(net_max_database_size));
+    uint64_t max_database_size = ntohll(net_max_database_size);
+    size -= 8U;
+    breq += 8U;
 
     /* allocate memory for the datadir string. */
     char* datadir = (char*)malloc(size + 1);
@@ -65,7 +73,8 @@ int dataservice_decode_and_dispatch_root_context_create(
     datadir[size] = 0;
 
     /* call the root context create method. */
-    int retval = dataservice_root_context_init(&inst->ctx, datadir);
+    int retval =
+        dataservice_root_context_init(&inst->ctx, max_database_size, datadir);
 
     /* clean up. */
     memset(datadir, 0, size);
