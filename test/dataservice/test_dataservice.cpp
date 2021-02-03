@@ -3,7 +3,7 @@
  *
  * Test the data service private API.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -13,6 +13,8 @@
 #include "test_dataservice.h"
 
 using namespace std;
+
+static const uint64_t DEFAULT_DATABASE_SIZE = 1024 * 1024;
 
 /**
  * Test that the data service root context can be initialized.
@@ -34,7 +36,10 @@ TEST_F(dataservice_test, root_context_init)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -108,7 +113,10 @@ TEST_F(dataservice_test, root_context_init_no_permission)
     BITCAP_SET_FALSE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialization should fail. */
-    ASSERT_NE(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_NE(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 }
 
 /**
@@ -136,7 +144,10 @@ TEST_F(dataservice_test, root_context_reduce_capabilities)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialization should succeed. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* We can't create a root context again. */
     EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
@@ -316,7 +327,10 @@ TEST_F(dataservice_test, child_context_create)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -392,7 +406,10 @@ TEST_F(dataservice_test, child_context_create_denied)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -448,7 +465,10 @@ TEST_F(dataservice_test, child_context_close)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -503,7 +523,10 @@ TEST_F(dataservice_test, child_context_close_denied)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -567,7 +590,10 @@ TEST_F(dataservice_test, global_settings_get)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -649,7 +675,10 @@ TEST_F(dataservice_test, global_settings_get_denied)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -723,7 +752,10 @@ TEST_F(dataservice_test, global_settings_get_would_truncate)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -796,7 +828,10 @@ TEST_F(dataservice_test, global_settings_get_not_found)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -856,7 +891,10 @@ TEST_F(dataservice_test, global_settings_set_get)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -928,7 +966,10 @@ TEST_F(dataservice_test, global_settings_set_denied)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
     ASSERT_NE(nullptr, ctx.hdr.dispose);
@@ -980,7 +1021,10 @@ TEST_F(dataservice_test, transaction_get_first_empty)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1035,7 +1079,10 @@ TEST_F(dataservice_test, transaction_get_first_empty_with_start_end)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1126,7 +1173,10 @@ TEST_F(dataservice_test, transaction_get_first_no_capability)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1182,7 +1232,10 @@ TEST_F(dataservice_test, transaction_get_first_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1321,7 +1374,10 @@ TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1467,7 +1523,10 @@ TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1644,7 +1703,10 @@ TEST_F(dataservice_test, transaction_submit_get_first_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1745,7 +1807,10 @@ TEST_F(dataservice_test, transaction_submit_txn_get_first_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1850,7 +1915,10 @@ TEST_F(dataservice_test, transaction_submit_get_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1951,7 +2019,10 @@ TEST_F(dataservice_test, transaction_submit_txn_get_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2061,7 +2132,10 @@ TEST_F(dataservice_test, transaction_drop_00_ff)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2149,7 +2223,10 @@ TEST_F(dataservice_test, transaction_drop)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2272,7 +2349,10 @@ TEST_F(dataservice_test, transaction_drop_ordering)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2525,7 +2605,10 @@ TEST_F(dataservice_test, transaction_drop_first_ordering)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2758,7 +2841,10 @@ TEST_F(dataservice_test, transaction_promote_00_ff)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2846,7 +2932,10 @@ TEST_F(dataservice_test, transaction_promote)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2940,7 +3029,10 @@ TEST_F(dataservice_test, transaction_submit_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2992,7 +3084,10 @@ TEST_F(dataservice_test, transaction_get_first_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3044,7 +3139,10 @@ TEST_F(dataservice_test, transaction_get_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3094,7 +3192,10 @@ TEST_F(dataservice_test, transaction_drop_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3144,7 +3245,10 @@ TEST_F(dataservice_test, transaction_promote_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3220,7 +3324,10 @@ TEST_F(dataservice_test, transaction_make_block_simple)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3408,7 +3515,10 @@ TEST_F(dataservice_test, transaction_make_block_bitset)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3505,7 +3615,10 @@ TEST_F(dataservice_test, transaction_make_block_bad_height)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3601,7 +3714,10 @@ TEST_F(dataservice_test, transaction_make_block_bad_prev_block_id)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3697,7 +3813,10 @@ TEST_F(dataservice_test, transaction_make_block_bad_block_id)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3841,7 +3960,10 @@ TEST_F(dataservice_test, transaction_empty_root_next_block_id)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(0, dataservice_root_context_init(&ctx, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_root_context_init(
+            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);

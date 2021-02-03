@@ -3,7 +3,7 @@
  *
  * \brief API for the data service.
  *
- * \copyright 2018-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_DATASERVICE_API_HEADER_GUARD
@@ -21,8 +21,9 @@ extern "C" {
 /**
  * \brief Request the creation of a root data service context.
  *
- * \param sock          The socket on which this request is made.
- * \param datadir       The data directory to open.
+ * \param sock              The socket on which this request is made.
+ * \param max_database_size The maximum size of the database.
+ * \param datadir           The data directory to open.
  *
  * \returns a status code indicating success or failure.
  *      - AGENTD_STATUS_SUCCESS on success.
@@ -32,7 +33,7 @@ extern "C" {
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_root_context_init_block(
-    int sock, const char* datadir);
+    int sock, uint64_t max_database_size, const char* datadir);
 
 /**
  * \brief Receive a response from the root context init api method call.
@@ -389,8 +390,9 @@ int dataservice_api_recvresp_global_settings_set_block(
 /**
  * \brief Request the creation of a root data service context.
  *
- * \param sock          The socket on which this request is made.
- * \param datadir       The data directory to open.
+ * \param sock              The socket on which this request is made.
+ * \param max_database_size The maximum size of the database.
+ * \param datadir           The data directory to open.
  *
  * \returns a status code indicating success or failure.
  *      - AGENTD_STATUS_SUCCESS on success.
@@ -402,7 +404,8 @@ int dataservice_api_recvresp_global_settings_set_block(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_root_context_init(
-    ipc_socket_context_t* sock, const char* datadir);
+    ipc_socket_context_t* sock, uint64_t max_database_size,
+    const char* datadir);
 
 /**
  * \brief Receive a response from the root context init api method call.

@@ -3,7 +3,7 @@
  *
  * \brief Internal header for the data service.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_DATASERVICE_INTERNAL_HEADER_GUARD
@@ -74,8 +74,10 @@ struct dataservice_transaction_context
 /**
  * \brief Open the database using the given data directory.
  *
- * \param ctx       The initialized root context that stores this database.
- * \param datadir   The directory where the database is stored.
+ * \param ctx               The initialized root context that stores this
+ *                          database.
+ * \param max_database_size The maximum size for this database.
+ * \param datadir           The directory where the database is stored.
  *
  * \returns a status code indicating success or failure.
  *      - AGENTD_STATUS_SUCCESS on success.
@@ -95,7 +97,8 @@ struct dataservice_transaction_context
  *        failed to commit the database open transaction.
  */
 int dataservice_database_open(
-    dataservice_root_context_t* ctx, const char* datadir);
+    dataservice_root_context_t* ctx, uint64_t max_database_size,
+    const char* datadir);
 
 /**
  * \brief Close the database.

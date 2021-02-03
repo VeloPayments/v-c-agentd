@@ -3,7 +3,7 @@
  *
  * \brief Initialize the root context for the data service.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/private/dataservice.h>
@@ -20,8 +20,9 @@ static void dataservice_root_context_dispose(void* disposable);
 /**
  * \brief Create a root data service context.
  *
- * \param ctx           The private data service context to initialize.
- * \param datadir       The data directory for this private data service.
+ * \param ctx               The private data service context to initialize.
+ * \param max_database_size The max database size for this data service.
+ * \param datadir           The data directory for this private data service.
  *
  * \returns a status code indicating success or failure.
  *      - AGENTD_STATUS_SUCCESS on success.
@@ -43,10 +44,12 @@ static void dataservice_root_context_dispose(void* disposable);
  *        failed to commit the database open transaction.
  */
 int dataservice_root_context_init(
-    dataservice_root_context_t* ctx, const char* datadir)
+    dataservice_root_context_t* ctx, uint64_t max_database_size,
+    const char* datadir)
 {
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != ctx);
+    MODEL_ASSERT(max_database_size > 0);
     MODEL_ASSERT(NULL != datadir);
 
     /* verify that we are allowed to create a root context. */
@@ -65,7 +68,7 @@ int dataservice_root_context_init(
     ctx->hdr.dispose = &dataservice_root_context_dispose;
 
     /* attempt to open the database and forward status to the caller. */
-    return dataservice_database_open(ctx, datadir);
+    return dataservice_database_open(ctx, max_database_size, datadir);
 }
 
 /**
