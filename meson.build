@@ -118,7 +118,8 @@ test(
     'agentd-test',
     agentd_test,
     env : test_env,
-    is_parallel : false
+    is_parallel : false,
+    timeout: 900
 )
 
 VERSION=meson.project_version()
