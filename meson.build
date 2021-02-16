@@ -123,13 +123,14 @@ test(
 )
 
 VERSION=meson.project_version()
+package_sh = files('scripts/package.sh')
+default_agentd_conf = files('share/default-agentd.conf')
 
 package = custom_target(
     'package',
     input : [agentd_exe, 'share/default-agentd.conf'],
-    output : 'agentd-@VERSION@.tar.xz',
-    command: ['@SOURCE_DIR@/scripts/package.sh', meson.project_version(),
-              '@SOURCE_DIR@/share/default-agentd.conf'],
+    output : ('agentd-' + VERSION + '.tar.xz'),
+    command: [package_sh, meson.project_version(), default_agentd_conf],
     build_by_default : true
 )
 
