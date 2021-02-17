@@ -3,7 +3,7 @@
  *
  * Test parsing command-line options.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <gtest/gtest.h>
@@ -134,6 +134,29 @@ TEST(parse_commandline_options_test, config_option_no_space)
     EXPECT_STREQ("other.conf", bconf.config_file);
     /* the help command is set. */
     EXPECT_EQ(&command_help, bconf.command);
+
+    dispose((disposable_t*)&bconf);
+}
+
+/**
+ * \brief Parsing a -v should request version information.
+ */
+TEST(parse_commandline_options_test, version_request)
+{
+    bootstrap_config_t bconf;
+    char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
+    char flags[] = { '-', 'v', 0 };
+    char* args[] = { exename, flags };
+
+    bootstrap_config_init(&bconf);
+
+    parse_commandline_options(
+        &bconf, sizeof(args) / sizeof(char*), args);
+
+    /* agentd has the version request set. */
+    EXPECT_TRUE(bconf.version_request);
+    /* the version command is set. */
+    EXPECT_EQ(&command_version, bconf.command);
 
     dispose((disposable_t*)&bconf);
 }

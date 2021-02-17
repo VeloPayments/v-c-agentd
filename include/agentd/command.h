@@ -3,7 +3,7 @@
  *
  * \brief Commands supported by agentd.
  *
- * \copyright 2018-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_COMMAND_HEADER_GUARD
@@ -99,6 +99,15 @@ int command_start(struct bootstrap_config* bconf);
  * \returns 0 on success and non-zero on failure.
  */
 int command_help(struct bootstrap_config* bconf);
+
+/**
+ * \brief Print version information to standard output.
+ *
+ * \param bconf         The bootstrap configuration for this command.
+ *
+ * \returns 0 on success and non-zero on failure.
+ */
+int command_version(struct bootstrap_config* bconf);
 
 /**
  * \brief Print help information to standard error and exit with an error code.
