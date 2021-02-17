@@ -67,6 +67,7 @@ gtest = dependency(
 threads = dependency('threads')
 
 agentd_include = include_directories('include')
+config_include = include_directories('.')
 
 #add vcblockchain include directories
 vcblockchain_sub = subproject('vcblockchain')
@@ -79,7 +80,10 @@ agentd_exe = executable(
     src_not_main,
     lfiles,
     pfiles,
-    include_directories : [agentd_include, vcblockchain_include_directories],
+    include_directories : [
+        agentd_include,
+        config_include,
+        vcblockchain_include_directories],
     dependencies : [threads, vcblockchain]
 )
 
@@ -132,6 +136,14 @@ package = custom_target(
     output : ('agentd-' + VERSION + '.tar.xz'),
     command: [package_sh, meson.project_version(), default_agentd_conf],
     build_by_default : true
+)
+
+conf_data = configuration_data()
+conf_data.set('VERSION', VERSION)
+configure_file(
+    input : 'config.h.in',
+    output : 'config.h',
+    configuration : conf_data
 )
 
 #Model checking

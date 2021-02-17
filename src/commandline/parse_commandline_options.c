@@ -35,7 +35,7 @@ void parse_commandline_options(
 #endif
 
     /* read through command-line options. */
-    while ((ch = getopt(argc, argv, "FIP:c:")) != -1)
+    while ((ch = getopt(argc, argv, "FIP:c:v")) != -1)
     {
         switch (ch)
         {
@@ -59,6 +59,12 @@ void parse_commandline_options(
                 bootstrap_config_set_config_file(bconf, optarg);
                 break;
 
+            /* set the version flag. */
+            case 'v':
+                bootstrap_config_set_version_request(bconf, true);
+                bootstrap_config_set_command(bconf, &command_version);
+                break;
+
             /* unknown option. */
             default:
                 bootstrap_config_set_command(bconf, &command_error_usage);
@@ -67,7 +73,7 @@ void parse_commandline_options(
     }
 
     /* only dispatch a command if a private command has not been set, and an
-      * error command has not already been set. */
+     * error command has not already been set. */
     if (NULL == bconf->private_command && NULL == bconf->command)
     {
         /* skip parsed options. */
