@@ -1,5 +1,5 @@
 [wrap-git]
 directory = vcblockchain
-revision = v0.4.1
+revision = f2182566357c6bfde1638a01e96dda48efe0b1fc
 url = git@github.com:VeloPayments/v-c-bc.git
 push-url = git@github.com:VeloPayments/v-c-bc.git
