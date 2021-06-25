@@ -23,7 +23,7 @@ void private_command_randomservice(bootstrap_config_t* UNUSED(bconf))
 
     /* run the event loop for the random service. */
     int retval =
-        randomservice_event_loop(
+        randomservice_event_loop_old(
             AGENTD_FD_RANDOM_SERVICE_RANDOM_DEVICE,
             AGENTD_FD_RANDOM_SERVICE_PROTOCOL_SERVICE,
             AGENTD_FD_RANDOM_SERVICE_LOG_SOCKET);

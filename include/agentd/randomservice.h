@@ -66,7 +66,7 @@ enum randomservice_api_method_enum
  *          - AGENTD_ERROR_RANDOMSERVICE_IPC_EVENT_LOOP_RUN_FAILURE if running
  *            the random service event loop failed.
  */
-int randomservice_event_loop(int random, int protosock, int logsock);
+int randomservice_event_loop_old(int random, int protosock, int logsock);
 
 /**
  * \brief Spawn a random service process using the provided config structure and
