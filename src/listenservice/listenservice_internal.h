@@ -29,16 +29,6 @@ typedef struct listenservice_instance
 } listenservice_instance_t;
 
 /**
- * \brief Count the number of listen sockets, returning this number as an
- * integer.
- *
- * \param listenstart       The starting socket from which the count starts.
- *
- * \returns the number of valid descriptors found.
- */
-int listenservice_count_sockets(int listenstart);
-
-/**
  * \brief Read callback on listen sockets to accept a new socket.
  *
  * This callback is registered as part of the ipc callback mechanism for a

@@ -26,6 +26,17 @@ extern "C" {
 int64_t htonll(int64_t val);
 
 /**
+ * \brief Count the number of socket descriptors after the given start socket.
+ * This function is used for when a list of descriptors is passed to a process
+ * in increasing order.
+ *
+ * \param start             The starting socket from which the count starts.
+ *
+ * \returns the number of valid descriptors found.
+ */
+int inet_count_sockets(int start);
+
+/**
  * \brief Convert the given network 64-bit value to host byte order.
  *
  * \param val       The value to convert.

@@ -6,6 +6,7 @@
  * \copyright 2019 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <agentd/inet.h>
 #include <agentd/ipc.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
@@ -51,7 +52,7 @@ int listenservice_event_loop(
     MODEL_ASSERT(listenstart >= 0);
 
     /* count the number of listen sockets. */
-    int listensocket_count = listenservice_count_sockets(listenstart);
+    int listensocket_count = inet_count_sockets(listenstart);
 
     /* allocate memory for the listen sockets. */
     listensockets = (ipc_socket_context_t*)
