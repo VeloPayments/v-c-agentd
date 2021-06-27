@@ -1,26 +1,26 @@
 /**
- * \file listenservice/listenservice_count_sockets.c
+ * \file inet/inet_count_sockets.c
  *
- * \brief Count the number of sockets to which this service will listen.
+ * \brief Count the number of sockets from the starting descriptor.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <agentd/inet.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "listenservice_internal.h"
-
 /**
- * \brief Count the number of listen sockets, returning this number as an
- * integer.
+ * \brief Count the number of socket descriptors after the given start socket.
+ * This function is used for when a list of descriptors is passed to a process
+ * in increasing order.
  *
- * \param listenstart       The starting socket from which the count starts.
+ * \param start             The starting socket from which the count starts.
  *
  * \returns the number of valid descriptors found.
  */
-int listenservice_count_sockets(int listenstart)
+int inet_count_sockets(int start)
 {
     int count = 0;
     int socket_good = 0;
@@ -30,7 +30,7 @@ int listenservice_count_sockets(int listenstart)
     do
     {
         /* get the status of the descriptor. */
-        int retval = fstat(listenstart + count, &statbuf);
+        int retval = fstat(start + count, &statbuf);
         if (retval < 0)
         {
             /* invalid descriptor.  We're done. */
