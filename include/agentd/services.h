@@ -88,6 +88,11 @@ enum agentd_services
      * \brief Reader Service.
      */
     AGENTD_SERVICE_READER = 0x0DU,
+
+    /**
+     * \brief Attestation Service.
+     */
+    AGENTD_SERVICE_ATTESTATION = 0x0EU,
 };
 
 /* make this header C++ friendly. */
