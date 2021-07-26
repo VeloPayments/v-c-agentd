@@ -3,7 +3,7 @@
  *
  * \brief Non-blocking read of an authenticated data packet value.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -58,7 +58,7 @@ int ipc_read_authed_data_noblock(
     vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret)
 {
     int retval = 0;
-    uint8_t type = 0U;
+    uint32_t type = 0U;
     uint32_t nsize = 0U;
     uint8_t* dheader = NULL;
     uint8_t* header = NULL;
@@ -75,7 +75,7 @@ int ipc_read_authed_data_noblock(
 
     /* we need at least this many bytes to see the header. */
     ssize_t header_sz =
-        sizeof(uint8_t) + sizeof(uint32_t) + suite->mac_short_opts.mac_size;
+        sizeof(uint32_t) + sizeof(uint32_t) + suite->mac_short_opts.mac_size;
 
     /* get the size of the buffer. */
     ssize_t buffer_size = (ssize_t)evbuffer_get_length(sock_impl->readbuf);
@@ -165,15 +165,15 @@ int ipc_read_authed_data_noblock(
     }
 
     /* verify that the type is IPC_DATA_TYPE_AUTHED_PACKET. */
-    type = dheader[0];
-    if (IPC_DATA_TYPE_AUTHED_PACKET != type)
+    memcpy(&type, dheader, sizeof(type));
+    if (IPC_DATA_TYPE_AUTHED_PACKET != ntohl(type))
     {
         retval = AGENTD_ERROR_IPC_UNAUTHORIZED_PACKET;
         goto cleanup_mac;
     }
 
     /* verify that the size makes sense. */
-    memcpy(&nsize, dheader + 1, sizeof(nsize));
+    memcpy(&nsize, dheader + sizeof(type), sizeof(nsize));
     *size = ntohl(nsize);
     if (*size > 10ULL * 1024ULL * 1024ULL /* 10 MB */)
     {

@@ -3,7 +3,7 @@
  *
  * \brief Blocking read of an authenticated data packet value.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -50,7 +50,7 @@ int ipc_read_authed_data_block(
     vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret)
 {
     int retval = 0;
-    uint8_t type = 0U;
+    uint32_t type = 0U;
     uint32_t nsize = 0U;
     uint8_t* header = NULL;
     uint8_t* dheader = NULL;
@@ -132,15 +132,15 @@ int ipc_read_authed_data_block(
     }
 
     /* verify that the type is IPC_DATA_TYPE_AUTHED_PACKET. */
-    type = dheader[0];
-    if (IPC_DATA_TYPE_AUTHED_PACKET != type)
+    memcpy(&type, dheader, sizeof(type));
+    if (IPC_DATA_TYPE_AUTHED_PACKET != ntohl(type))
     {
         retval = AGENTD_ERROR_IPC_UNAUTHORIZED_PACKET;
         goto cleanup_mac;
     }
 
     /* verify that the size makes sense. */
-    memcpy(&nsize, dheader + 1, sizeof(nsize));
+    memcpy(&nsize, dheader + sizeof(type), sizeof(nsize));
     *size = ntohl(nsize);
     if (*size > 10ULL * 1024ULL * 1024ULL /* 10 MB */)
     {

@@ -3,7 +3,7 @@
  *
  * \brief Blocking write of an authenticated data packet to a socket
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -38,7 +38,7 @@ int ipc_write_authed_data_block(
     int sock, uint64_t iv, const void* val, uint32_t size,
     vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret)
 {
-    uint8_t type = IPC_DATA_TYPE_AUTHED_PACKET;
+    uint32_t type = htonl(IPC_DATA_TYPE_AUTHED_PACKET);
     uint32_t nsize = htonl(size);
     int retval = 0;
 

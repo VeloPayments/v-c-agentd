@@ -22,17 +22,23 @@
 extern "C" {
 #endif  //__cplusplus
 
-#define IPC_DATA_TYPE_BOM 0x00
-#define IPC_DATA_TYPE_UINT8 0x01
-#define IPC_DATA_TYPE_UINT32 0x03
-#define IPC_DATA_TYPE_UINT64 0x04
-#define IPC_DATA_TYPE_INT8 0x09
-#define IPC_DATA_TYPE_INT32 0x0A
-#define IPC_DATA_TYPE_INT64 0x0B
-#define IPC_DATA_TYPE_STRING 0x10
-#define IPC_DATA_TYPE_DATA_PACKET 0x20
-#define IPC_DATA_TYPE_AUTHED_PACKET 0x30
-#define IPC_DATA_TYPE_EOM 0xFF
+enum ipc_data_type
+{
+    IPC_DATA_TYPE_BOM                           = 0x00000000,
+    IPC_DATA_TYPE_INT64                         = 0x00000010,
+    IPC_DATA_TYPE_UINT64                        = 0x00000011,
+    IPC_DATA_TYPE_INT32                         = 0x00000012,
+    IPC_DATA_TYPE_UINT32                        = 0x00000013,
+    IPC_DATA_TYPE_INT16                         = 0x00000014,
+    IPC_DATA_TYPE_UINT16                        = 0x00000015,
+    IPC_DATA_TYPE_INT8                          = 0x00000016,
+    IPC_DATA_TYPE_UINT8                         = 0x00000017,
+    IPC_DATA_TYPE_BOOL                          = 0x00000018,
+    IPC_DATA_TYPE_STRING                        = 0x00000020,
+    IPC_DATA_TYPE_DATA_PACKET                   = 0x00000022,
+    IPC_DATA_TYPE_AUTHED_PACKET                 = 0x00000030,
+    IPC_DATA_TYPE_EOM                           = 0x000000FF,
+};
 
 /* forward decl for ipc_socket_context. */
 struct ipc_socket_context;

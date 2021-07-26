@@ -3,7 +3,7 @@
  *
  * \brief Blocking read of a data packet value.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -43,7 +43,7 @@ int ipc_read_data_block(int sock, void** val, uint32_t* size)
     MODEL_ASSERT(NULL != val);
     MODEL_ASSERT(NULL != size);
 
-    uint8_t type = 0U;
+    uint32_t type = 0U;
     uint32_t nsize = 0U;
 
     /* parameter sanity checks. */
@@ -56,7 +56,7 @@ int ipc_read_data_block(int sock, void** val, uint32_t* size)
         return AGENTD_ERROR_IPC_READ_BLOCK_FAILURE;
 
     /* verify that the type is IPC_DATA_TYPE_DATA_PACKET. */
-    if (IPC_DATA_TYPE_DATA_PACKET != type)
+    if (IPC_DATA_TYPE_DATA_PACKET != ntohl(type))
         return AGENTD_ERROR_IPC_READ_UNEXPECTED_DATA_TYPE;
 
     /* attempt to read the size. */

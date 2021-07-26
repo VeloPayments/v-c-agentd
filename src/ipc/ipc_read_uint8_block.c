@@ -3,7 +3,7 @@
  *
  * \brief Blocking read of a uint8_t value.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -33,7 +33,7 @@
  */
 int ipc_read_uint8_block(int sock, uint8_t* val)
 {
-    uint8_t type = 0U;
+    uint32_t type = 0U;
     uint32_t nsize = 0U;
     uint32_t size = 0U;
 
@@ -46,7 +46,7 @@ int ipc_read_uint8_block(int sock, uint8_t* val)
         return AGENTD_ERROR_IPC_READ_BLOCK_FAILURE;
 
     /* verify that the type is IPC_DATA_TYPE_UINT8. */
-    if (IPC_DATA_TYPE_UINT8 != type)
+    if (IPC_DATA_TYPE_UINT8 != ntohl(type))
         return AGENTD_ERROR_IPC_READ_UNEXPECTED_DATA_TYPE;
 
     /* attempt to read the size. */

@@ -3,7 +3,7 @@
  *
  * \brief Non-blocking read of a string value.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -57,7 +57,7 @@ int ipc_read_string_noblock(ipc_socket_context_t* sock, char** val)
     ipc_socket_impl_t* sock_impl = (ipc_socket_impl_t*)sock->impl;
 
     /* compute the header size. */
-    ssize_t header_sz = sizeof(uint8_t) + sizeof(uint32_t);
+    ssize_t header_sz = sizeof(uint32_t) + sizeof(uint32_t);
 
     /* we need the header data. */
     uint8_t* mem = (uint8_t*)evbuffer_pullup(sock_impl->readbuf, header_sz);
@@ -68,7 +68,9 @@ int ipc_read_string_noblock(ipc_socket_context_t* sock, char** val)
     }
 
     /* if the type does not match our expected type, return an error. */
-    if (IPC_DATA_TYPE_STRING != mem[0])
+    uint32_t ntype;
+    memcpy(&ntype, mem, sizeof(ntype));
+    if (IPC_DATA_TYPE_STRING != ntohl(ntype))
     {
         retval = AGENTD_ERROR_IPC_READ_UNEXPECTED_DATA_TYPE;
         goto done;
@@ -76,7 +78,7 @@ int ipc_read_string_noblock(ipc_socket_context_t* sock, char** val)
 
     /* decode the size of this packet. */
     uint32_t nsize = 0;
-    memcpy(&nsize, mem + 1, sizeof(uint32_t));
+    memcpy(&nsize, mem + sizeof(ntype), sizeof(uint32_t));
 
     /* sanity check on size. */
     uint32_t size = ntohl(nsize);

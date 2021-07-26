@@ -3,7 +3,7 @@
  *
  * \brief Non-blocking read of a data packet value.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -60,7 +60,7 @@ int ipc_read_data_noblock(
     ipc_socket_impl_t* sock_impl = (ipc_socket_impl_t*)sock->impl;
 
     /* compute the header size. */
-    ssize_t header_sz = sizeof(uint8_t) + sizeof(uint32_t);
+    ssize_t header_sz = sizeof(uint32_t) + sizeof(uint32_t);
 
     /* read data from the socket into our buffer. */
     retval = evbuffer_read(sock_impl->readbuf, sock->fd, -1);
@@ -89,7 +89,9 @@ int ipc_read_data_noblock(
     }
 
     /* if the type does not match our expected type, return an error. */
-    if (IPC_DATA_TYPE_DATA_PACKET != mem[0])
+    uint32_t ntype;
+    memcpy(&ntype, mem, sizeof(ntype));
+    if (IPC_DATA_TYPE_DATA_PACKET != ntohl(ntype))
     {
         retval = AGENTD_ERROR_IPC_READ_UNEXPECTED_DATA_TYPE;
         goto done;
@@ -97,7 +99,7 @@ int ipc_read_data_noblock(
 
     /* decode the size of this packet. */
     uint32_t nsize = 0;
-    memcpy(&nsize, mem + 1, sizeof(uint32_t));
+    memcpy(&nsize, mem + sizeof(ntype), sizeof(uint32_t));
 
     /* sanity check on size. */
     *size = ntohl(nsize);

@@ -3,7 +3,7 @@
  *
  * \brief Blocking write of a uint64_t value.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -32,7 +32,7 @@ int ipc_write_uint64_block(int sock, uint64_t val)
     /* parameter sanity checks. */
     MODEL_ASSERT(sock >= 0);
 
-    uint8_t typeval = IPC_DATA_TYPE_UINT64;
+    uint32_t typeval = htonl(IPC_DATA_TYPE_UINT64);
 
     /* attempt to write the type to the socket. */
     if (sizeof(typeval) != write(sock, &typeval, sizeof(typeval)))

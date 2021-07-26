@@ -3,7 +3,7 @@
  *
  * \brief Non-blocking write of a data packet value.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -51,7 +51,7 @@ int ipc_write_data_noblock(
     ipc_socket_impl_t* sock_impl = (ipc_socket_impl_t*)sock->impl;
 
     /* attempt to write the type. */
-    uint8_t type = IPC_DATA_TYPE_DATA_PACKET;
+    uint32_t type = htonl(IPC_DATA_TYPE_DATA_PACKET);
     if (0 != evbuffer_add(sock_impl->writebuf, &type, sizeof(type)))
     {
         return AGENTD_ERROR_IPC_WRITE_BUFFER_TYPE_ADD_FAILURE;
