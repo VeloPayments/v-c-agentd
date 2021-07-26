@@ -64,6 +64,7 @@ TEST_F(ipc_test, ipc_write_string_block)
     int lhs, rhs;
     const char TEST_STRING[] = "This is a test.";
     char buf[100];
+    uint32_t type;
 
     /* create a socket pair for testing. */
     ASSERT_EQ(0, ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &lhs, &rhs));
@@ -72,10 +73,10 @@ TEST_F(ipc_test, ipc_write_string_block)
     ASSERT_EQ(0, ipc_write_string_block(lhs, TEST_STRING));
 
     /* read the type of the value from the rhs socket. */
-    ASSERT_EQ(1, read(rhs, buf, 1));
+    ASSERT_EQ(sizeof(type), read(rhs, &type, sizeof(type)));
 
     /* the type should be IPC_DATA_TYPE_STRING. */
-    EXPECT_EQ(IPC_DATA_TYPE_STRING, buf[0]);
+    EXPECT_EQ(IPC_DATA_TYPE_STRING, ntohl(type));
 
     /* read the size of the value from the rhs socket. */
     uint32_t nsize = 0U;
@@ -108,6 +109,7 @@ TEST_F(ipc_test, ipc_write_data_block)
     int lhs, rhs;
     const char TEST_STRING[] = "This is a test.";
     char buf[100];
+    uint32_t type;
 
     /* create a socket pair for testing. */
     ASSERT_EQ(0, ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &lhs, &rhs));
@@ -116,10 +118,10 @@ TEST_F(ipc_test, ipc_write_data_block)
     ASSERT_EQ(0, ipc_write_data_block(lhs, TEST_STRING, strlen(TEST_STRING)));
 
     /* read the type of the value from the rhs socket. */
-    ASSERT_EQ(1, read(rhs, buf, 1));
+    ASSERT_EQ(sizeof(type), read(rhs, &type, sizeof(type)));
 
     /* the type should be IPC_DATA_TYPE_DATA_PACKET. */
-    EXPECT_EQ(IPC_DATA_TYPE_DATA_PACKET, buf[0]);
+    EXPECT_EQ(IPC_DATA_TYPE_DATA_PACKET, ntohl(type));
 
     /* read the size of the value from the rhs socket. */
     uint32_t nsize = 0U;
@@ -151,7 +153,7 @@ TEST_F(ipc_test, ipc_write_uint64_block)
 {
     int lhs, rhs;
     const uint64_t TEST_VAL = 98872;
-    char buf[100];
+    uint32_t type;
 
     /* create a socket pair for testing. */
     ASSERT_EQ(0, ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &lhs, &rhs));
@@ -160,10 +162,10 @@ TEST_F(ipc_test, ipc_write_uint64_block)
     ASSERT_EQ(0, ipc_write_uint64_block(lhs, TEST_VAL));
 
     /* read the type of the value from the rhs socket. */
-    ASSERT_EQ(1, read(rhs, buf, 1));
+    ASSERT_EQ(sizeof(type), read(rhs, &type, sizeof(type)));
 
     /* the type should be IPC_DATA_TYPE_UINT64. */
-    EXPECT_EQ(IPC_DATA_TYPE_UINT64, buf[0]);
+    EXPECT_EQ(IPC_DATA_TYPE_UINT64, ntohl(type));
 
     /* read the size of the value from the rhs socket. */
     uint32_t nsize = 0U;
@@ -196,7 +198,7 @@ TEST_F(ipc_test, ipc_write_int64_block)
 {
     int lhs, rhs;
     const int64_t TEST_VAL = -98872;
-    char buf[100];
+    uint32_t type;
 
     /* create a socket pair for testing. */
     ASSERT_EQ(0, ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &lhs, &rhs));
@@ -205,10 +207,10 @@ TEST_F(ipc_test, ipc_write_int64_block)
     ASSERT_EQ(0, ipc_write_int64_block(lhs, TEST_VAL));
 
     /* read the type of the value from the rhs socket. */
-    ASSERT_EQ(1, read(rhs, buf, 1));
+    ASSERT_EQ(sizeof(type), read(rhs, &type, sizeof(type)));
 
     /* the type should be IPC_DATA_TYPE_INT64. */
-    EXPECT_EQ(IPC_DATA_TYPE_INT64, buf[0]);
+    EXPECT_EQ(IPC_DATA_TYPE_INT64, ntohl(type));
 
     /* read the size of the value from the rhs socket. */
     uint32_t nsize = 0U;
@@ -241,7 +243,7 @@ TEST_F(ipc_test, ipc_write_uint8_block)
 {
     int lhs, rhs;
     const uint8_t TEST_VAL = 76;
-    char buf[100];
+    uint32_t type;
 
     /* create a socket pair for testing. */
     ASSERT_EQ(0, ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &lhs, &rhs));
@@ -250,10 +252,10 @@ TEST_F(ipc_test, ipc_write_uint8_block)
     ASSERT_EQ(0, ipc_write_uint8_block(lhs, TEST_VAL));
 
     /* read the type of the value from the rhs socket. */
-    ASSERT_EQ(1, read(rhs, buf, 1));
+    ASSERT_EQ(sizeof(type), read(rhs, &type, sizeof(type)));
 
     /* the type should be IPC_DATA_TYPE_UINT8. */
-    EXPECT_EQ(IPC_DATA_TYPE_UINT8, buf[0]);
+    EXPECT_EQ(IPC_DATA_TYPE_UINT8, ntohl(type));
 
     /* read the size of the value from the rhs socket. */
     uint32_t nsize = 0U;
@@ -283,7 +285,7 @@ TEST_F(ipc_test, ipc_write_int8_block)
 {
     int lhs, rhs;
     const int8_t TEST_VAL = -76;
-    char buf[100];
+    uint32_t type;
 
     /* create a socket pair for testing. */
     ASSERT_EQ(0, ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &lhs, &rhs));
@@ -292,10 +294,10 @@ TEST_F(ipc_test, ipc_write_int8_block)
     ASSERT_EQ(0, ipc_write_int8_block(lhs, TEST_VAL));
 
     /* read the type of the value from the rhs socket. */
-    ASSERT_EQ(1, read(rhs, buf, 1));
+    ASSERT_EQ(sizeof(type), read(rhs, &type, sizeof(type)));
 
     /* the type should be IPC_DATA_TYPE_INT8. */
-    EXPECT_EQ(IPC_DATA_TYPE_INT8, buf[0]);
+    EXPECT_EQ(IPC_DATA_TYPE_INT8, ntohl(type));
 
     /* read the size of the value from the rhs socket. */
     uint32_t nsize = 0U;
@@ -1446,7 +1448,7 @@ TEST_F(ipc_test, ipc_read_authed_block_success)
     void* str = nullptr;
     uint32_t str_size = 0;
     constexpr size_t ENC_PAYLOAD_SIZE =
-        sizeof(uint8_t) +  //type
+        sizeof(uint32_t) +  //type
         sizeof(uint32_t) +  //size
         32 +  //hmac
         15;  //string length
@@ -1488,7 +1490,7 @@ TEST_F(ipc_test, ipc_read_authed_block_success)
         vccrypt_stream_continue_encryption(&stream, &iv, sizeof(iv), 0));
 
     /* write the packet type to the buffer. */
-    uint8_t type = IPC_DATA_TYPE_AUTHED_PACKET;
+    uint32_t type = htonl(IPC_DATA_TYPE_AUTHED_PACKET);
     size_t offset = 0;
     ASSERT_EQ(0,
         vccrypt_stream_encrypt(
@@ -1523,7 +1525,7 @@ TEST_F(ipc_test, ipc_read_authed_block_success)
     /* finalize the mac to the test payload. */
     ASSERT_EQ(0, vccrypt_mac_finalize(&mac, &digest));
     memcpy(
-        TEST_PAYLOAD + sizeof(uint8_t) + sizeof(uint32_t), digest.data,
+        TEST_PAYLOAD + sizeof(type) + sizeof(payload_size), digest.data,
         digest.size);
 
     /* write the payload to the lhs socket. */

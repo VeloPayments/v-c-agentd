@@ -3,7 +3,7 @@
  *
  * \brief Blocking write of a raw data packet to a socket
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -34,7 +34,7 @@ int ipc_write_data_block(int sock, const void* val, uint32_t size)
     MODEL_ASSERT(sock >= 0);
     MODEL_ASSERT(NULL != val);
 
-    uint8_t typeval = IPC_DATA_TYPE_DATA_PACKET;
+    uint32_t typeval = htonl(IPC_DATA_TYPE_DATA_PACKET);
 
     /* attempt to write the type to the socket. */
     if (sizeof(typeval) != write(sock, &typeval, sizeof(typeval)))

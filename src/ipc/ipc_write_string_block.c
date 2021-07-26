@@ -3,7 +3,7 @@
  *
  * \brief Blocking write of a string to a socket
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -33,7 +33,7 @@ int ipc_write_string_block(int sock, const char* val)
     MODEL_ASSERT(sock >= 0);
     MODEL_ASSERT(val != NULL);
 
-    uint8_t typeval = IPC_DATA_TYPE_STRING;
+    uint32_t typeval = htonl(IPC_DATA_TYPE_STRING);
 
     /* attempt to write the type to the socket. */
     if (sizeof(typeval) != write(sock, &typeval, sizeof(typeval)))

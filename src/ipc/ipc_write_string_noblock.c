@@ -3,7 +3,7 @@
  *
  * \brief Non-blocking write of a string value.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -47,7 +47,7 @@ int ipc_write_string_noblock(ipc_socket_context_t* sock, const char* val)
     ipc_socket_impl_t* sock_impl = (ipc_socket_impl_t*)sock->impl;
 
     /* attempt to write the type. */
-    uint8_t type = IPC_DATA_TYPE_STRING;
+    uint32_t type = htonl(IPC_DATA_TYPE_STRING);
     if (0 != evbuffer_add(sock_impl->writebuf, &type, sizeof(type)))
     {
         return AGENTD_ERROR_IPC_WRITE_BUFFER_TYPE_ADD_FAILURE;
