@@ -3,7 +3,7 @@
  *
  * Test ipc methods.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
@@ -167,15 +167,6 @@ TEST_F(ipc_test, ipc_write_uint64_block)
     /* the type should be IPC_DATA_TYPE_UINT64. */
     EXPECT_EQ(IPC_DATA_TYPE_UINT64, ntohl(type));
 
-    /* read the size of the value from the rhs socket. */
-    uint32_t nsize = 0U;
-    ASSERT_EQ(sizeof(nsize), (uint32_t)read(rhs, &nsize, sizeof(nsize)));
-
-    size_t size = ntohl(nsize);
-
-    /* size should be the size of uint64_t. */
-    EXPECT_EQ(sizeof(uint64_t), size);
-
     /* read the uint64_t value from the stream. */
     uint64_t nval = 0;
     ASSERT_EQ(sizeof(nval), (size_t)read(rhs, &nval, sizeof(nval)));
@@ -211,15 +202,6 @@ TEST_F(ipc_test, ipc_write_int64_block)
 
     /* the type should be IPC_DATA_TYPE_INT64. */
     EXPECT_EQ(IPC_DATA_TYPE_INT64, ntohl(type));
-
-    /* read the size of the value from the rhs socket. */
-    uint32_t nsize = 0U;
-    ASSERT_EQ(sizeof(nsize), (uint32_t)read(rhs, &nsize, sizeof(nsize)));
-
-    size_t size = ntohl(nsize);
-
-    /* size should be the size of int64_t. */
-    EXPECT_EQ(sizeof(int64_t), size);
 
     /* read the int64_t value from the stream. */
     int64_t nval = 0;
@@ -257,15 +239,6 @@ TEST_F(ipc_test, ipc_write_uint8_block)
     /* the type should be IPC_DATA_TYPE_UINT8. */
     EXPECT_EQ(IPC_DATA_TYPE_UINT8, ntohl(type));
 
-    /* read the size of the value from the rhs socket. */
-    uint32_t nsize = 0U;
-    ASSERT_EQ(sizeof(nsize), (uint32_t)read(rhs, &nsize, sizeof(nsize)));
-
-    size_t size = ntohl(nsize);
-
-    /* size should be the size of uint8_t. */
-    EXPECT_EQ(sizeof(uint8_t), size);
-
     /* read the uint8_t value from the stream. */
     uint8_t val = 0;
     ASSERT_EQ(sizeof(val), (size_t)read(rhs, &val, sizeof(val)));
@@ -298,15 +271,6 @@ TEST_F(ipc_test, ipc_write_int8_block)
 
     /* the type should be IPC_DATA_TYPE_INT8. */
     EXPECT_EQ(IPC_DATA_TYPE_INT8, ntohl(type));
-
-    /* read the size of the value from the rhs socket. */
-    uint32_t nsize = 0U;
-    ASSERT_EQ(sizeof(nsize), (uint32_t)read(rhs, &nsize, sizeof(nsize)));
-
-    size_t size = ntohl(nsize);
-
-    /* size should be the size of int8_t. */
-    EXPECT_EQ(sizeof(int8_t), size);
 
     /* read the int8_t value from the stream. */
     int8_t val = 0;

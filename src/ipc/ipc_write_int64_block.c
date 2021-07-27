@@ -38,11 +38,6 @@ int ipc_write_int64_block(int sock, int64_t val)
     if (sizeof(typeval) != write(sock, &typeval, sizeof(typeval)))
         return AGENTD_ERROR_IPC_WRITE_BLOCK_FAILURE;
 
-    /* attempt to write the length of this value to the socket. */
-    uint32_t hlen = htonl(sizeof(val));
-    if (sizeof(hlen) != write(sock, &hlen, sizeof(hlen)))
-        return AGENTD_ERROR_IPC_WRITE_BLOCK_FAILURE;
-
     /* attempt to write the value to the socket. */
     int64_t oval = htonll(val);
     if (sizeof(oval) != write(sock, &oval, sizeof(oval)))

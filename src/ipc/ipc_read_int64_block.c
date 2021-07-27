@@ -34,8 +34,6 @@
 int ipc_read_int64_block(int sock, int64_t* val)
 {
     uint32_t type = 0U;
-    uint32_t nsize = 0U;
-    uint32_t size = 0U;
     int64_t nval = 0U;
 
     /* parameter sanity checks. */
@@ -50,16 +48,8 @@ int ipc_read_int64_block(int sock, int64_t* val)
     if (IPC_DATA_TYPE_INT64 != ntohl(type))
         return AGENTD_ERROR_IPC_READ_UNEXPECTED_DATA_TYPE;
 
-    /* attempt to read the size. */
-    if (sizeof(nsize) != read(sock, &nsize, sizeof(nsize)))
-        return AGENTD_ERROR_IPC_READ_BLOCK_FAILURE;
-
     /* convert the size to host byte order. */
-    size = ntohl(nsize);
-
-    /* verify the size. */
-    if (sizeof(int64_t) != size)
-        return AGENTD_ERROR_IPC_READ_UNEXPECTED_DATA_SIZE;
+    ssize_t size = sizeof(int64_t);
 
     /* attempt to read the value. */
     if (size != read(sock, &nval, sizeof(int64_t)))

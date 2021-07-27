@@ -3,7 +3,7 @@
  *
  * Isolation tests for the unauthorized protocol service.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/protocolservice/api.h>
@@ -49,7 +49,7 @@ TEST_F(unauthorized_protocol_service_isolation_test, handshake_request_bad)
             &suite, &client_challenge_nonce));
     memset(client_challenge_nonce.data, 0, client_challenge_nonce.size);
 
-    ASSERT_EQ(0, ipc_write_int8_block(protosock, 17));
+    ASSERT_EQ(0, ipc_write_string_block(protosock, "this is a test"));
 
     /* An invalid packet ends the connection before we can read a valid
      * response. */

@@ -50,7 +50,7 @@ int ipc_read_uint8_noblock(ipc_socket_context_t* sock, uint8_t* val)
     ipc_socket_impl_t* sock_impl = (ipc_socket_impl_t*)sock->impl;
 
     /* compute the header size. */
-    ssize_t header_sz = sizeof(uint32_t) + sizeof(uint32_t);
+    ssize_t header_sz = sizeof(uint32_t);
 
     /* read data from the socket into our buffer. */
     int retval = evbuffer_read(sock_impl->readbuf, sock->fd, -1);
@@ -74,16 +74,8 @@ int ipc_read_uint8_noblock(ipc_socket_context_t* sock, uint8_t* val)
         return AGENTD_ERROR_IPC_READ_UNEXPECTED_DATA_TYPE;
     }
 
-    /* decode the size of this packet. */
-    uint32_t nsize = 0;
-    memcpy(&nsize, mem + sizeof(ntype), sizeof(uint32_t));
-
     /* sanity check on size. */
-    uint32_t size = ntohl(nsize);
-    if (size != sizeof(uint8_t))
-    {
-        return AGENTD_ERROR_IPC_READ_UNEXPECTED_DATA_SIZE;
-    }
+    size_t size = sizeof(uint8_t);
 
     /* if the buffer size is less than this size, wait for more data to be
      * available. */
