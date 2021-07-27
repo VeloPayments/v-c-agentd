@@ -51,13 +51,6 @@ int ipc_write_int8_noblock(ipc_socket_context_t* sock, int8_t val)
         return AGENTD_ERROR_IPC_WRITE_BUFFER_TYPE_ADD_FAILURE;
     }
 
-    /* attempt to write the size. */
-    uint32_t nsize = htonl(sizeof(val));
-    if (0 != evbuffer_add(sock_impl->writebuf, &nsize, sizeof(nsize)))
-    {
-        return AGENTD_ERROR_IPC_WRITE_BUFFER_SIZE_ADD_FAILURE;
-    }
-
     /* attempt to write the data. */
     uint8_t oval = htonll(val);
     if (0 != evbuffer_add(sock_impl->writebuf, &oval, sizeof(oval)))
