@@ -411,6 +411,7 @@ int dataservice_api_sendreq_root_context_init(
  * \brief Receive a response from the root context init api method call.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator instance to use.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -446,7 +447,8 @@ int dataservice_api_sendreq_root_context_init(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_root_context_init(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status);
 
 /**
  * \brief Request the creation of a root data service context.

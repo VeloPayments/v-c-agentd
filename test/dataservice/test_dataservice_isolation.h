@@ -16,6 +16,7 @@
 #include <agentd/string.h>
 #include <functional>
 #include <gtest/gtest.h>
+#include <rcpr/psock.h>
 #include <string>
 #include <vector>
 #include <vccert/builder.h>
@@ -66,6 +67,7 @@ protected:
 
     void nonblockmode(
         std::function<void()> onRead, std::function<void()> onWrite);
+    status use_psock();
     static void nonblock_read(ipc_socket_context_t*, int, void* ctx);
     static void nonblock_write(ipc_socket_context_t*, int, void* ctx);
 
@@ -83,6 +85,10 @@ protected:
     char* path;
     char wd[16384];
     const char* oldpath;
+    RCPR_SYM(allocator)* alloc;
+    RCPR_SYM(psock)* datapsock;
+    status alloc_create_result;
+    status psock_create_result;
     ipc_socket_context_t nonblockdatasock;
     bool nonblockdatasock_configured;
     ipc_event_loop_context_t loop;

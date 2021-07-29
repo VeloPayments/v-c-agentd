@@ -136,6 +136,38 @@ TEST_F(dataservice_isolation_test, create_root_block)
     uint32_t status;
     string DB_PATH;
 
+    /* we are using psock for this. */
+    ASSERT_EQ(0, use_psock());
+
+    /* create the directory for this test. */
+    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+
+    /* we should be able to send the root context init request. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_init(
+            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+
+    /* we should be able to receive the response from this request. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_init(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    EXPECT_EQ(0U, offset);
+    EXPECT_EQ(0U, status);
+}
+
+/**
+ * Test that we can create the root instance using the legacy API.
+ */
+TEST_F(dataservice_isolation_test, create_root_block_old)
+{
+    uint32_t offset;
+    uint32_t status;
+    string DB_PATH;
+
     /* create the directory for this test. */
     ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
 
