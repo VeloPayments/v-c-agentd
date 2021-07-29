@@ -16,6 +16,10 @@
 
 using namespace std;
 
+RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_psock;
+RCPR_IMPORT_resource;
+
 const uint8_t dataservice_isolation_test::dir_key[32] = {
     0x7e, 0x4b, 0xb1, 0x5d, 0xb5, 0x00, 0x41, 0x95,
     0xb0, 0xed, 0x43, 0x59, 0x43, 0x20, 0x9b, 0x72,
@@ -140,6 +144,10 @@ void dataservice_isolation_test::SetUp()
     /* by default, we run in blocking mode. */
     nonblockdatasock_configured = false;
 
+    /* by default, we are not using psock. */
+    alloc = nullptr;
+    datapsock = nullptr;
+
     /* set up directory test helper. */
     string dbpath(wd);
     dbpath += "/build/test/isolation/databases/";
@@ -181,6 +189,11 @@ void dataservice_isolation_test::TearDown()
     dispose((disposable_t*)&bconf);
     dispose((disposable_t*)&user_context);
     free(path);
+    if (nullptr != datapsock)
+        resource_release(psock_resource_handle(datapsock));
+    if (nullptr != alloc)
+        resource_release(rcpr_allocator_resource_handle(alloc));
+    close(datasock);
 }
 
 void dataservice_isolation_test::nonblockmode(
@@ -222,6 +235,32 @@ void dataservice_isolation_test::nonblock_write(
     dataservice_isolation_test* that = (dataservice_isolation_test*)ctx;
 
     that->onWrite();
+}
+
+status dataservice_isolation_test::use_psock()
+{
+    status retval;
+
+    retval = rcpr_malloc_allocator_create(&alloc);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    retval = psock_create_from_descriptor(&datapsock, alloc, datasock);
+    if (STATUS_SUCCESS != retval)
+    {
+        status release_retval =
+            resource_release(rcpr_allocator_resource_handle(alloc));
+        if (STATUS_SUCCESS != release_retval)
+        {
+            retval = release_retval;
+        }
+
+        return retval;
+    }
+
+    return STATUS_SUCCESS;
 }
 
 const size_t CERT_MAX_SIZE = 16384;
