@@ -3,7 +3,7 @@
  *
  * \brief Close the child context, leading to reset of the canonization service.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/canonizationservice.h>
@@ -25,7 +25,7 @@ void canonizationservice_child_context_close(
 {
     /* close the child context. */
     int retval =
-        dataservice_api_sendreq_child_context_close(
+        dataservice_api_sendreq_child_context_close_old(
             instance->data, instance->data_child_context);
     if (AGENTD_STATUS_SUCCESS != retval)
     {

@@ -3,7 +3,7 @@
  *
  * \brief Handle a block id get next request.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -55,7 +55,7 @@ void unauthorized_protocol_service_handle_request_block_id_get_next(
     /* write the request to the dataservice using our child context. */
     /* TODO - this needs to go to the application service. */
     retval =
-        dataservice_api_sendreq_block_get(
+        dataservice_api_sendreq_block_get_old(
             &conn->svc->data, conn->dataservice_child_context, block_id,
             false);
     if (AGENTD_STATUS_SUCCESS != retval)

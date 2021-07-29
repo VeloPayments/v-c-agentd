@@ -43,7 +43,7 @@ TEST_F(mock_dataservice_test, default_artifact_get)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_artifact_get(
+                    dataservice_api_recvresp_artifact_get_old(
                         &nonblockdatasock, &offset, &status, &artifact_rec);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -57,7 +57,7 @@ TEST_F(mock_dataservice_test, default_artifact_get)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_artifact_get(
+                    dataservice_api_sendreq_artifact_get_old(
                         &nonblockdatasock, child_context, artifact_id);
             }
         });
@@ -96,7 +96,7 @@ TEST_F(mock_dataservice_test, matches_artifact_get)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_artifact_get(
+                    dataservice_api_recvresp_artifact_get_old(
                         &nonblockdatasock, &offset, &status, &artifact_rec);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -110,7 +110,7 @@ TEST_F(mock_dataservice_test, matches_artifact_get)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_artifact_get(
+                    dataservice_api_sendreq_artifact_get_old(
                         &nonblockdatasock, child_context, artifact_id);
             }
         });
@@ -216,7 +216,7 @@ TEST_F(mock_dataservice_test, artifact_get_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_artifact_get(
+                    dataservice_api_recvresp_artifact_get_old(
                         &nonblockdatasock, &offset, &status, &artifact_rec);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -230,7 +230,7 @@ TEST_F(mock_dataservice_test, artifact_get_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_artifact_get(
+                    dataservice_api_sendreq_artifact_get_old(
                         &nonblockdatasock, child_context, artifact_id);
             }
         });
@@ -283,7 +283,7 @@ TEST_F(mock_dataservice_test, default_block_id_by_height_read)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_id_by_height_get(
+                    dataservice_api_recvresp_block_id_by_height_get_old(
                         &nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -297,7 +297,7 @@ TEST_F(mock_dataservice_test, default_block_id_by_height_read)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_id_by_height_get(
+                    dataservice_api_sendreq_block_id_by_height_get_old(
                         &nonblockdatasock, child_context, height);
             }
         });
@@ -336,7 +336,7 @@ TEST_F(mock_dataservice_test, matches_block_id_by_height_read)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_id_by_height_get(
+                    dataservice_api_recvresp_block_id_by_height_get_old(
                         &nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -350,7 +350,7 @@ TEST_F(mock_dataservice_test, matches_block_id_by_height_read)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_id_by_height_get(
+                    dataservice_api_sendreq_block_id_by_height_get_old(
                         &nonblockdatasock, child_context, height);
             }
         });
@@ -445,7 +445,7 @@ TEST_F(mock_dataservice_test, block_id_by_height_read_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_id_by_height_get(
+                    dataservice_api_recvresp_block_id_by_height_get_old(
                         &nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -459,7 +459,7 @@ TEST_F(mock_dataservice_test, block_id_by_height_read_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_id_by_height_get(
+                    dataservice_api_sendreq_block_id_by_height_get_old(
                         &nonblockdatasock, child_context, height);
             }
         });
@@ -499,7 +499,7 @@ TEST_F(mock_dataservice_test, default_block_id_latest_read)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_latest_block_id_get(
+                    dataservice_api_recvresp_latest_block_id_get_old(
                         &nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -513,7 +513,7 @@ TEST_F(mock_dataservice_test, default_block_id_latest_read)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_latest_block_id_get(
+                    dataservice_api_sendreq_latest_block_id_get_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -551,7 +551,7 @@ TEST_F(mock_dataservice_test, matches_block_id_latest_read)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_latest_block_id_get(
+                    dataservice_api_recvresp_latest_block_id_get_old(
                         &nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -565,7 +565,7 @@ TEST_F(mock_dataservice_test, matches_block_id_latest_read)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_latest_block_id_get(
+                    dataservice_api_sendreq_latest_block_id_get_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -658,7 +658,7 @@ TEST_F(mock_dataservice_test, block_id_latest_read_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_latest_block_id_get(
+                    dataservice_api_recvresp_latest_block_id_get_old(
                         &nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -672,7 +672,7 @@ TEST_F(mock_dataservice_test, block_id_latest_read_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_latest_block_id_get(
+                    dataservice_api_sendreq_latest_block_id_get_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -713,7 +713,7 @@ TEST_F(mock_dataservice_test, default_block_make)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_make(
+                    dataservice_api_recvresp_block_make_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -727,7 +727,7 @@ TEST_F(mock_dataservice_test, default_block_make)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_make(
+                    dataservice_api_sendreq_block_make_old(
                         &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
                         EXPECTED_BLOCK_CERT, sizeof(EXPECTED_BLOCK_CERT));
             }
@@ -767,7 +767,7 @@ TEST_F(mock_dataservice_test, matches_block_make)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_make(
+                    dataservice_api_recvresp_block_make_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -781,7 +781,7 @@ TEST_F(mock_dataservice_test, matches_block_make)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_make(
+                    dataservice_api_sendreq_block_make_old(
                         &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
                         EXPECTED_BLOCK_CERT, sizeof(EXPECTED_BLOCK_CERT));
             }
@@ -864,7 +864,7 @@ TEST_F(mock_dataservice_test, block_make_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_make(
+                    dataservice_api_recvresp_block_make_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -878,7 +878,7 @@ TEST_F(mock_dataservice_test, block_make_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_make(
+                    dataservice_api_sendreq_block_make_old(
                         &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
                         EXPECTED_BLOCK_CERT, sizeof(EXPECTED_BLOCK_CERT));
             }
@@ -920,7 +920,7 @@ TEST_F(mock_dataservice_test, default_block_read)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_get(
+                    dataservice_api_recvresp_block_get_old(
                         &nonblockdatasock, &offset, &status, &block_node,
                         &data, &data_size);
 
@@ -935,7 +935,7 @@ TEST_F(mock_dataservice_test, default_block_read)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_get(
+                    dataservice_api_sendreq_block_get_old(
                         &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
                         true);
             }
@@ -977,7 +977,7 @@ TEST_F(mock_dataservice_test, matches_block_read)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_get(
+                    dataservice_api_recvresp_block_get_old(
                         &nonblockdatasock, &offset, &status, &block_node,
                         &data, &data_size);
 
@@ -992,7 +992,7 @@ TEST_F(mock_dataservice_test, matches_block_read)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_get(
+                    dataservice_api_sendreq_block_get_old(
                         &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
                         true);
             }
@@ -1106,7 +1106,7 @@ TEST_F(mock_dataservice_test, block_read_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_block_get(
+                    dataservice_api_recvresp_block_get_old(
                         &nonblockdatasock, &offset, &status, &block_node,
                         &data, &data_size);
 
@@ -1121,7 +1121,7 @@ TEST_F(mock_dataservice_test, block_read_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_block_get(
+                    dataservice_api_sendreq_block_get_old(
                         &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
                         true);
             }
@@ -1176,7 +1176,7 @@ TEST_F(mock_dataservice_test, default_canonized_transaction_get)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_canonized_transaction_get(
+                    dataservice_api_recvresp_canonized_transaction_get_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -1191,7 +1191,7 @@ TEST_F(mock_dataservice_test, default_canonized_transaction_get)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_canonized_transaction_get(
+                    dataservice_api_sendreq_canonized_transaction_get_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID,
                         true);
             }
@@ -1233,7 +1233,7 @@ TEST_F(mock_dataservice_test, matches_canonized_transaction_get)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_canonized_transaction_get(
+                    dataservice_api_recvresp_canonized_transaction_get_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -1248,7 +1248,7 @@ TEST_F(mock_dataservice_test, matches_canonized_transaction_get)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_canonized_transaction_get(
+                    dataservice_api_sendreq_canonized_transaction_get_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID,
                         true);
             }
@@ -1368,7 +1368,7 @@ TEST_F(mock_dataservice_test, canonized_transaction_get_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_canonized_transaction_get(
+                    dataservice_api_recvresp_canonized_transaction_get_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -1383,7 +1383,7 @@ TEST_F(mock_dataservice_test, canonized_transaction_get_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_canonized_transaction_get(
+                    dataservice_api_sendreq_canonized_transaction_get_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID,
                         true);
             }
@@ -1428,7 +1428,7 @@ TEST_F(mock_dataservice_test, default_child_context_close)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_child_context_close(
+                    dataservice_api_recvresp_child_context_close_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -1442,7 +1442,7 @@ TEST_F(mock_dataservice_test, default_child_context_close)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_child_context_close(
+                    dataservice_api_sendreq_child_context_close_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -1476,7 +1476,7 @@ TEST_F(mock_dataservice_test, matches_child_context_close)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_child_context_close(
+                    dataservice_api_recvresp_child_context_close_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -1490,7 +1490,7 @@ TEST_F(mock_dataservice_test, matches_child_context_close)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_child_context_close(
+                    dataservice_api_sendreq_child_context_close_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -1560,7 +1560,7 @@ TEST_F(mock_dataservice_test, child_context_close_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_child_context_close(
+                    dataservice_api_recvresp_child_context_close_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -1574,7 +1574,7 @@ TEST_F(mock_dataservice_test, child_context_close_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_child_context_close(
+                    dataservice_api_sendreq_child_context_close_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -1609,7 +1609,7 @@ TEST_F(mock_dataservice_test, default_child_context_create)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_child_context_create(
+                    dataservice_api_recvresp_child_context_create_old(
                         &nonblockdatasock, &offset, &status, &child);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -1623,7 +1623,7 @@ TEST_F(mock_dataservice_test, default_child_context_create)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_child_context_create(
+                    dataservice_api_sendreq_child_context_create_old(
                         &nonblockdatasock, childcaps, sizeof(childcaps));
             }
         });
@@ -1658,7 +1658,7 @@ TEST_F(mock_dataservice_test, matches_child_context_create)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_child_context_create(
+                    dataservice_api_recvresp_child_context_create_old(
                         &nonblockdatasock, &offset, &status, &child);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -1672,7 +1672,7 @@ TEST_F(mock_dataservice_test, matches_child_context_create)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_child_context_create(
+                    dataservice_api_sendreq_child_context_create_old(
                         &nonblockdatasock, childcaps, sizeof(childcaps));
             }
         });
@@ -1759,7 +1759,7 @@ TEST_F(mock_dataservice_test, child_context_create_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_child_context_create(
+                    dataservice_api_recvresp_child_context_create_old(
                         &nonblockdatasock, &offset, &status, &child);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -1773,7 +1773,7 @@ TEST_F(mock_dataservice_test, child_context_create_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_child_context_create(
+                    dataservice_api_sendreq_child_context_create_old(
                         &nonblockdatasock, childcaps, sizeof(childcaps));
             }
         });
@@ -2065,7 +2065,7 @@ TEST_F(mock_dataservice_test, default_transaction_drop)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_drop(
+                    dataservice_api_recvresp_transaction_drop_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -2079,7 +2079,7 @@ TEST_F(mock_dataservice_test, default_transaction_drop)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_drop(
+                    dataservice_api_sendreq_transaction_drop_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2117,7 +2117,7 @@ TEST_F(mock_dataservice_test, matches_transaction_drop)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_drop(
+                    dataservice_api_recvresp_transaction_drop_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -2131,7 +2131,7 @@ TEST_F(mock_dataservice_test, matches_transaction_drop)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_drop(
+                    dataservice_api_sendreq_transaction_drop_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2209,7 +2209,7 @@ TEST_F(mock_dataservice_test, transaction_drop_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_drop(
+                    dataservice_api_recvresp_transaction_drop_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -2223,7 +2223,7 @@ TEST_F(mock_dataservice_test, transaction_drop_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_drop(
+                    dataservice_api_sendreq_transaction_drop_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2261,7 +2261,7 @@ TEST_F(mock_dataservice_test, default_transaction_promote)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_promote(
+                    dataservice_api_recvresp_transaction_promote_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -2275,7 +2275,7 @@ TEST_F(mock_dataservice_test, default_transaction_promote)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_promote(
+                    dataservice_api_sendreq_transaction_promote_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2313,7 +2313,7 @@ TEST_F(mock_dataservice_test, matches_transaction_promote)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_promote(
+                    dataservice_api_recvresp_transaction_promote_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -2327,7 +2327,7 @@ TEST_F(mock_dataservice_test, matches_transaction_promote)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_promote(
+                    dataservice_api_sendreq_transaction_promote_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2405,7 +2405,7 @@ TEST_F(mock_dataservice_test, transaction_promote_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_promote(
+                    dataservice_api_recvresp_transaction_promote_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -2419,7 +2419,7 @@ TEST_F(mock_dataservice_test, transaction_promote_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_promote(
+                    dataservice_api_sendreq_transaction_promote_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2460,7 +2460,7 @@ TEST_F(mock_dataservice_test, default_transaction_get)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_get(
+                    dataservice_api_recvresp_transaction_get_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -2475,7 +2475,7 @@ TEST_F(mock_dataservice_test, default_transaction_get)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_get(
+                    dataservice_api_sendreq_transaction_get_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2516,7 +2516,7 @@ TEST_F(mock_dataservice_test, matches_transaction_get)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_get(
+                    dataservice_api_recvresp_transaction_get_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -2531,7 +2531,7 @@ TEST_F(mock_dataservice_test, matches_transaction_get)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_get(
+                    dataservice_api_sendreq_transaction_get_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2645,7 +2645,7 @@ TEST_F(mock_dataservice_test, transaction_get_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_get(
+                    dataservice_api_recvresp_transaction_get_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -2660,7 +2660,7 @@ TEST_F(mock_dataservice_test, transaction_get_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_get(
+                    dataservice_api_sendreq_transaction_get_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID);
             }
         });
@@ -2707,7 +2707,7 @@ TEST_F(mock_dataservice_test, default_transaction_get_first)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_get_first(
+                    dataservice_api_recvresp_transaction_get_first_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -2722,7 +2722,7 @@ TEST_F(mock_dataservice_test, default_transaction_get_first)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_get_first(
+                    dataservice_api_sendreq_transaction_get_first_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -2759,7 +2759,7 @@ TEST_F(mock_dataservice_test, matches_transaction_get_first)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_get_first(
+                    dataservice_api_recvresp_transaction_get_first_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -2774,7 +2774,7 @@ TEST_F(mock_dataservice_test, matches_transaction_get_first)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_get_first(
+                    dataservice_api_sendreq_transaction_get_first_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -2884,7 +2884,7 @@ TEST_F(mock_dataservice_test, transaction_get_first_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_get_first(
+                    dataservice_api_recvresp_transaction_get_first_old(
                         &nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
@@ -2899,7 +2899,7 @@ TEST_F(mock_dataservice_test, transaction_get_first_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_get_first(
+                    dataservice_api_sendreq_transaction_get_first_old(
                         &nonblockdatasock, child_context);
             }
         });
@@ -2952,7 +2952,7 @@ TEST_F(mock_dataservice_test, default_transaction_submit)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_submit(
+                    dataservice_api_recvresp_transaction_submit_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -2966,7 +2966,7 @@ TEST_F(mock_dataservice_test, default_transaction_submit)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_submit(
+                    dataservice_api_sendreq_transaction_submit_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID,
                         EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);
@@ -3012,7 +3012,7 @@ TEST_F(mock_dataservice_test, matches_transaction_submit)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_submit(
+                    dataservice_api_recvresp_transaction_submit_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -3026,7 +3026,7 @@ TEST_F(mock_dataservice_test, matches_transaction_submit)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_submit(
+                    dataservice_api_sendreq_transaction_submit_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID,
                         EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);
@@ -3120,7 +3120,7 @@ TEST_F(mock_dataservice_test, transaction_submit_override)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    dataservice_api_recvresp_transaction_submit(
+                    dataservice_api_recvresp_transaction_submit_old(
                         &nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
@@ -3134,7 +3134,7 @@ TEST_F(mock_dataservice_test, transaction_submit_override)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    dataservice_api_sendreq_transaction_submit(
+                    dataservice_api_sendreq_transaction_submit_old(
                         &nonblockdatasock, child_context, EXPECTED_TXN_ID,
                         EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);

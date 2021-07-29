@@ -403,7 +403,7 @@ int dataservice_api_recvresp_global_settings_set_block(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_root_context_init(
+int dataservice_api_sendreq_root_context_init_old(
     ipc_socket_context_t* sock, uint64_t max_database_size,
     const char* datadir);
 
@@ -445,7 +445,7 @@ int dataservice_api_sendreq_root_context_init(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_root_context_init(
+int dataservice_api_recvresp_root_context_init_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status);
 
 /**
@@ -464,7 +464,7 @@ int dataservice_api_recvresp_root_context_init(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_root_context_reduce_caps(
+int dataservice_api_sendreq_root_context_reduce_caps_old(
     ipc_socket_context_t* sock, uint32_t* caps, size_t size);
 
 /**
@@ -507,7 +507,7 @@ int dataservice_api_sendreq_root_context_reduce_caps(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_root_context_reduce_caps(
+int dataservice_api_recvresp_root_context_reduce_caps_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status);
 
 /**
@@ -526,9 +526,8 @@ int dataservice_api_recvresp_root_context_reduce_caps(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_child_context_create(
+int dataservice_api_sendreq_child_context_create_old(
     ipc_socket_context_t* sock, uint32_t* caps, size_t size);
-
 
 /**
  * \brief Receive a response from the child context create API call.
@@ -573,7 +572,7 @@ int dataservice_api_sendreq_child_context_create(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_child_context_create(
+int dataservice_api_recvresp_child_context_create_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
     uint32_t* child);
 
@@ -592,7 +591,7 @@ int dataservice_api_recvresp_child_context_create(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_child_context_close(
+int dataservice_api_sendreq_child_context_close_old(
     ipc_socket_context_t* sock, uint32_t child);
 
 /**
@@ -635,7 +634,7 @@ int dataservice_api_sendreq_child_context_close(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_child_context_close(
+int dataservice_api_recvresp_child_context_close_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status);
 
 /**
@@ -654,7 +653,7 @@ int dataservice_api_recvresp_child_context_close(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_global_settings_get(
+int dataservice_api_sendreq_global_settings_get_old(
     ipc_socket_context_t* sock, uint32_t child, uint64_t key);
 
 /**
@@ -708,10 +707,9 @@ int dataservice_api_sendreq_global_settings_get(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_global_settings_get(
+int dataservice_api_recvresp_global_settings_get_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status, void* data,
     size_t* data_size);
-
 
 /**
  * \brief Set a global setting using a 64-bit key.
@@ -731,7 +729,7 @@ int dataservice_api_recvresp_global_settings_get(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_global_settings_set(
+int dataservice_api_sendreq_global_settings_set_old(
     ipc_socket_context_t* sock, uint32_t child, uint64_t key, const void* val,
     uint32_t val_size);
 
@@ -781,7 +779,7 @@ int dataservice_api_sendreq_global_settings_set(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_global_settings_set(
+int dataservice_api_recvresp_global_settings_set_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status);
 
 /**
@@ -803,7 +801,7 @@ int dataservice_api_recvresp_global_settings_set(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_transaction_submit(
+int dataservice_api_sendreq_transaction_submit_old(
     ipc_socket_context_t* sock, uint32_t child, const uint8_t* txn_id,
     const uint8_t* artifact_id, const void* val, uint32_t val_size);
 
@@ -851,7 +849,7 @@ int dataservice_api_sendreq_transaction_submit(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_transaction_submit(
+int dataservice_api_recvresp_transaction_submit_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status);
 
 /**
@@ -869,7 +867,7 @@ int dataservice_api_recvresp_transaction_submit(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_transaction_get_first(
+int dataservice_api_sendreq_transaction_get_first_old(
     ipc_socket_context_t* sock, uint32_t child);
 
 /**
@@ -927,7 +925,7 @@ int dataservice_api_sendreq_transaction_get_first(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_transaction_get_first(
+int dataservice_api_recvresp_transaction_get_first_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
     data_transaction_node_t* node, void** data, size_t* data_size);
 
@@ -947,7 +945,7 @@ int dataservice_api_recvresp_transaction_get_first(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_transaction_get(
+int dataservice_api_sendreq_transaction_get_old(
     ipc_socket_context_t* sock, uint32_t child, const uint8_t* txn_id);
 
 /**
@@ -1005,7 +1003,7 @@ int dataservice_api_sendreq_transaction_get(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_transaction_get(
+int dataservice_api_recvresp_transaction_get_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
     data_transaction_node_t* node, void** data, size_t* data_size);
 
@@ -1025,7 +1023,7 @@ int dataservice_api_recvresp_transaction_get(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_transaction_drop(
+int dataservice_api_sendreq_transaction_drop_old(
     ipc_socket_context_t* sock, uint32_t child, const uint8_t* txn_id);
 
 /**
@@ -1072,7 +1070,7 @@ int dataservice_api_sendreq_transaction_drop(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_transaction_drop(
+int dataservice_api_recvresp_transaction_drop_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status);
 
 /**
@@ -1091,7 +1089,7 @@ int dataservice_api_recvresp_transaction_drop(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_transaction_promote(
+int dataservice_api_sendreq_transaction_promote_old(
     ipc_socket_context_t* sock, uint32_t child, const uint8_t* txn_id);
 
 /**
@@ -1138,7 +1136,7 @@ int dataservice_api_sendreq_transaction_promote(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_transaction_promote(
+int dataservice_api_recvresp_transaction_promote_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status);
 
 /**
@@ -1157,7 +1155,7 @@ int dataservice_api_recvresp_transaction_promote(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_artifact_get(
+int dataservice_api_sendreq_artifact_get_old(
     ipc_socket_context_t* sock, uint32_t child, const uint8_t* artifact_id);
 
 /**
@@ -1206,7 +1204,7 @@ int dataservice_api_sendreq_artifact_get(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_artifact_get(
+int dataservice_api_recvresp_artifact_get_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
     data_artifact_record_t* record);
 
@@ -1232,7 +1230,7 @@ int dataservice_api_recvresp_artifact_get(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_block_make(
+int dataservice_api_sendreq_block_make_old(
     ipc_socket_context_t* sock, uint32_t child, const uint8_t* block_id,
     const void* block_cert, uint32_t block_cert_size);
 
@@ -1286,7 +1284,7 @@ int dataservice_api_sendreq_block_make(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_block_make(
+int dataservice_api_recvresp_block_make_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status);
 
 /**
@@ -1306,7 +1304,7 @@ int dataservice_api_recvresp_block_make(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_block_get(
+int dataservice_api_sendreq_block_get_old(
     ipc_socket_context_t* sock, uint32_t child, const uint8_t* block_id,
     bool read_cert);
 
@@ -1365,7 +1363,7 @@ int dataservice_api_sendreq_block_get(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_block_get(
+int dataservice_api_recvresp_block_get_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
     data_block_node_t* node, void** data, size_t* data_size);
 
@@ -1385,7 +1383,7 @@ int dataservice_api_recvresp_block_get(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_block_id_by_height_get(
+int dataservice_api_sendreq_block_id_by_height_get_old(
     ipc_socket_context_t* sock, uint32_t child, uint64_t height);
 
 /**
@@ -1435,7 +1433,7 @@ int dataservice_api_sendreq_block_id_by_height_get(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_block_id_by_height_get(
+int dataservice_api_recvresp_block_id_by_height_get_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
     uint8_t* block_id);
 
@@ -1454,7 +1452,7 @@ int dataservice_api_recvresp_block_id_by_height_get(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_latest_block_id_get(
+int dataservice_api_sendreq_latest_block_id_get_old(
     ipc_socket_context_t* sock, uint32_t child);
 
 /**
@@ -1504,7 +1502,7 @@ int dataservice_api_sendreq_latest_block_id_get(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_latest_block_id_get(
+int dataservice_api_recvresp_latest_block_id_get_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
     uint8_t* block_id);
 
@@ -1526,7 +1524,7 @@ int dataservice_api_recvresp_latest_block_id_get(
  *      - AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
  */
-int dataservice_api_sendreq_canonized_transaction_get(
+int dataservice_api_sendreq_canonized_transaction_get_old(
     ipc_socket_context_t* sock, uint32_t child, const uint8_t* txn_id,
     bool read_cert);
 
@@ -1585,7 +1583,7 @@ int dataservice_api_sendreq_canonized_transaction_get(
  *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if this operation encountered an
  *        out-of-memory error.
  */
-int dataservice_api_recvresp_canonized_transaction_get(
+int dataservice_api_recvresp_canonized_transaction_get_old(
     ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
     data_transaction_node_t* node, void** data, size_t* data_size);
 

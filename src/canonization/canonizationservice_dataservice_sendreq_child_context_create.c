@@ -5,7 +5,7 @@
  * \brief Send the child context create request to the data service from the
  * canonization service.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/canonizationservice.h>
@@ -51,7 +51,7 @@ int canonizationservice_dataservice_sendreq_child_context_create(
 
     /* send the request to open a child context. */
     int retval =
-        dataservice_api_sendreq_child_context_create(
+        dataservice_api_sendreq_child_context_create_old(
             instance->data, dataservice_caps, sizeof(dataservice_caps));
     if (AGENTD_STATUS_SUCCESS != retval)
     {
