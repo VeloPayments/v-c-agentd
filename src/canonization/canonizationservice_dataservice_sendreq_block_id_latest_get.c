@@ -5,7 +5,7 @@
  * \brief Send the latest block id get request to the data service from the
  * canonization service.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -33,7 +33,7 @@ int canonizationservice_dataservice_sendreq_block_id_latest_get(
 
     /* send the request to read the latest block id. */
     retval =
-        dataservice_api_sendreq_latest_block_id_get(
+        dataservice_api_sendreq_latest_block_id_get_old(
             instance->data, instance->data_child_context);
     if (AGENTD_STATUS_SUCCESS != retval)
     {

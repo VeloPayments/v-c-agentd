@@ -3,7 +3,7 @@
  *
  * \brief Close a client connection.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -28,7 +28,7 @@ void unauthorized_protocol_service_close_connection(
     if (conn->dataservice_child_context >= 0)
     {
         /* send a child context close request to the dataservice. */
-        dataservice_api_sendreq_child_context_close(
+        dataservice_api_sendreq_child_context_close_old(
             &svc->data, conn->dataservice_child_context);
 
         /* set the write callback for the dataservice socket. */
