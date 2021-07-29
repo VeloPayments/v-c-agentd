@@ -215,6 +215,94 @@ TEST_F(dataservice_isolation_test, reduce_root_caps)
 {
     uint32_t offset;
     uint32_t status;
+    string DB_PATH;
+
+    /* use psock. */
+    ASSERT_EQ(0, use_psock());
+
+    /* create the directory for this test. */
+    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+
+    /* create the root context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_init(
+            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_init(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(0U, offset);
+    ASSERT_EQ(0U, status);
+
+    /* create a reduced capabilities set for the root context. */
+    BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
+    BITCAP_INIT_FALSE(reducedcaps);
+
+    /* explicitly grant reducing root caps. */
+    BITCAP_SET_TRUE(reducedcaps,
+        DATASERVICE_API_CAP_LL_ROOT_CONTEXT_REDUCE_CAPS);
+
+    /* reduce root capabilities. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_reduce_caps(
+            datapsock, reducedcaps, sizeof(reducedcaps)));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_reduce_caps(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(0U, offset);
+    ASSERT_EQ(0U, status);
+
+    /* explicitly deny reducing root caps. */
+    BITCAP_SET_FALSE(reducedcaps,
+        DATASERVICE_API_CAP_LL_ROOT_CONTEXT_REDUCE_CAPS);
+
+    /* reduce root capabilities. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_reduce_caps(
+            datapsock, reducedcaps, sizeof(reducedcaps)));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_reduce_caps(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(0U, offset);
+    ASSERT_EQ(0U, status);
+
+    /* explicitly grant reducing root caps. */
+    BITCAP_SET_TRUE(reducedcaps,
+        DATASERVICE_API_CAP_LL_ROOT_CONTEXT_REDUCE_CAPS);
+
+    /* reduce root capabilities fails. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_reduce_caps(
+            datapsock, reducedcaps, sizeof(reducedcaps)));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_reduce_caps(
+            datapsock, alloc, &offset, &status));
+
+    /* the send and recv should have worked, but the command status is fail. */
+    EXPECT_EQ(0U, offset);
+    EXPECT_NE(0U, status);
+}
+
+/**
+ * Test that we can reduce root capabilities with the legacy API.
+ */
+TEST_F(dataservice_isolation_test, reduce_root_caps_old)
+{
+    uint32_t offset;
+    uint32_t status;
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     string DB_PATH;
