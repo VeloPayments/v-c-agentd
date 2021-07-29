@@ -660,6 +660,7 @@ int dataservice_api_sendreq_child_context_create(
  * \brief Receive a response from the child context create API call.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -700,8 +701,8 @@ int dataservice_api_sendreq_child_context_create(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_child_context_create(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status,
-    uint32_t* child);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, uint32_t* child);
 
 /**
  * \brief Create a child context with further reduced capabilities.
@@ -791,6 +792,7 @@ int dataservice_api_sendreq_child_context_close(
  * \brief Receive a response from the child context close API call.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -828,7 +830,8 @@ int dataservice_api_sendreq_child_context_close(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_child_context_close(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status);
 
 /**
  * \brief Close the specified child context.

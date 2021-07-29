@@ -539,6 +539,74 @@ TEST_F(dataservice_isolation_test, child_context_create_close)
     uint32_t offset;
     uint32_t status;
     uint32_t child_context;
+    string DB_PATH;
+
+    /* use the psock interface. */
+    ASSERT_EQ(0, use_psock());
+
+    /* create the directory for this test. */
+    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+
+    /* Run the send / receive on creating the root context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_init(
+            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_init(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(0U, offset);
+    ASSERT_EQ(0U, status);
+
+    /* create a reduced capabilities set for the child context. */
+    BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
+    BITCAP_INIT_FALSE(reducedcaps);
+
+    /* explicitly grant closing the child context. */
+    BITCAP_SET_TRUE(reducedcaps,
+        DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
+
+    /* create child context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_child_context_create(
+            datapsock, reducedcaps, sizeof(reducedcaps)));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_child_context_create(
+            datapsock, alloc, &offset, &status, &child_context));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(0U, offset);
+    ASSERT_EQ(0U, status);
+    ASSERT_EQ(DATASERVICE_MAX_CHILD_CONTEXTS - 1U, child_context);
+
+    /* close child context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_child_context_close(
+            datapsock, child_context));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_child_context_close(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    EXPECT_EQ(DATASERVICE_MAX_CHILD_CONTEXTS - 1U, offset);
+    EXPECT_EQ(0U, status);
+}
+
+/**
+ * Test that we can create a child context using the legacy API.
+ */
+TEST_F(dataservice_isolation_test, child_context_create_close_old)
+{
+    uint32_t offset;
+    uint32_t status;
+    uint32_t child_context;
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     string DB_PATH;
