@@ -1214,6 +1214,7 @@ int dataservice_api_sendreq_transaction_submit(
  * \brief Receive a response from the transaction submit operation.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -1255,7 +1256,8 @@ int dataservice_api_sendreq_transaction_submit(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_transaction_submit(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status);
 
 /**
  * \brief Submit a transaction to the transaction queue.
@@ -1349,6 +1351,7 @@ int dataservice_api_sendreq_transaction_get_first(
  * \brief Receive a response from the get first transaction query.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -1401,8 +1404,9 @@ int dataservice_api_sendreq_transaction_get_first(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_transaction_get_first(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status,
-    data_transaction_node_t* node, void** data, size_t* data_size);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, data_transaction_node_t* node, void** data,
+    size_t* data_size);
 
 /**
  * \brief Get the first transaction in the transaction queue.
