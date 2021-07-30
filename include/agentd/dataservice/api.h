@@ -1666,6 +1666,7 @@ int dataservice_api_sendreq_transaction_drop(
  * \brief Receive a response from the drop transaction action.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -1707,7 +1708,8 @@ int dataservice_api_sendreq_transaction_drop(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_transaction_drop(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status);
 
 /**
  * \brief Drop a transaction from the transaction queue by ID.
