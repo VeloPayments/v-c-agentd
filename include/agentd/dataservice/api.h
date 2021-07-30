@@ -1508,6 +1508,7 @@ int dataservice_api_sendreq_transaction_get(
  * \brief Receive a response from the get transaction query.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -1560,8 +1561,9 @@ int dataservice_api_sendreq_transaction_get(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_transaction_get(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status,
-    data_transaction_node_t* node, void** data, size_t* data_size);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, data_transaction_node_t* node, void** data,
+    size_t* data_size);
 
 /**
  * \brief Get a transaction from the transaction queue by ID.
