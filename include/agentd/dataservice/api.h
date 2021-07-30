@@ -917,6 +917,7 @@ int dataservice_api_sendreq_global_settings_get(
  * \brief Receive a response from the global settings query.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -965,8 +966,8 @@ int dataservice_api_sendreq_global_settings_get(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_global_settings_get(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status, void* data,
-    size_t* data_size);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, void* data, size_t* data_size);
 
 /**
  * \brief Query a global setting using the given child context.
