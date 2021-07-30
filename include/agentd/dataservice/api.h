@@ -1934,6 +1934,7 @@ int dataservice_api_sendreq_artifact_get(
  * \brief Receive a response from the get artifact query.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -1977,8 +1978,8 @@ int dataservice_api_sendreq_artifact_get(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_artifact_get(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status,
-    data_artifact_record_t* record);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, data_artifact_record_t* record);
 
 /**
  * \brief Get an artifact from the artifact database by ID.
@@ -2079,6 +2080,7 @@ int dataservice_api_sendreq_block_make(
  * \brief Receive a response from the block make operation.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -2126,7 +2128,8 @@ int dataservice_api_sendreq_block_make(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_block_make(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status);
 
 /**
  * \brief Make a block from transactions in the transaction queue.
@@ -2232,6 +2235,7 @@ int dataservice_api_sendreq_block_get(
  * \brief Receive a response from the get block query.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -2284,8 +2288,8 @@ int dataservice_api_sendreq_block_get(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_block_get(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status,
-    data_block_node_t* node, void** data, size_t* data_size);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, data_block_node_t* node, void** data, size_t* data_size);
 
 /**
  * \brief Get a block from the dataservice by ID.
@@ -2390,6 +2394,7 @@ int dataservice_api_sendreq_block_id_by_height_get(
  * \brief Receive a response from the get block id by height query.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -2434,8 +2439,8 @@ int dataservice_api_sendreq_block_id_by_height_get(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_block_id_by_height_get(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status,
-    uint8_t* block_id);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, uint8_t* block_id);
 
 /**
  * \brief Get the block id associated with the given block height.
@@ -2529,6 +2534,7 @@ int dataservice_api_sendreq_latest_block_id_get(
  * \brief Receive a response from the get latest block id query.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -2573,8 +2579,8 @@ int dataservice_api_sendreq_latest_block_id_get(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_latest_block_id_get(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status,
-    uint8_t* block_id);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, uint8_t* block_id);
 
 /**
  * \brief Get the latest block id.
@@ -2671,6 +2677,7 @@ int dataservice_api_sendreq_canonized_transaction_get(
  * \brief Receive a response from the get canonized transaction query.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator for this operation.
  * \param offset        The child context offset for this response.
  * \param status        This value is updated with the status code returned from
  *                      the request.
@@ -2723,8 +2730,9 @@ int dataservice_api_sendreq_canonized_transaction_get(
  *        out-of-memory error.
  */
 int dataservice_api_recvresp_canonized_transaction_get(
-    RCPR_SYM(psock)* sock, uint32_t* offset, uint32_t* status,
-    data_transaction_node_t* node, void** data, size_t* data_size);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, data_transaction_node_t* node, void** data,
+    size_t* data_size);
 
 /**
  * \brief Get a canonized transaction from the transaction database by ID.
