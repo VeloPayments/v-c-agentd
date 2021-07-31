@@ -4027,6 +4027,84 @@ TEST_F(dataservice_isolation_test, latest_block_id_get_not_found)
     uint32_t offset;
     uint32_t status;
     uint32_t child_context;
+    string DB_PATH;
+
+    /* we are using psock for this. */
+    ASSERT_EQ(0, use_psock());
+
+    /* create the directory for this test. */
+    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+
+    /* Run the send / receive on creating the root context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_init(
+            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_init(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    EXPECT_EQ(0U, offset);
+    EXPECT_EQ(0U, status);
+
+    /* create a reduced capabilities set for the child context. */
+    BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
+    BITCAP_INIT_FALSE(reducedcaps);
+
+    /* explicitly grant reading the latest block id. */
+    BITCAP_SET_TRUE(reducedcaps,
+        DATASERVICE_API_CAP_APP_BLOCK_ID_LATEST_READ);
+
+    /* create child context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_child_context_create(
+            datapsock, reducedcaps, sizeof(reducedcaps)));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_child_context_create(
+            datapsock, alloc, &offset, &status, &child_context));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(0U, offset);
+    ASSERT_EQ(0U, status);
+    ASSERT_EQ(DATASERVICE_MAX_CHILD_CONTEXTS - 1U, child_context);
+
+    /* set up an empty block id. */
+    uint8_t empty_block_id[16];
+    memset(empty_block_id, 0, sizeof(empty_block_id));
+
+    /* set the block id to something unexpected. */
+    uint8_t latest_block_id[16];
+    memset(latest_block_id, 0xFE, sizeof(latest_block_id));
+
+    /* query the block by height. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_latest_block_id_get(
+            datapsock, child_context));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_latest_block_id_get(
+            datapsock, alloc, &offset, &status, latest_block_id));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(DATASERVICE_MAX_CHILD_CONTEXTS - 1U, offset);
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    ASSERT_EQ(0, memcmp(latest_block_id, vccert_certificate_type_uuid_root_block, 16));
+}
+
+/**
+ * Test that latest block id get returns AGENTD_STATUS_SUCCESS and the root
+ * block UUID if the latest block id is not found, using the legacy API.
+ */
+TEST_F(dataservice_isolation_test, latest_block_id_get_not_found_old)
+{
+    uint32_t offset;
+    uint32_t status;
+    uint32_t child_context;
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     string DB_PATH;
