@@ -3815,6 +3815,83 @@ TEST_F(dataservice_isolation_test, block_id_by_height_get_not_found)
     uint32_t offset;
     uint32_t status;
     uint32_t child_context;
+    string DB_PATH;
+
+    /* we are using psock for this. */
+    ASSERT_EQ(0, use_psock());
+
+    /* create the directory for this test. */
+    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+
+    /* Run the send / receive on creating the root context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_init(
+            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_init(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    EXPECT_EQ(0U, offset);
+    EXPECT_EQ(0U, status);
+
+    /* create a reduced capabilities set for the child context. */
+    BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
+    BITCAP_INIT_FALSE(reducedcaps);
+
+    /* explicitly grant reading a block id by height. */
+    BITCAP_SET_TRUE(reducedcaps,
+        DATASERVICE_API_CAP_APP_BLOCK_ID_BY_HEIGHT_READ);
+
+    /* create child context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_child_context_create(
+            datapsock, reducedcaps, sizeof(reducedcaps)));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_child_context_create(
+            datapsock, alloc, &offset, &status, &child_context));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(0U, offset);
+    ASSERT_EQ(0U, status);
+    ASSERT_EQ(DATASERVICE_MAX_CHILD_CONTEXTS - 1U, child_context);
+
+    /* set up an empty block id. */
+    uint8_t empty_block_id[16];
+    memset(empty_block_id, 0, sizeof(empty_block_id));
+
+    /* set the block id to something unexpected. */
+    uint8_t height_block_id[16];
+    memset(height_block_id, 0xFE, sizeof(height_block_id));
+
+    /* query the block by height. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_block_id_by_height_get(
+            datapsock, child_context, 1U));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_block_id_by_height_get(
+            datapsock, alloc, &offset, &status, height_block_id));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(DATASERVICE_MAX_CHILD_CONTEXTS - 1U, offset);
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+}
+
+/**
+ * Test that block get id by height returns AGENTD_ERROR_DATASERVICE_NOT_FOUND
+ * if the block height is not found, using the legacy API.
+ */
+TEST_F(dataservice_isolation_test, block_id_by_height_get_not_found_old)
+{
+    uint32_t offset;
+    uint32_t status;
+    uint32_t child_context;
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     string DB_PATH;
