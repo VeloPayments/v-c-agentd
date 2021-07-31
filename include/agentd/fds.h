@@ -3,7 +3,7 @@
  *
  * \brief File descriptors for agentd.
  *
- * \copyright 2018-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_FDS_CONFIG_HEADER_GUARD
@@ -193,6 +193,28 @@ extern "C" {
  * Used by the canonization service private command.
  */
 #define AGENTD_FD_CANONIZATION_SVC_CONTROL ((int)3)
+
+/******************************************************************************/
+/* Attestation Service                                                        */
+/******************************************************************************/
+
+/**
+ * \brief File descriptor for the attestation service log socket.
+ * Used by the attestation service private command.
+ */
+#define AGENTD_FD_ATTESTATION_SVC_LOG ((int)0)
+
+/**
+ * \brief File descriptor for the attestation service data socket.
+ * Used by the canonization service private command.
+ */
+#define AGENTD_FD_ATTESTATION_SVC_DATA ((int)1)
+
+/**
+ * \brief File descriptor for the attestation service control socket.
+ * Used by the attestation service private command.
+ */
+#define AGENTD_FD_ATTESTATION_SVC_CONTROL ((int)2)
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

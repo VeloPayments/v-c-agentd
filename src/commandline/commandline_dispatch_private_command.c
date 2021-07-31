@@ -84,6 +84,12 @@ void commandline_dispatch_private_command(
         bootstrap_config_set_private_command(
             bconf, private_command_canonizationservice);
     }
+    /* is this the attestation service private command? */
+    else if (!strcmp(command, "attestation_service"))
+    {
+        bootstrap_config_set_private_command(
+            bconf, private_command_attestationservice);
+    }
     else
     {
         /* indicate that there was an error, but -P is undocumented, so don't
