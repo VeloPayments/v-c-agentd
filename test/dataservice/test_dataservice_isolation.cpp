@@ -4241,6 +4241,82 @@ TEST_F(dataservice_isolation_test, artifact_get_not_found)
     uint32_t offset;
     uint32_t status;
     uint32_t child_context;
+    string DB_PATH;
+
+    /* we are using psock for this. */
+    ASSERT_EQ(0, use_psock());
+
+    /* create the directory for this test. */
+    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+
+    /* Run the send / receive on creating the root context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_root_context_init(
+            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_root_context_init(
+            datapsock, alloc, &offset, &status));
+
+    /* verify that everything ran correctly. */
+    EXPECT_EQ(0U, offset);
+    EXPECT_EQ(0U, status);
+
+    /* create a reduced capabilities set for the child context. */
+    BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
+    BITCAP_INIT_FALSE(reducedcaps);
+
+    /* explicitly grant reading an artifact. */
+    BITCAP_SET_TRUE(reducedcaps,
+        DATASERVICE_API_CAP_APP_ARTIFACT_READ);
+
+    /* create child context. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_child_context_create(
+            datapsock, reducedcaps, sizeof(reducedcaps)));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_child_context_create(
+            datapsock, alloc, &offset, &status, &child_context));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(0U, offset);
+    ASSERT_EQ(0U, status);
+    ASSERT_EQ(DATASERVICE_MAX_CHILD_CONTEXTS - 1U, child_context);
+
+    /* non-existent artifact id. */
+    data_artifact_record_t artifact_rec;
+    uint8_t foo_artifact[16] = {
+        0x93, 0x0d, 0xca, 0xcf, 0x2d, 0x06, 0x4a, 0xb5,
+        0x8b, 0xcc, 0xcd, 0x3e, 0x93, 0x8c, 0x03, 0xd1
+    };
+
+    /* query a non-existent artifact. */
+    ASSERT_EQ(
+        0,
+        dataservice_api_sendreq_artifact_get(
+            datapsock, child_context, foo_artifact));
+    ASSERT_EQ(
+        0,
+        dataservice_api_recvresp_artifact_get(
+            datapsock, alloc, &offset, &status, &artifact_rec));
+
+    /* verify that everything ran correctly. */
+    ASSERT_EQ(DATASERVICE_MAX_CHILD_CONTEXTS - 1U, offset);
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+}
+
+/**
+ * Test that attempting to read an artifact that does not exist returns
+ * AGENTD_ERROR_DATASERVICE_NOT_FOUND, using the legacy API.
+ */
+TEST_F(dataservice_isolation_test, artifact_get_not_found_old)
+{
+    uint32_t offset;
+    uint32_t status;
+    uint32_t child_context;
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     string DB_PATH;
