@@ -3,7 +3,7 @@
  *
  * \brief Internal supervisor functions for setting up services.
  *
- * \copyright 2019-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_SUPERVISOR_SUPERVISOR_INTERNAL_HEADER_GUARD
@@ -106,6 +106,29 @@ int supervisor_create_data_service_for_canonizationservice(
     const agent_config_t* conf, int* data_socket, int* log_socket);
 
 /**
+ * \brief Create a data service instance for the attestation service as a
+ * process that can be started.
+ *
+ * \param svc                   Pointer to the pointer to receive the process
+ *                              descriptor for the data service.
+ * \param bconf                 Agentd bootstrap config for this service.
+ * \param conf                  Agentd configuration to be used to build the
+ *                              data service.  This configuration must be
+ *                              valid for the lifetime of the service.
+ * \param data_socket           Pointer to the descriptor to receive the data
+ *                              socket.
+ * \param log_socket            Pointer to the descriptor holding the log socket
+ *                              for this instance.
+ *
+ * \returns a status indicating success or failure.
+ *          - AGENTD_STATUS_SUCCESS on success.
+ *          - a non-zero error code on failure.
+ */
+int supervisor_create_data_service_for_attestationservice(
+    process_t** svc, const bootstrap_config_t* bconf,
+    const agent_config_t* conf, int* data_socket, int* log_socket);
+
+/**
  * \brief Create the protocol service as a process that can be started.
  *
  * \param svc                   Pointer to the pointer to receive the process
@@ -177,6 +200,29 @@ int supervisor_create_canonizationservice(
     const agent_config_t* conf, config_private_key_t* private_key,
     int* data_socket, int* random_socket, int* log_socket,
     int* control_socket);
+
+/**
+ * \brief Create the attestation service as a process that can be started.
+ *
+ * \param svc                   Pointer to the pointer to receive the process
+ *                              descriptor for the attestation service.
+ * \param bconf                 Agentd bootstrap config for this service.
+ * \param conf                  Agentd configuration to be used to build the
+ *                              attestation service.  This configuration must
+ *                              be valid for the lifetime of the service.
+ * \param private_key           The private key for this service.
+ * \param data_socket           The data socket descriptor.
+ * \param log_socket            The log socket descriptor.
+ * \param control_socket        The control socket descriptor.
+ *
+ * \returns a status indicating success or failure.
+ *          - AGENTD_STATUS_SUCCESS on success.
+ *          - a non-zero error code on failure.
+ */
+int supervisor_create_attestationservice(
+    process_t** svc, const bootstrap_config_t* bconf,
+    const agent_config_t* conf, config_private_key_t* private_key,
+    int* data_socket, int* log_socket, int* control_socket);
 
 /**
  * \brief Install the signal handler for the supervisor.

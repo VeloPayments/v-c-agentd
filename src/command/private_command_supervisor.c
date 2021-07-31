@@ -3,7 +3,7 @@
  *
  * \brief Create, spawn, and introduce all services.
  *
- * \copyright 2018-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/command.h>
@@ -106,8 +106,10 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     process_t* listener_service;
     process_t* data_for_auth_protocol_service;
     process_t* data_for_canonizationservice;
+    process_t* data_for_attestationservice;
     process_t* protocol_service;
     process_t* canonizationservice;
+    process_t* attestationservice;
     config_public_entity_node_t* public_entities;
     config_private_key_t private_key;
 
@@ -123,6 +125,8 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     int data_for_auth_protocol_svc_log_dummy_sock = -1;
     int data_for_canonization_svc_log_sock = -1;
     int data_for_canonization_svc_log_dummy_sock = -1;
+    int data_for_attestation_svc_log_sock = -1;
+    int data_for_attestation_svc_log_dummy_sock = -1;
     int unauth_protocol_svc_random_sock = -1;
     int unauth_protocol_svc_accept_sock = -1;
     int unauth_protocol_svc_control_sock = -1;
@@ -132,6 +136,10 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     int canonization_svc_log_sock = -1;
     int canonization_svc_log_dummy_sock = -1;
     int canonization_svc_control_sock = -1;
+    int attestation_svc_data_sock = -1;
+    int attestation_svc_log_sock = -1;
+    int attestation_svc_log_dummy_sock = -1;
+    int attestation_svc_control_sock = -1;
 
 #if AUTHSERVICE
     process_t* auth_service;
@@ -194,6 +202,18 @@ static int supervisor_run(const bootstrap_config_t* bconf)
             AF_UNIX, SOCK_STREAM, 0,
             &canonization_svc_log_sock,
             &canonization_svc_log_dummy_sock),
+        cleanup_private_key);
+    TRY_OR_FAIL(
+        ipc_socketpair(
+            AF_UNIX, SOCK_STREAM, 0,
+            &data_for_attestation_svc_log_sock,
+            &data_for_attestation_svc_log_dummy_sock),
+        cleanup_private_key);
+    TRY_OR_FAIL(
+        ipc_socketpair(
+            AF_UNIX, SOCK_STREAM, 0,
+            &attestation_svc_log_sock,
+            &attestation_svc_log_dummy_sock),
         cleanup_private_key);
 #if AUTHSERVICE
     TRY_OR_FAIL(
@@ -273,10 +293,26 @@ static int supervisor_run(const bootstrap_config_t* bconf)
             &canonization_svc_log_sock, &canonization_svc_control_sock),
         cleanup_data_service_for_canonizationservice);
 
+    /* create data service for attestation service. */
+    TRY_OR_FAIL(
+        supervisor_create_data_service_for_attestationservice(
+            &data_for_attestationservice, bconf, &conf,
+            &attestation_svc_data_sock, &data_for_attestation_svc_log_sock),
+        cleanup_canonizationservice);
+
+    /* create attestation service. */
+    TRY_OR_FAIL(
+        supervisor_create_attestationservice(
+            &attestationservice, bconf, &conf, &private_key,
+            &attestation_svc_data_sock, &attestation_svc_log_sock,
+            &attestation_svc_control_sock),
+        cleanup_data_service_for_attestationservice);
+
     /* if we've made it this far, attempt to start each service. */
-    START_PROCESS(random_service, cleanup_canonizationservice);
-    START_PROCESS(random_for_canonizationservice, cleanup_canonizationservice);
-    START_PROCESS(data_for_canonizationservice, cleanup_canonizationservice);
+    START_PROCESS(random_service, cleanup_attestationservice);
+    START_PROCESS(random_for_canonizationservice, cleanup_attestationservice);
+    START_PROCESS(data_for_canonizationservice, cleanup_attestationservice);
+    START_PROCESS(data_for_attestationservice, quiesce_data_processes);
     START_PROCESS(data_for_auth_protocol_service, quiesce_data_processes);
     START_PROCESS(listener_service, quiesce_data_processes);
 
@@ -285,6 +321,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
 #endif /*AUTHSERVICE*/
     START_PROCESS(protocol_service, quiesce_data_processes);
     START_PROCESS(canonizationservice, quiesce_data_processes);
+    START_PROCESS(attestationservice, quiesce_data_processes);
 
     /* wait until we get a signal, and then restart / terminate. */
     supervisor_sighandler_wait();
@@ -299,6 +336,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     process_stop(listener_service);
     process_stop(protocol_service);
     process_stop(canonizationservice);
+    process_stop(attestationservice);
 
     /* wait an additional 2 seconds. */
     sleep(2);
@@ -313,10 +351,18 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     process_kill(listener_service);
     process_kill(protocol_service);
     process_kill(canonizationservice);
+    process_kill(attestationservice);
 
 quiesce_data_processes:
     process_stop_ex(data_for_canonizationservice, 0);
     process_stop_ex(data_for_auth_protocol_service, 0);
+    process_stop_ex(data_for_attestationservice, 0);
+
+cleanup_attestationservice:
+    CLEANUP_PROCESS(attestationservice);
+
+cleanup_data_service_for_attestationservice:
+    CLEANUP_PROCESS(data_for_attestationservice);
 
 cleanup_canonizationservice:
     CLEANUP_PROCESS(canonizationservice);
@@ -374,6 +420,8 @@ done:
     CLOSE_IF_VALID(data_for_auth_protocol_svc_log_dummy_sock);
     CLOSE_IF_VALID(data_for_canonization_svc_log_sock);
     CLOSE_IF_VALID(data_for_canonization_svc_log_dummy_sock);
+    CLOSE_IF_VALID(data_for_attestation_svc_log_sock);
+    CLOSE_IF_VALID(data_for_attestation_svc_log_dummy_sock);
     CLOSE_IF_VALID(unauth_protocol_svc_random_sock);
     CLOSE_IF_VALID(unauth_protocol_svc_accept_sock);
     CLOSE_IF_VALID(auth_protocol_svc_data_sock);
@@ -382,6 +430,8 @@ done:
     CLOSE_IF_VALID(canonization_svc_log_sock);
     CLOSE_IF_VALID(canonization_svc_log_dummy_sock);
     CLOSE_IF_VALID(canonization_svc_control_sock);
+    CLOSE_IF_VALID(attestation_svc_log_dummy_sock);
+    CLOSE_IF_VALID(attestation_svc_control_sock);
 
 #if AUTHSERVICE
     CLOSE_IF_VALID(auth_svc_log_sock);

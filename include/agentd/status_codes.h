@@ -3,13 +3,14 @@
  *
  * \brief Status code definitions for agentd.
  *
- * \copyright 2018-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_STATUS_CODES_HEADER_GUARD
 #define AGENTD_STATUS_CODES_HEADER_GUARD
 
 #include <agentd/services.h>
+#include <agentd/status_codes/attestation.h>
 #include <agentd/status_codes/authservice.h>
 #include <agentd/status_codes/canonization.h>
 #include <agentd/status_codes/config.h>

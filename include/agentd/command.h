@@ -58,6 +58,11 @@ void private_command_authservice(bootstrap_config_t* bconf);
 void private_command_canonizationservice(bootstrap_config_t* bconf);
 
 /**
+ * \brief Run an attestation service instance.
+ */
+void private_command_attestationservice(bootstrap_config_t* bconf);
+
+/**
  * \brief Run a data service instance.
  */
 void private_command_dataservice(bootstrap_config_t* bconf);
