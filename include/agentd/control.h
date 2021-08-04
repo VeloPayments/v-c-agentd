@@ -3,7 +3,7 @@
  *
  * \brief Control-flow helper macros.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_CONTROL_HEADER_GUARD
@@ -28,6 +28,20 @@ extern "C" {
         if (AGENTD_STATUS_SUCCESS != retval) \
         { \
             goto label; \
+        } \
+    } while (0)
+
+/**
+ * \brief Helper macro to attempt cleanup while coalescing a cleanup error into
+ * the return value.
+ */
+#define CLEANUP_OR_FALLTHROUGH(x) \
+    do \
+    { \
+        release_retval = x; \
+        if (AGENTD_STATUS_SUCCESS != release_retval) \
+        { \
+            retval = release_retval; \
         } \
     } while (0)
 
