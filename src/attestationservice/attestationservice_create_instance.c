@@ -177,13 +177,27 @@ static status attestationservice_instance_resource_release(resource* r)
     /* cache the allocator. */
     rcpr_allocator* alloc = inst->alloc;
 
-    /* release resources. */
-    sleep_sock_retval =
-        resource_release(psock_resource_handle(inst->sleep_sock));
-    data_sock_retval =
-        resource_release(psock_resource_handle(inst->data_sock));
-    log_sock_retval =
-        resource_release(psock_resource_handle(inst->log_sock));
+    /* release sleep sock. */
+    if (NULL != inst->sleep_sock)
+    {
+        sleep_sock_retval =
+            resource_release(psock_resource_handle(inst->sleep_sock));
+    }
+
+    /* release data sock. */
+    if (NULL != inst->data_sock)
+    {
+        data_sock_retval =
+            resource_release(psock_resource_handle(inst->data_sock));
+    }
+
+    /* release log sock. */
+    if (NULL != inst->log_sock)
+    {
+        log_sock_retval =
+            resource_release(psock_resource_handle(inst->log_sock));
+    }
+
     release_retval = rcpr_allocator_reclaim(alloc, inst);
 
     if (STATUS_SUCCESS != sleep_sock_retval)
