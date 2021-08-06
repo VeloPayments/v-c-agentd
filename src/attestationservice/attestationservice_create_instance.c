@@ -13,12 +13,22 @@
 #include "attestationservice_internal.h"
 
 RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_compare;
 RCPR_IMPORT_fiber;
 RCPR_IMPORT_psock;
+RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
 
 /* forward decls. */
 static status attestationservice_instance_resource_release(resource* r);
+static rcpr_comparison_result txn_tree_compare(
+    void* context, const void* lhs, const void* rhs);
+static const void* txn_tree_key(
+    void* context, const resource* r);
+static rcpr_comparison_result artifact_tree_compare(
+    void* context, const void* lhs, const void* rhs);
+static const void* artifact_tree_key(
+    void* context, const resource* r);
 
 /**
  * \brief Create an attestation service instance to pass to the attestation
@@ -118,9 +128,21 @@ status attestationservice_create_instance(
     /* the base log socket is now owned by the instance. */
     log_sock = NULL;
 
-    /* TODO - add config setup and I/O. */
+    /* create the transaction rbtree. */
+    TRY_OR_FAIL(
+        rbtree_create(
+            &tmp->transaction_tree, alloc, &txn_tree_compare, &txn_tree_key,
+            NULL),
+        cleanup_tmp);
 
-    /* TODO - add rbtree setup. */
+    /* create the artifact rbtree. */
+    TRY_OR_FAIL(
+        rbtree_create(
+            &tmp->artifact_tree, alloc, &artifact_tree_compare,
+            &artifact_tree_key, NULL),
+        cleanup_tmp);
+
+    /* TODO - add config setup and I/O. */
 
     /* success. */
     *inst = tmp;
@@ -171,6 +193,8 @@ static status attestationservice_instance_resource_release(resource* r)
     status data_sock_retval = STATUS_SUCCESS;
     status log_sock_retval = STATUS_SUCCESS;
     status release_retval = STATUS_SUCCESS;
+    status transaction_rbtree_retval = STATUS_SUCCESS;
+    status artifact_rbtree_retval = STATUS_SUCCESS;
 
     attestationservice_instance* inst = (attestationservice_instance*)r;
 
@@ -198,8 +222,24 @@ static status attestationservice_instance_resource_release(resource* r)
             resource_release(psock_resource_handle(inst->log_sock));
     }
 
+    /* release transaction rbtree. */
+    if (NULL != inst->transaction_tree)
+    {
+        transaction_rbtree_retval =
+            resource_release(rbtree_resource_handle(inst->transaction_tree));
+    }
+
+    /* release artifact rbtree. */
+    if (NULL != inst->artifact_tree)
+    {
+        artifact_rbtree_retval =
+            resource_release(rbtree_resource_handle(inst->artifact_tree));
+    }
+
+    /* reclaim the instance structure. */
     release_retval = rcpr_allocator_reclaim(alloc, inst);
 
+    /* decode the return code for this function. */
     if (STATUS_SUCCESS != sleep_sock_retval)
     {
         return sleep_sock_retval;
@@ -212,8 +252,76 @@ static status attestationservice_instance_resource_release(resource* r)
     {
         return log_sock_retval;
     }
+    else if (STATUS_SUCCESS != transaction_rbtree_retval)
+    {
+        return transaction_rbtree_retval;
+    }
+    else if (STATUS_SUCCESS != artifact_rbtree_retval)
+    {
+        return artifact_rbtree_retval;
+    }
     else
     {
         return release_retval;
     }
+}
+
+/**
+ * \brief Compare two transaction ID values.
+ */
+static rcpr_comparison_result txn_tree_compare(
+    void* context, const void* lhs, const void* rhs)
+{
+    (void)context;
+
+    /* compare the two UUID values. */
+    int val = memcmp(lhs, rhs, 16);
+    if (val < 0)
+        return RCPR_COMPARE_LT;
+    if (val > 0)
+        return RCPR_COMPARE_GT;
+    else
+        return RCPR_COMPARE_EQ;
+}
+
+/**
+ * \brief Get the key value for a transaction tree node value.
+ */
+static const void* txn_tree_key(
+    void* context, const resource* r)
+{
+    (void)context;
+    transaction_record_value* val = (transaction_record_value*)r;
+
+    return val->data.key;
+}
+
+/**
+ * \brief Compare two artifact ID values.
+ */
+static rcpr_comparison_result artifact_tree_compare(
+    void* context, const void* lhs, const void* rhs)
+{
+    (void)context;
+
+    /* compare the two UUID values. */
+    int val = memcmp(lhs, rhs, 16);
+    if (val < 0)
+        return RCPR_COMPARE_LT;
+    if (val > 0)
+        return RCPR_COMPARE_GT;
+    else
+        return RCPR_COMPARE_EQ;
+}
+
+/**
+ * \brief Get the key value for a artifact tree node value.
+ */
+static const void* artifact_tree_key(
+    void* context, const resource* r)
+{
+    (void)context;
+    artifact_record_value* val = (artifact_record_value*)r;
+
+    return val->data.key;
 }

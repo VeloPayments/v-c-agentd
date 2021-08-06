@@ -9,6 +9,7 @@
 #ifndef AGENTD_ATTESTATIONSERVICE_INTERNAL_HEADER_GUARD
 #define AGENTD_ATTESTATIONSERVICE_INTERNAL_HEADER_GUARD
 
+#include <agentd/dataservice/async_api.h>
 #include <rcpr/fiber.h>
 #include <rcpr/psock.h>
 #include <rcpr/rbtree.h>
@@ -38,6 +39,26 @@ struct attestationservice_instance
     RCPR_SYM(psock)* log_sock;
     RCPR_SYM(rbtree)* transaction_tree;
     RCPR_SYM(rbtree)* artifact_tree;
+};
+
+/**
+ * \brief The transaction record resource value.
+ */
+typedef struct transaction_record_value transaction_record_value;
+struct transaction_record_value
+{
+    RCPR_SYM(resource) hdr;
+    data_transaction_node_t data;
+};
+
+/**
+ * \brief The artifact record resource value.
+ */
+typedef struct artifact_record_value artifact_record_value;
+struct artifact_record_value
+{
+    RCPR_SYM(resource) hdr;
+    data_artifact_record_t data;
 };
 
 /**
@@ -145,6 +166,95 @@ status attestationservice_event_loop(attestationservice_instance* inst);
  */
 status attestationservice_sleep(
     RCPR_SYM(psock)* sleep_sock, uint64_t sleep_time);
+
+/**
+ * \brief Verify that the given transaction has valid fields.
+ *
+ * \param inst              The attestation service instance.
+ * \param txn_node          The transaction node.
+ * \param txn_data          The transaction data.
+ * \param txn_data_size     The size of the transaction data.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_verify_txn_has_valid_fields(
+    attestationservice_instance* inst, const data_transaction_node_t* txn_node,
+    const void* txn_data, size_t txn_data_size);
+
+/**
+ * \brief Verify that the given transaction is in the correct sequence.
+ *
+ * \param inst              The attestation service instance.
+ * \param child_context     The data service child context.
+ * \param txn_node          The transaction node.
+ * \param txn_data          The transaction data.
+ * \param txn_data_size     The size of the transaction data.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_verify_txn_is_in_correct_sequence(
+    attestationservice_instance* inst, uint32_t child_context,
+    const data_transaction_node_t* txn_node,
+    const void* txn_data, size_t txn_data_size);
+
+/**
+ * \brief Verify that the given transaction id / artifact id is unique.
+ *
+ * \param inst              The attestation service instance.
+ * \param child_context     The data service child context.
+ * \param txn_node          The transaction node.
+ * \param txn_data          The transaction data.
+ * \param txn_data_size     The size of the transaction data.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_verify_txn_is_unique(
+    attestationservice_instance* inst, uint32_t child_context,
+    const data_transaction_node_t* txn_node,
+    const void* txn_data, size_t txn_data_size);
+
+/**
+ * \brief Create a child context for communicating with the data service.
+ *
+ * \param data_sock         Socket for the data service.
+ * \param alloc             The allocator to use for this operation.
+ * \param child_context     Pointer to receive the child context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_dataservice_child_context_create(
+    RCPR_SYM(psock)* data_sock, RCPR_SYM(allocator)* alloc,
+    uint32_t* child_context);
+
+/**
+ * \brief Query the data service for either the first or the next pending
+ * transaction.
+ *
+ * \param data_sock         Socket for the data service.
+ * \param alloc             The allocator to use for this operation.
+ * \param child_context     The child context to use for this operation.
+ * \param txn_id            The next transaction id, or NULL if the first
+ *                          transaction ID should be queried.
+ * \param txn_node          The transaction node to return.
+ * \param txn_data          The transaction data to return.
+ * \param txn_data_size     The size of the returned transaction data.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_dataservice_query_pending_transaction(
+    RCPR_SYM(psock)* data_sock, RCPR_SYM(allocator)* alloc,
+    uint32_t child_context, RCPR_SYM(rcpr_uuid)* txn_id,
+    data_transaction_node_t* txn_node, void** txn_data, size_t* txn_data_size);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
