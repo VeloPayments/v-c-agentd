@@ -48,6 +48,7 @@ typedef struct transaction_record_value transaction_record_value;
 struct transaction_record_value
 {
     RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
     data_transaction_node_t data;
 };
 
@@ -58,6 +59,7 @@ typedef struct artifact_record_value artifact_record_value;
 struct artifact_record_value
 {
     RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
     data_artifact_record_t data;
 };
 
@@ -255,6 +257,134 @@ status attestationservice_dataservice_query_pending_transaction(
     RCPR_SYM(psock)* data_sock, RCPR_SYM(allocator)* alloc,
     uint32_t child_context, RCPR_SYM(rcpr_uuid)* txn_id,
     data_transaction_node_t* txn_node, void** txn_data, size_t* txn_data_size);
+
+/**
+ * \brief Query the data service for an artifact record by artifact id.
+ *
+ * \param inst              The attestation service instance.
+ * \param child_context     The child context to use for this operation.
+ * \param artifact_id       The artifact id to query.
+ * \param artifact          The artifact record to return.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_get_or_query_artifact(
+    attestationservice_instance* inst,
+    uint32_t child_context, RCPR_SYM(rcpr_uuid)* artifact_id,
+    artifact_record_value** artifact);
+
+/**
+ * \brief Update the artifact record or insert a new one.
+ *
+ * \param inst              The attestation service instance.
+ * \param artifact          The artifact record to use for update or insert.
+ *
+ * \note On success, this function takes ownership of this record value and will
+ * release it if it is no longer needed.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_update_or_insert_artifact(
+    attestationservice_instance* inst,
+    artifact_record_value* artifact);
+
+/**
+ * \brief Promote a transaction to attested.
+ *
+ * \param inst              The attestation service instance.
+ * \param child_context     The child context to use for this operation.
+ * \param txn_node          The transaction node to promote.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_dataservice_transaction_promote(
+    attestationservice_instance* inst, uint32_t child_context,
+    const data_transaction_node_t* txn_node);
+
+/**
+ * \brief Add a transaction to the red-black tree.
+ *
+ * If this is a create transaction, add the artifact to the rbtree. Otherwise,
+ * update the artifact record in the artifact rbtree.
+ *
+ * \param inst              The attestation service instance.
+ * \param child_context     The dataservice child context.
+ * \param txn_node          The transaction node to add.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_transaction_tree_insert(
+    attestationservice_instance* inst, uint32_t child_context,
+    const data_transaction_node_t* txn_node);
+
+/**
+ * \brief Create a transaction record to insert into the transaction tree.
+ *
+ * \param txn               Pointer to receive the pointer to the created
+ *                          transaction record instance.
+ * \param inst              The attestation service instance.
+ * \param txn_node          The transaction node to create this record from.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_transaction_record_value_create(
+    transaction_record_value** txn, attestationservice_instance* inst,
+    const data_transaction_node_t* txn_node);
+
+/**
+ * \brief Create an artifact record to insert into the artifact tree.
+ *
+ * \param artifact          Pointer to receive the pointer to the created
+ *                          artifact record instance.
+ * \param inst              The attestation service instance.
+ * \param txn_node          The transaction node to create this record from.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_artifact_record_value_create(
+    artifact_record_value** artifact, attestationservice_instance* inst,
+    const data_transaction_node_t* txn_node);
+
+/**
+ * \brief Create an artifact record to insert into the artifact tree, from an
+ * artifact record.
+ *
+ * \param artifact          Pointer to receive the pointer to the created
+ *                          artifact record instance.
+ * \param inst              The attestation service instance.
+ * \param artifact_node     The artifact record to create this record from.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_artifact_record_value_create_from_artifact(
+    artifact_record_value** artifact, attestationservice_instance* inst,
+    const data_artifact_record_t* artifact_node);
+
+/**
+ * \brief Release an artifact_record_value resource.
+ *
+ * \param r         The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status attestationservice_artifact_record_value_resource_release(
+    RCPR_SYM(resource)* r);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

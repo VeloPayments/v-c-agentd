@@ -105,7 +105,7 @@ static status attestationservice_do_attestation(
     data_transaction_node_t txn_node;
     void* txn_data;
     size_t txn_data_size;
-    uint32_t status, promote_status, promote_offset;
+    uint32_t status;
     uint32_t drop_status, drop_offset;
 
     /* Query the pending transaction table for new entries. */
@@ -169,17 +169,10 @@ static status attestationservice_do_attestation(
             drop_txn);
 
         /* if the transaction passes all attestation tests, promote it. */
-        /* TODO - add promoted transaction to rbtrees. */
         TRY_OR_FAIL(
-            dataservice_api_sendreq_transaction_promote(
-                inst->data_sock, child_context, txn_node.key),
+            attestationservice_dataservice_transaction_promote(
+                inst, child_context, &txn_node),
             exit_fatal);
-        TRY_OR_FAIL(
-            dataservice_api_recvresp_transaction_promote(
-                inst->data_sock, inst->alloc, &promote_offset,
-                &promote_status),
-            exit_fatal);
-        TRY_OR_FAIL(promote_status, exit_fatal);
 
         /* move on to the next transaction. */
         goto txn_cleanup;
