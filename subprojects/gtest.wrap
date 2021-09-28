@@ -1,4 +1,4 @@
 [wrap-git]
 directory = googletest
 revision = ac2bbd7c3dda4801d596707f496ecb02cadb8666
-url = https://github.com/google/googletest
+url = https://github.com/VeloPayments/googletest
