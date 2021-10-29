@@ -57,8 +57,10 @@ void auth_service_isolation_test::SetUp()
     conf.hdr.dispose = &config_dispose;
 
     /* set the path for running agentd. */
-    if (NULL != getcwd(wd, sizeof(wd)))
+    const char* agentd_path = getenv("AGENTD_PATH");
+    if (NULL != agentd_path)
     {
+        strcpy(wd, agentd_path);
         oldpath = getenv("PATH");
         if (NULL != oldpath)
         {
