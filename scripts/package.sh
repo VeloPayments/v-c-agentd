@@ -15,7 +15,7 @@ if [ ! -f $2 ]; then
 fi
 
 #Sanity check: does agentd exist?
-if [ ! -x agentd ]; then
+if [ ! -x $3 ]; then
     echo "agentd NOT found!"
     exit 1
 fi
@@ -31,10 +31,10 @@ rm -rf $PACKAGE_DIR
 mkdir -p $PACKAGE_DIR/bin $PACKAGE_DIR/lib $PACKAGE_DIR/etc $PACKAGE_DIR/data
 
 #install agentd to package dir
-install agentd $PACKAGE_DIR/bin
+install $3 $PACKAGE_DIR/bin
 
 #add any dynamic libs required
-ldd agentd | egrep "[.]so" | grep -v ld.so | grep -v vdso.so \
+ldd $3 | egrep "[.]so" | grep -v ld.so | grep -v vdso.so \
     | grep -v ld-linux-x86-64.so.2 \
     | sed 's/(.*)//; s/\(.*\)=>/\1/' \
     | awk '{ print $NF }' \

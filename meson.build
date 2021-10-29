@@ -22,6 +22,7 @@ endif
 add_project_arguments('-Wall', '-Werror', '-Wextra', language : 'c')
 add_project_arguments('-Wall', '-Werror', '-Wextra', language : 'cpp')
 
+cmake = import('cmake')
 flex = find_program('flex', required : true)
 bison = find_program('bison', required : true)
 
@@ -66,6 +67,16 @@ gtest = dependency(
 
 threads = dependency('threads')
 
+event_sub = cmake.subproject(
+    'libevent',
+    cmake_options: [
+        '-DEVENT__DISABLE_OPENSSL=ON', '-DEVENT__DISABLE_MBEDTLS=ON',
+        '-DEVENT__LIBRARY_TYPE=STATIC'])
+event = event_sub.dependency('event')
+
+event_lib = event_sub.target('event_static')
+event_include = event_sub.include_directories('event_static')
+
 agentd_include = include_directories('include')
 config_include = include_directories('.')
 
@@ -83,15 +94,19 @@ agentd_exe = executable(
     include_directories : [
         agentd_include,
         config_include,
-        vcblockchain_include_directories],
-    dependencies : [threads, vcblockchain]
+        vcblockchain_include_directories,
+        event_include],
+    dependencies : [threads, vcblockchain],
+    link_with : [event_lib]
 )
 
 agentd_test = executable(
     'agentd-test',
     src_not_main, test_src, lfiles, pfiles,
-    include_directories : [agentd_include, vcblockchain_include_directories],
-    dependencies : [threads, vcblockchain, gtest]
+    include_directories : [
+        agentd_include, vcblockchain_include_directories, event_include],
+    dependencies : [threads, vcblockchain, gtest],
+    link_with : [event_lib]
 )
 
 test_env = environment()
@@ -134,7 +149,7 @@ package = custom_target(
     'package',
     input : [agentd_exe, 'share/default-agentd.conf'],
     output : ('agentd-' + VERSION + '.tar.xz'),
-    command: [package_sh, meson.project_version(), default_agentd_conf],
+    command: [package_sh, meson.project_version(), default_agentd_conf, agentd_exe],
     build_by_default : true
 )
 
@@ -144,6 +159,10 @@ configure_file(
     input : 'config.h.in',
     output : 'config.h',
     configuration : conf_data
+)
+
+agentd_dep = declare_dependency(
+    include_directories : agentd_include
 )
 
 #Model checking
