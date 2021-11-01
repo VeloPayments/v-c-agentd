@@ -63,7 +63,7 @@ mkdir -p $PACKAGE_DIR/var/pid
 install -m 400 $CONF_FILE $PACKAGE_DIR/etc/agentd.conf
 
 #build the package
-tar -cf - $PACKAGE_DIR | xz -c > $PACKAGE_NAME
+tar --owner=veloagent --group=veloagent -cf - $PACKAGE_DIR | xz -c > $PACKAGE_NAME
 
 #clean up
 rm -rf $PACKAGE_DIR
