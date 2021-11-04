@@ -29,8 +29,8 @@ int unauthorized_protocol_service_write_handshake_request_response(
     /* | DATA                                                | SIZE         | */
     /* | --------------------------------------------------- | ------------ | */
     /* | UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE           |   4 bytes    | */
-    /* | offset                                              |   4 bytes    | */
     /* | status                                              |   4 bytes    | */
+    /* | offset                                              |   4 bytes    | */
     /* | record:                                             | 152 bytes    | */
     /* |    protocol_version                                 |   4 bytes    | */
     /* |    crypto_suite                                     |   4 bytes    | */
@@ -103,10 +103,10 @@ int unauthorized_protocol_service_write_handshake_request_response(
     /* write the payload values to this buffer. */
     memcpy(pbuf, &request_id, sizeof(request_id));
     pbuf += sizeof(request_id);
-    memcpy(pbuf, &offset, sizeof(offset));
-    pbuf += sizeof(offset);
     memcpy(pbuf, &status, sizeof(status));
     pbuf += sizeof(status);
+    memcpy(pbuf, &offset, sizeof(offset));
+    pbuf += sizeof(offset);
     memcpy(pbuf, &protocol_version, sizeof(protocol_version));
     pbuf += sizeof(protocol_version);
     memcpy(pbuf, &crypto_suite, sizeof(crypto_suite));
