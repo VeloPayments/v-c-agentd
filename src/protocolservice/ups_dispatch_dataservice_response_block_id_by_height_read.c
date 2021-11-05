@@ -47,8 +47,8 @@ void ups_dispatch_dataservice_response_block_id_by_height_read(
 
     /* build the payload. */
     uint32_t net_method = htonl(conn->request_id);
-    uint32_t net_status = dresp.hdr.status;
-    uint32_t net_offset = conn->current_request_offset;
+    uint32_t net_status = htonl(dresp.hdr.status);
+    uint32_t net_offset = htonl(conn->current_request_offset);
     uint8_t payload[3 * sizeof(uint32_t) + 16];
     memcpy(payload, &net_method, 4);
     memcpy(payload + 4, &net_status, 4);
