@@ -155,6 +155,7 @@ package = custom_target(
 
 conf_data = configuration_data()
 conf_data.set('VERSION', VERSION)
+conf_data.set('AGENTD_NEW_PROTOCOL', get_option('new_protocol'))
 configure_file(
     input : 'config.h.in',
     output : 'config.h',

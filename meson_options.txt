@@ -1,2 +1,3 @@
 option('force_velo_toolchain', type : 'boolean', value : true, yield : true)
 option('enable_attestation', type : 'boolean', value : false)
+option('new_protocol', type: 'boolean', value : false, yield : true)
