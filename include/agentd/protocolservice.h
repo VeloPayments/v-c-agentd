@@ -69,7 +69,7 @@ enum protocolservice_api_method_enum
  *          - AGENTD_ERROR_PROTOCOLSERVICE_IPC_EVENT_LOOP_RUN_FAILURE if running
  *            the protocol service event loop failed.
  */
-int unauthorized_protocol_service_event_loop(
+int old_unauthorized_protocol_service_event_loop(
     int randomsock, int protosock, int controlsock, int datasock, int logsock);
 
 /**
@@ -116,7 +116,7 @@ int unauthorized_protocol_service_event_loop(
  *      - AGENTD_ERROR_PROTOCOLSERVICE_PRIVSEP_EXEC_SURVIVAL_WEIRDNESS if the
  *        process survived execution (weird!).      
  */
-int unauthorized_protocol_proc(
+int old_unauthorized_protocol_proc(
     const bootstrap_config_t* bconf, const agent_config_t* conf, int randomsock,
     int logsock, int acceptsock, int controlsock, int datasock, pid_t* protopid,
     bool runsecure);

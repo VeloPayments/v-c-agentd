@@ -37,7 +37,7 @@
  *          - AGENTD_ERROR_PROTOCOLSERVICE_IPC_EVENT_LOOP_RUN_FAILURE if running
  *            the protocol service event loop failed.
  */
-int unauthorized_protocol_service_event_loop(
+int old_unauthorized_protocol_service_event_loop(
     int randomsock, int protosock, int controlsock, int datasock,
     int UNUSED(logsock))
 {
