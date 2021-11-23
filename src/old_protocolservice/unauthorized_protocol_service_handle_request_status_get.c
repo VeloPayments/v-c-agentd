@@ -6,9 +6,12 @@
  * \copyright 2020 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <config.h>
 #include <agentd/dataservice/api.h>
 #include <agentd/status_codes.h>
 #include <vpr/parameters.h>
+
+#if !defined(AGENTD_NEW_PROTOCOL)
 
 #include "unauthorized_protocol_service_private.h"
 
@@ -54,3 +57,5 @@ void unauthorized_protocol_service_handle_request_status_get(
         &conn->ctx, &unauthorized_protocol_service_connection_write,
         &conn->svc->loop);
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */

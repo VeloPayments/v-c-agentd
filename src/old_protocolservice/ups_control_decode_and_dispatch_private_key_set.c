@@ -6,8 +6,11 @@
  * \copyright 2020 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <config.h>
 #include <agentd/protocolservice/control_api.h>
 #include <agentd/status_codes.h>
+
+#if !defined(AGENTD_NEW_PROTOCOL)
 
 #include "unauthorized_protocol_service_private.h"
 
@@ -146,3 +149,5 @@ int ups_control_decode_and_dispatch_private_key_set(
 
     return AGENTD_STATUS_SUCCESS;
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */

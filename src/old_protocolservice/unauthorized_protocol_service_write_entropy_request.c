@@ -6,8 +6,11 @@
  * \copyright 2020 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <config.h>
 #include <agentd/randomservice.h>
 #include <agentd/status_codes.h>
+
+#if !defined(AGENTD_NEW_PROTOCOL)
 
 #include "unauthorized_protocol_service_private.h"
 
@@ -49,3 +52,5 @@ int unauthorized_protocol_service_write_entropy_request(
     /* success. */
     return AGENTD_STATUS_SUCCESS;
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */
