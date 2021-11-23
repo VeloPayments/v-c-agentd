@@ -3,7 +3,7 @@
  *
  * \brief Dispatch a private command specified in the command argument.
  *
- * \copyright 2018 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/command.h>
@@ -66,8 +66,8 @@ void commandline_dispatch_private_command(
         bootstrap_config_set_private_command(
             bconf, private_command_supervisor);
     }
-    /* is this the unauthorized protocol service private command? */
-    else if (!strcmp(command, "unauthorized_protocol_service"))
+    /* is this the protocol service private command? */
+    else if (!strcmp(command, "protocol_service"))
     {
         bootstrap_config_set_private_command(
             bconf, private_command_protocolservice);

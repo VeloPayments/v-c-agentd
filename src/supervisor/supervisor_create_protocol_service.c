@@ -133,7 +133,7 @@ static int supervisor_start_protocol_service(process_t* proc)
 
     /* attempt to create the protocol service. */
     TRY_OR_FAIL(
-        old_unauthorized_protocol_proc(
+        protocolservice_proc(
             protocol_proc->bconf, protocol_proc->conf,
             *protocol_proc->random_socket, *protocol_proc->log_socket,
             *protocol_proc->accept_socket, protocol_proc->control_socket,

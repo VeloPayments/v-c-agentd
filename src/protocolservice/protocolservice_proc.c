@@ -1,9 +1,9 @@
 /**
- * \file protocolservice/unauthorized_protocol_service_proc.c
+ * \file protocolservice/protocolservice_proc.c
  *
  * \brief Spawn the unauthorized protocol service process.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <config.h>
@@ -21,11 +21,9 @@
 #include <unistd.h>
 #include <vpr/parameters.h>
 
-#if !defined(AGENTD_NEW_PROTOCOL)
-
 /**
- * \brief Spawn an unauthorized protocol service process using the provided
- * config structure and logger socket.
+ * \brief Spawn a protocol service process using the provided config structure
+ * and logger socket.
  *
  * On success, this method sets the file descriptor pointer to the file
  * descriptor for the protocl service socket.  This can be used by the caller to
@@ -67,7 +65,7 @@
  *      - AGENTD_ERROR_PROTOCOLSERVICE_PRIVSEP_EXEC_SURVIVAL_WEIRDNESS if the
  *        process survived execution (weird!).      
  */
-int old_unauthorized_protocol_proc(
+int protocolservice_proc(
     const bootstrap_config_t* bconf, const agent_config_t* conf, int randomsock,
     int logsock, int acceptsock, int controlsock, int datasock, pid_t* protopid,
     bool runsecure)
@@ -185,14 +183,14 @@ int old_unauthorized_protocol_proc(
         if (runsecure)
         {
             retval =
-                privsep_exec_private(bconf, "unauthorized_protocol_service");
+                privsep_exec_private(bconf, "protocol_service");
         }
         else
         {
             /* if running in non-secure mode, then we expect the caller to have
              * already set the path and library path accordingly. */
             retval = execlp(
-                "agentd", "agentd", "-P", "unauthorized_protocol_service",
+                "agentd", "agentd", "-P", "protocol_service",
                 NULL);
         }
 
@@ -219,5 +217,3 @@ int old_unauthorized_protocol_proc(
 done:
     return retval;
 }
-
-#endif /* !defined(AGENTD_NEW_PROTOCOL) */
