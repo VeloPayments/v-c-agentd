@@ -6,8 +6,11 @@
  * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <config.h>
 #include <agentd/dataservice/api.h>
 #include <agentd/status_codes.h>
+
+#if !defined(AGENTD_NEW_PROTOCOL)
 
 #include "unauthorized_protocol_service_private.h"
 
@@ -92,3 +95,5 @@ cleanup_ids:
     memset(txn_id, 0, sizeof(txn_id));
     memset(artifact_id, 0, sizeof(artifact_id));
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */

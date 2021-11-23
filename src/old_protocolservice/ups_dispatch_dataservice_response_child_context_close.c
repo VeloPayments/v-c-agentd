@@ -6,7 +6,10 @@
  * \copyright 2020 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <config.h>
 #include "unauthorized_protocol_service_private.h"
+
+#if !defined(AGENTD_NEW_PROTOCOL)
 
 /**
  * Handle a child_context_close response.
@@ -23,3 +26,5 @@ void ups_dispatch_dataservice_response_child_context_close(
     (void)resp;
     (void)resp_size;
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */

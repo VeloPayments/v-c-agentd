@@ -6,6 +6,7 @@
  * \copyright 2019 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <config.h>
 #include <agentd/ipc.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
@@ -14,6 +15,8 @@
 #include <string.h>
 #include <vpr/allocator/malloc_allocator.h>
 #include <vpr/parameters.h>
+
+#if !defined(AGENTD_NEW_PROTOCOL)
 
 #include "unauthorized_protocol_service_private.h"
 
@@ -234,3 +237,5 @@ static void unauthorized_protocol_service_instance_dispose(void* disposable)
     /* clear this instance. */
     memset(inst, 0, sizeof(unauthorized_protocol_service_instance_t));
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */

@@ -6,6 +6,7 @@
  * \copyright 2019 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <config.h>
 #include <agentd/bootstrap_config.h>
 #include <agentd/config.h>
 #include <agentd/fds.h>
@@ -19,6 +20,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vpr/parameters.h>
+
+#if !defined(AGENTD_NEW_PROTOCOL)
 
 /**
  * \brief Spawn an unauthorized protocol service process using the provided
@@ -216,3 +219,5 @@ int old_unauthorized_protocol_proc(
 done:
     return retval;
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */

@@ -6,9 +6,12 @@
  * \copyright 2020 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <config.h>
 #include <agentd/ipc.h>
 #include <agentd/status_codes.h>
 #include <vpr/parameters.h>
+
+#if !defined(AGENTD_NEW_PROTOCOL)
 
 #include "unauthorized_protocol_service_private.h"
 
@@ -24,3 +27,5 @@ void unauthorized_protocol_service_exit_event_loop(
     instance->force_exit = true;
     ipc_exit_loop(&instance->loop);
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */
