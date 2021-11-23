@@ -18,6 +18,8 @@
 
 using namespace std;
 
+#if !defined(AGENTD_NEW_PROTOCOL)
+
 /**
  * Test that we can spawn the unauthorized protocol service.
  */
@@ -2606,3 +2608,5 @@ TEST_F(unauthorized_protocol_service_isolation_test, ctrl_set_private_key)
     dispose((disposable_t*)&entity_signing_pubkey);
     dispose((disposable_t*)&entity_signing_privkey);
 }
+
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */

@@ -193,7 +193,7 @@ void unauthorized_protocol_service_isolation_test::SetUp()
 
     /* spawn the unauthorized protocol service process. */
     proto_proc_status =
-        old_unauthorized_protocol_proc(
+        protocolservice_proc(
             &bconf, &conf, rprotosock, logsock, acceptsock_srv, controlsock_srv,
             datasock_srv, &protopid, false);
 

@@ -3,7 +3,7 @@
  *
  * \brief Service level API for the protocol service.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_PROTOCOLSERVICE_HEADER_GUARD
@@ -12,6 +12,7 @@
 #include <agentd/bootstrap_config.h>
 #include <agentd/config.h>
 #include <agentd/protocolservice/api.h>
+#include <config.h>
 #include <vpr/disposable.h>
 
 /* make this header C++ friendly. */
@@ -43,6 +44,7 @@ enum protocolservice_api_method_enum
     PROTOCOLSERVICE_API_METHOD_UPPER_BOUND
 };
 
+#if !defined(AGENTD_NEW_PROTOCOL)
 /**
  * \brief Event loop for the unauthorized protocol service.  This is the entry
  * point for the protocol service.  It handles the details of reacting to events
@@ -71,6 +73,37 @@ enum protocolservice_api_method_enum
  */
 int old_unauthorized_protocol_service_event_loop(
     int randomsock, int protosock, int controlsock, int datasock, int logsock);
+#endif /* !defined(AGENTD_NEW_PROTOCOL) */
+
+#if defined(AGENTD_NEW_PROTOCOL)
+/**
+ * \brief Main entry point for the protocol service.  It handles the details of
+ * reacting to events sent over the protocol service socket.
+ *
+ * \param randomsock    The socket to the RNG service.
+ * \param protosock     The protocol service socket.  The protocol service
+ *                      listens for connections on this socket.
+ * \param controlsock   The control socket. The supervisor sends commands to the
+ *                      protocol service over this socket.
+ * \param datasock      The data service socket.  The protocol service
+ *                      communicates with the dataservice using this socket.
+ * \param logsock       The logging service socket.  The protocol service logs
+ *                      on this socket.
+ *
+ * \returns a status code on service exit indicating a normal or abnormal exit.
+ *          - AGENTD_STATUS_SUCCESS on normal exit.
+ *          - AGENTD_ERROR_PROTOCOLSERVICE_IPC_MAKE_NOBLOCK_FAILURE if
+ *          attempting to make the process socket non-blocking failed.
+ *          - AGENTD_ERROR_PROTOCOLSERVICE_IPC_EVENT_LOOP_INIT_FAILURE if
+ *            initializing the event loop failed.
+ *          - AGENTD_ERROR_PROTOCOLSERVICE_IPC_EVENT_LOOP_ADD_FAILURE if adding
+ *            the protocol service socket to the event loop failed.
+ *          - AGENTD_ERROR_PROTOCOLSERVICE_IPC_EVENT_LOOP_RUN_FAILURE if running
+ *            the protocol service event loop failed.
+ */
+int protocolservice_run(
+    int randomsock, int protosock, int controlsock, int datasock, int logsock);
+#endif /* defined(AGENTD_NEW_PROTOCOL) */
 
 /**
  * \brief Spawn an unauthorized protocol service process using the provided
@@ -116,7 +149,7 @@ int old_unauthorized_protocol_service_event_loop(
  *      - AGENTD_ERROR_PROTOCOLSERVICE_PRIVSEP_EXEC_SURVIVAL_WEIRDNESS if the
  *        process survived execution (weird!).      
  */
-int old_unauthorized_protocol_proc(
+int protocolservice_proc(
     const bootstrap_config_t* bconf, const agent_config_t* conf, int randomsock,
     int logsock, int acceptsock, int controlsock, int datasock, pid_t* protopid,
     bool runsecure);
