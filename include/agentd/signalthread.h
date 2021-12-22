@@ -8,9 +8,11 @@
 
 #pragma once
 
+#include <rcpr/fiber.h>
 #include <rcpr/psock.h>
 #include <rcpr/status.h>
 #include <rcpr/thread.h>
+#include <unistd.h>
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
@@ -43,9 +45,11 @@ enum signalstate_enum
  *                      instance on success.
  * \param signal_sock   Pointer to the psock pointer, populated by the signal
  *                      psock on success.
- * \param sched         The fiber scheduler instance.
+ * \param alloc         The allocator to use for this operation.
  * \param calling_fiber The caller's fiber instance, which is tied to the signal
  *                      socket on success.
+ * \param sleep_usecs   The number of microseconds to sleep between quiesce and
+ *                      terminate.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -53,7 +57,8 @@ enum signalstate_enum
  */
 status signalthread_create(
     RCPR_SYM(thread)** th, RCPR_SYM(psock)** signal_sock,
-    RCPR_SYM(fiber_scheduler)* sched, RCPR_SYM(fiber)* calling_fiber);
+    RCPR_SYM(allocator)* alloc, RCPR_SYM(fiber)* calling_fiber,
+    useconds_t sleep_usecs);
 
 /**
  * \brief Perform a blocking read on the signal thread socket.
