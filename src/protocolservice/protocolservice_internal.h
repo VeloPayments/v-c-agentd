@@ -14,6 +14,9 @@
 #include <rcpr/psock.h>
 #include <rcpr/message.h>
 #include <rcpr/resource/protected.h>
+#include <rcpr/uuid.h>
+#include <stdbool.h>
+#include <vccrypt/suite.h>
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
@@ -26,6 +29,9 @@ extern "C" {
 /** \brief The manager fiber stack size. */
 #define MANAGER_FIBER_STACK_SIZE 16384
 
+/** \brief The protocol fiber stack size. */
+#define PROTOCOL_FIBER_STACK_SIZE 16384
+
 /**
  * \brief Context structure for the protocol service.
  */
@@ -36,10 +42,13 @@ struct protocolservice_context
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
+    allocator_options_t vpr_alloc;
     RCPR_SYM(fiber_scheduler)* sched;
     RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
     RCPR_SYM(mailbox_address) data_endpoint_addr;
     RCPR_SYM(mailbox_address) random_endpoint_addr;
+    vccrypt_suite_options_t suite;
+    size_t protocol_fiber_count;
     bool quiesce;
 };
  
@@ -56,6 +65,24 @@ struct protocolservice_accept_endpoint_context
     protocolservice_context* ctx;
     RCPR_SYM(fiber)* fib;
     RCPR_SYM(psock)* acceptsock;
+};
+
+/**
+ * \brief Context structure for a protocol fiber.
+ */
+typedef struct protocolservice_protocol_fiber_context
+protocolservice_protocol_fiber_context;
+
+struct protocolservice_protocol_fiber_context
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    protocolservice_context* ctx;
+    RCPR_SYM(fiber)* fib;
+    RCPR_SYM(psock)* protosock;
+    vccrypt_buffer_t client_key_nonce;
+    vccrypt_buffer_t client_challenge_nonce;
+    RCPR_SYM(rcpr_uuid) entity_uuid;
 };
 
 /**
@@ -227,6 +254,62 @@ status protocolservice_fiber_unexpected_handler(
     const RCPR_SYM(rcpr_uuid)* resume_disc_id, int resume_event,
     void* resume_param, const RCPR_SYM(rcpr_uuid)* expected_resume_disc_id,
     int expected_resume_event);
+
+/**
+ * \brief Create and add a protocol service protocol fiber.
+ *
+ * \param alloc         The allocator to use to create this fiber.
+ * \param ctx           The protocol service context.
+ * \param sock          The client socket for this fiber.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_fiber_add(
+    RCPR_SYM(allocator)* alloc, protocolservice_context* ctx, int sock);
+
+/**
+ * \brief Entry point a the protocol service protocol fiber.
+ *
+ * This fiber manages the protocol for a single client connection.
+ *
+ * \param vctx          The type erased protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_fiber_entry(void* vctx);
+
+/**
+ * \brief Release a protocol service protocol fiber context.
+ *
+ * \param r             The protocol service  protocol fiber context to be
+ *                      released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r);
+
+/**
+ * \brief Write an error response to the socket.
+ *
+ * \param ctx           The protocol fiber context for this socket.
+ * \param request_id    The id of the request that caused the error.
+ * \param status        The status code of the error.
+ * \param offset        The request offset that caused the error.
+ * \param encrypted     Set to true if this packet should be encrypted.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_write_error_response(
+    protocolservice_protocol_fiber_context* ctx, int request_id, int status,
+    uint32_t offset, bool encrypted);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
