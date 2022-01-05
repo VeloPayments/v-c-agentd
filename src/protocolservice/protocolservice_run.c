@@ -66,7 +66,6 @@ int protocolservice_run(
     mailbox_address data_endpoint_addr;
     mailbox_address random_endpoint_addr;
     protocolservice_context* ctx;
-    bool should_exit = false;
 
     /* parameter sanity checking. */
     MODEL_ASSERT(randomsock >= 0);
@@ -144,6 +143,9 @@ int protocolservice_run(
         goto cleanup_context;
     }
 
+    /* set the main fiber in the context. */
+    ctx->main_fiber = main_fiber;
+
     /* create the signal thread. */
     retval =
         signalthread_create(
@@ -181,7 +183,7 @@ int protocolservice_run(
 
             /* terminate all fibers. */
             case SIGNAL_STATE_TERMINATE:
-                should_exit = true;
+                ctx->terminate = true;
                 retval =
                     disciplined_fiber_scheduler_send_terminate_request_to_all(
                         sched);
@@ -191,7 +193,7 @@ int protocolservice_run(
                 }
                 break;
         }
-    } while (!should_exit);
+    } while (!ctx->terminate);
 
     /* success. */
     retval = STATUS_SUCCESS;
