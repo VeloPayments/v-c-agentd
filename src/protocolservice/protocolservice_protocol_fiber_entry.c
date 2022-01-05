@@ -93,6 +93,9 @@ protocolservice_protocol_handle_handshake(
         goto cleanup_context;
     }
 
+    /* set up the read buffer pointer. */
+    const uint8_t* breq = (const uint8_t*)req;
+
     /* verify that the size matches what we expect. */
     const size_t request_id_size = sizeof(request_id);
     const size_t request_offset_size = sizeof(request_offset);
@@ -108,6 +111,19 @@ protocolservice_protocol_handle_handshake(
         + ctx->client_key_nonce.size
         + ctx->client_challenge_nonce.size;
     if (size != expected_size)
+    {
+        retval =
+            protocolservice_write_error_response(
+                ctx, 0, AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST, 0,
+                false);
+        goto cleanup_data;
+    }
+
+    /* read the request ID and verify it. */
+    memcpy(&request_id, breq, request_id_size);
+    breq += request_id_size;
+    request_id = ntohl(request_id);
+    if (UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE != request_id)
     {
         retval =
             protocolservice_write_error_response(
