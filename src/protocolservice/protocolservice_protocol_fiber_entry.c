@@ -191,6 +191,20 @@ protocolservice_protocol_handle_handshake(
         goto cleanup_data;
     }
 
+    /* read the entity uuid. */
+    memcpy(&ctx->entity_uuid, breq, entity_uuid_size);
+    breq += entity_uuid_size;
+
+    /* read the client key nonce. */
+    memcpy(ctx->client_key_nonce.data, breq, ctx->client_key_nonce.size);
+    breq += ctx->client_key_nonce.size;
+
+    /* read the client challenge nonce. */
+    memcpy(
+        ctx->client_challenge_nonce.data, breq,
+        ctx->client_challenge_nonce.size);
+    breq += ctx->client_challenge_nonce.size;
+
     /* TODO - complete handshake. */
     retval = -1;
     goto cleanup_data;
