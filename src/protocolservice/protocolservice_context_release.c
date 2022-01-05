@@ -34,6 +34,18 @@ status protocolservice_context_release(RCPR_SYM(resource)* r)
     /* cache the allocator. */
     rcpr_allocator* alloc = ctx->alloc;
 
+    /* dispose the crypto suite if initialized. */
+    if (NULL != ctx->suite.vccrypt_suite_hash_alg_init)
+    {
+        dispose((disposable_t*)&ctx->suite);
+    }
+
+    /* dispose the VPR allocator if initialized. */
+    if (NULL != ctx->vpr_alloc.allocator_allocate)
+    {
+        dispose((disposable_t*)&ctx->vpr_alloc);
+    }
+
     /* release the context memory. */
     context_release_retval = rcpr_allocator_reclaim(alloc, ctx);
 

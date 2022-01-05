@@ -30,7 +30,7 @@ RCPR_IMPORT_resource;
  */
 status protocolservice_accept_endpoint_fiber_entry(void* vctx)
 {
-    status retval, release_retval;
+    status retval = STATUS_SUCCESS, release_retval;
     protocolservice_accept_endpoint_context* ctx =
         (protocolservice_accept_endpoint_context*)vctx;
     int desc;
@@ -45,11 +45,23 @@ status protocolservice_accept_endpoint_fiber_entry(void* vctx)
         retval = psock_read_raw_descriptor(ctx->acceptsock, &desc);
         if (STATUS_SUCCESS != retval)
         {
+            /* TODO - if this fails, we should shut down this process so the
+             * supervisor restarts everyone. */
             goto cleanup_context;
         }
 
-        /* TODO - do something with it. For now, just close it. */
-        close(desc);
+        /* add a protocol fiber to the scheduler to handle this descriptor. */
+        retval = protocolservice_protocol_fiber_add(ctx->alloc, ctx->ctx, desc);
+        if (STATUS_SUCCESS != retval)
+        {
+            /* if this fails, close the descriptor. Don't exit the loop. */
+            close(desc);
+        }
+
+        /* if the above call succeeds, then the descriptor is owned by the
+         * protocol fiber. */
+        desc = -1;
+        retval = STATUS_SUCCESS;
     }
 
 cleanup_context:

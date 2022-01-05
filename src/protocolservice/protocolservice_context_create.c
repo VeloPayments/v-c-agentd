@@ -9,6 +9,7 @@
 #include <cbmc/model_assert.h>
 #include <rcpr/uuid.h>
 #include <string.h>
+#include <vpr/allocator/malloc_allocator.h>
 
 #include "protocolservice_internal.h"
 
@@ -67,6 +68,18 @@ status protocolservice_context_create(
 
     /* look up the messaging discipline. */
     retval = message_discipline_get_or_create(&tmp->msgdisc, alloc, sched);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* initialize the VPR allocator. */
+    malloc_allocator_options_init(&tmp->vpr_alloc);
+
+    /* initialize the suite. */
+    retval =
+        vccrypt_suite_options_init(
+            &tmp->suite, &tmp->vpr_alloc, VCCRYPT_SUITE_VELO_V1);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_context;
