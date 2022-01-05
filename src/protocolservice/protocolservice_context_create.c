@@ -17,6 +17,7 @@
 
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_message;
+RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
 
 /**
@@ -68,6 +69,17 @@ status protocolservice_context_create(
 
     /* look up the messaging discipline. */
     retval = message_discipline_get_or_create(&tmp->msgdisc, alloc, sched);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* create the authorized entity rbtree. */
+    retval =
+        rbtree_create(
+            &tmp->authorized_entity_dict, alloc,
+            &protocolservice_authorized_entity_uuid_compare,
+            &protocolservice_authorized_entity_key, NULL);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_context;

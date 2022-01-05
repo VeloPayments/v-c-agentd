@@ -13,6 +13,8 @@
 #if defined(AGENTD_NEW_PROTOCOL)
 
 RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_rbtree;
+RCPR_IMPORT_resource;
 
 /**
  * \brief Release the protocol service context.
@@ -25,6 +27,7 @@ RCPR_IMPORT_allocator_as(rcpr);
  */
 status protocolservice_context_release(RCPR_SYM(resource)* r)
 {
+    status authorized_entity_dict_release_retval = STATUS_SUCCESS;
     status context_release_retval = STATUS_SUCCESS;
     protocolservice_context* ctx = (protocolservice_context*)r;
 
@@ -46,10 +49,26 @@ status protocolservice_context_release(RCPR_SYM(resource)* r)
         dispose((disposable_t*)&ctx->vpr_alloc);
     }
 
+    /* release the authorized entity dictionary if initialized. */
+    if (NULL != ctx->authorized_entity_dict)
+    {
+        authorized_entity_dict_release_retval =
+            resource_release(
+                rbtree_resource_handle(ctx->authorized_entity_dict));
+    }
+
     /* release the context memory. */
     context_release_retval = rcpr_allocator_reclaim(alloc, ctx);
 
-    return context_release_retval;
+    /* decode the appropriate return value. */
+    if (STATUS_SUCCESS != authorized_entity_dict_release_retval)
+    {
+        return authorized_entity_dict_release_retval;
+    }
+    else
+    {
+        return context_release_retval;
+    }
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */
