@@ -312,6 +312,18 @@ status protocolservice_write_error_response(
     protocolservice_protocol_fiber_context* ctx, int request_id, int status,
     uint32_t offset, bool encrypted);
 
+/**
+ * \brief Perform the handshake for the protocol.
+ *
+ * \param ctx       The protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_handle_handshake(
+    protocolservice_protocol_fiber_context* ctx);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
