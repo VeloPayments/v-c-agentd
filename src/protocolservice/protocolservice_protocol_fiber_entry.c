@@ -116,6 +116,10 @@ protocolservice_protocol_handle_handshake(
             protocolservice_write_error_response(
                 ctx, 0, AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST, 0,
                 false);
+        if (STATUS_SUCCESS == retval)
+        {
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST;
+        }
         goto cleanup_data;
     }
 
@@ -129,6 +133,27 @@ protocolservice_protocol_handle_handshake(
             protocolservice_write_error_response(
                 ctx, 0, AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST, 0,
                 false);
+        if (STATUS_SUCCESS == retval)
+        {
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST;
+        }
+        goto cleanup_data;
+    }
+
+    /* read the request offset. It should be 0x00000000. */
+    memcpy(&request_offset, breq, request_offset_size);
+    breq += request_offset_size;
+    request_offset = ntohl(request_offset);
+    if (0x00000000 != request_offset)
+    {
+        retval =
+            protocolservice_write_error_response(
+                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
+                AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST, 0, false);
+        if (STATUS_SUCCESS == retval)
+        {
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST;
+        }
         goto cleanup_data;
     }
 
