@@ -9,6 +9,7 @@
 #pragma once
 
 #include <config.h>
+#include <agentd/protocolservice/api.h>
 #include <rcpr/allocator.h>
 #include <rcpr/fiber.h>
 #include <rcpr/psock.h>
