@@ -104,6 +104,7 @@ struct protocolservice_control_fiber_context
     protocolservice_context* ctx;
     RCPR_SYM(fiber)* fib;
     RCPR_SYM(psock)* controlsock;
+    bool should_exit;
 };
 
 /**
@@ -391,6 +392,79 @@ status protocolservice_control_fiber_context_release(RCPR_SYM(resource)* r);
  *      - a non-zero error code on failure.
  */
 status protocolservice_force_exit(protocolservice_context* ctx);
+
+/**
+ * \brief Decode and dispatch a control packet from the supervisor.
+ *
+ * \param ctx           The protocol service control fiber context.
+ * \param req           Pointer to the control packet.
+ * \param size          The size of the control packet.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_control_decode_and_dispatch(
+    protocolservice_control_fiber_context* ctx, const void* req, size_t size);
+
+/**
+ * \brief Dispatch an auth entity add control request.
+ *
+ * \param ctx           The protocol service control fiber context.
+ * \param payload       Pointer to the payload for this request.
+ * \param size          Size of the request payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_control_dispatch_auth_entity_add(
+    protocolservice_control_fiber_context* ctx, const void* payload,
+    size_t size);
+
+/**
+ * \brief Dispatch a private key set request.
+ *
+ * \param ctx           The protocol service control fiber context.
+ * \param payload       Pointer to the payload for this request.
+ * \param size          Size of the request payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_control_dispatch_private_key_set(
+    protocolservice_control_fiber_context* ctx, const void* payload,
+    size_t size);
+
+/**
+ * \brief Dispatch a finalize request
+ *
+ * \param ctx           The protocol service control fiber context.
+ * \param payload       Pointer to the payload for this request.
+ * \param size          Size of the request payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_control_dispatch_finalize(
+    protocolservice_control_fiber_context* ctx, const void* payload,
+    size_t size);
+
+/**
+ * \brief Write a response to the control socket.
+ *
+ * \param ctx           The control fiber context.
+ * \param request_id    The id of the request.
+ * \param status        The status code.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_control_write_response(
+    protocolservice_control_fiber_context* ctx, int request_id, int status);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

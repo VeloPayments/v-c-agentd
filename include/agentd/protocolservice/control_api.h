@@ -24,6 +24,7 @@ typedef enum unauthorized_protocol_control_request_id
 {
     UNAUTH_PROTOCOL_CONTROL_REQ_ID_AUTH_ENTITY_ADD = 0x00000000,
     UNAUTH_PROTOCOL_CONTROL_REQ_ID_PRIVATE_KEY_SET = 0x00000001,
+    UNAUTH_PROTOCOL_CONTROL_REQ_ID_FINALIZE        = 0x00000002,
 } unauthorized_protocol_control_request_id_t;
 
 /**
