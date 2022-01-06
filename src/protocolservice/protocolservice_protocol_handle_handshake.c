@@ -38,6 +38,12 @@ protocolservice_protocol_handle_handshake(
     }
 
     /* TODO - fill out the rest of the handshake. */
+    /* write the entropy request to the random service. */
+    /* compute the shared secret and the C/R response. */
+    /* write the handshake request response. */
+    /* read the handshake ack request from the client. */
+    /* write the handshake ack response to the client. */
+
     goto done;
 
 done:
