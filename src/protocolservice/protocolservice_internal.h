@@ -51,9 +51,11 @@ struct protocolservice_context
     RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
     RCPR_SYM(mailbox_address) data_endpoint_addr;
     RCPR_SYM(mailbox_address) random_endpoint_addr;
+    RCPR_SYM(fiber)* main_fiber;
     vccrypt_suite_options_t suite;
     size_t protocol_fiber_count;
     bool quiesce;
+    bool terminate;
 };
  
 /**
@@ -378,6 +380,17 @@ status protocolservice_control_fiber_entry(void* vctx);
  *      - a non-zero error code on failure.
  */
 status protocolservice_control_fiber_context_release(RCPR_SYM(resource)* r);
+
+/**
+ * \brief Force an exit from the protocol service.
+ *
+ * \param ctx           The protocol service context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_force_exit(protocolservice_context* ctx);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

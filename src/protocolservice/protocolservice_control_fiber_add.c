@@ -41,7 +41,7 @@ status protocolservice_control_fiber_add(
     /* parameter sanity checks. */
     MODEL_ASSERT(rcpr_prop_allocator_valid(alloc));
     MODEL_ASSERT(prop_protocolservice_context_valid(ctx));
-    MODEL_ASSERT(sock >= 0);
+    MODEL_ASSERT(controlsock >= 0);
 
     /* allocate memory for the control fiber context. */
     retval = rcpr_allocator_allocate(alloc, (void**)&tmp, sizeof(*tmp));
