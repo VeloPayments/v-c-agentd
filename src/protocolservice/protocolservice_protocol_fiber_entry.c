@@ -157,6 +157,23 @@ protocolservice_protocol_handle_handshake(
         goto cleanup_data;
     }
 
+    /* read the protocol version. It should be 0x00000001. */
+    memcpy(&protocol_version, breq, protocol_version_size);
+    breq += protocol_version_size;
+    protocol_version = ntohl(protocol_version);
+    if (0x00000001 != protocol_version)
+    {
+        retval =
+            protocolservice_write_error_response(
+                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
+                AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST, 0, false);
+        if (STATUS_SUCCESS == retval)
+        {
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST;
+        }
+        goto cleanup_data;
+    }
+
     /* TODO - complete handshake. */
     retval = -1;
     goto cleanup_data;
