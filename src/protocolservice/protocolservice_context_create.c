@@ -97,6 +97,46 @@ status protocolservice_context_create(
         goto cleanup_context;
     }
 
+    /* create the encryption pubkey buffer. */
+    retval =
+        vccrypt_buffer_init(
+            &tmp->agentd_enc_pubkey, &tmp->vpr_alloc,
+            tmp->suite.key_cipher_opts.public_key_size);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* create the encryption privkey buffer. */
+    retval =
+        vccrypt_buffer_init(
+            &tmp->agentd_enc_privkey, &tmp->vpr_alloc,
+            tmp->suite.key_cipher_opts.private_key_size);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* create the signing pubkey buffer. */
+    retval =
+        vccrypt_buffer_init(
+            &tmp->agentd_sign_pubkey, &tmp->vpr_alloc,
+            tmp->suite.sign_opts.public_key_size);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* create the signing privkey buffer. */
+    retval =
+        vccrypt_buffer_init(
+            &tmp->agentd_sign_privkey, &tmp->vpr_alloc,
+            tmp->suite.sign_opts.private_key_size);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
     /* success. */
     *ctx = tmp;
     retval = STATUS_SUCCESS;

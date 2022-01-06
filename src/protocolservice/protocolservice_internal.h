@@ -70,6 +70,11 @@ struct protocolservice_context
     RCPR_SYM(fiber)* main_fiber;
     RCPR_SYM(rbtree)* authorized_entity_dict;
     vccrypt_suite_options_t suite;
+    RCPR_SYM(rcpr_uuid) agentd_uuid;
+    vccrypt_buffer_t agentd_enc_pubkey;
+    vccrypt_buffer_t agentd_enc_privkey;
+    vccrypt_buffer_t agentd_sign_pubkey;
+    vccrypt_buffer_t agentd_sign_privkey;
     size_t protocol_fiber_count;
     bool quiesce;
     bool terminate;
