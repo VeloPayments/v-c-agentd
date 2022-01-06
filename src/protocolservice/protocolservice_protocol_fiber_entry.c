@@ -174,6 +174,23 @@ protocolservice_protocol_handle_handshake(
         goto cleanup_data;
     }
 
+    /* read the crypto suite version.  It should be VCCRYPT_SUITE_VELO_V1. */
+    memcpy(&crypto_suite, breq, crypto_suite_size);
+    breq += crypto_suite_size;
+    crypto_suite = ntohl(crypto_suite);
+    if (VCCRYPT_SUITE_VELO_V1 != crypto_suite)
+    {
+        retval =
+            protocolservice_write_error_response(
+                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
+                AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST, 0, false);
+        if (STATUS_SUCCESS == retval)
+        {
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST;
+        }
+        goto cleanup_data;
+    }
+
     /* TODO - complete handshake. */
     retval = -1;
     goto cleanup_data;
