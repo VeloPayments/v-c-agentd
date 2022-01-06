@@ -33,6 +33,9 @@ extern "C" {
 /** \brief The protocol fiber stack size. */
 #define PROTOCOL_FIBER_STACK_SIZE 16384
 
+/** \brief The control fiber stack size. */
+#define CONTROL_FIBER_STACK_SIZE 16384
+
 /**
  * \brief Context structure for the protocol service.
  */
@@ -84,6 +87,21 @@ struct protocolservice_protocol_fiber_context
     vccrypt_buffer_t client_key_nonce;
     vccrypt_buffer_t client_challenge_nonce;
     RCPR_SYM(rcpr_uuid) entity_uuid;
+};
+
+/**
+ * \brief Context structure for the control fiber.
+ */
+typedef struct protocolservice_control_fiber_context
+protocolservice_control_fiber_context;
+
+struct protocolservice_control_fiber_context
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    protocolservice_context* ctx;
+    RCPR_SYM(fiber)* fib;
+    RCPR_SYM(psock)* controlsock;
 };
 
 /**
@@ -271,7 +289,7 @@ status protocolservice_protocol_fiber_add(
     RCPR_SYM(allocator)* alloc, protocolservice_context* ctx, int sock);
 
 /**
- * \brief Entry point a the protocol service protocol fiber.
+ * \brief Entry point for a protocol service protocol fiber.
  *
  * This fiber manages the protocol for a single client connection.
  *
@@ -335,6 +353,31 @@ status protocolservice_protocol_handle_handshake(
  */
 status protocolservice_protocol_read_handshake_req(
     protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Entry point for the protocol service control fiber.
+ *
+ * This fiber manages the control protocol for the protocol service.
+ *
+ * \param vctx          The type erased control fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_control_fiber_entry(void* vctx);
+
+/**
+ * \brief Release the protocol service control fiber context.
+ *
+ * \param r             The protocol service control fiber context to be
+ *                      released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_control_fiber_context_release(RCPR_SYM(resource)* r);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

@@ -20,7 +20,7 @@ RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
 /**
- * \brief Entry point a the protocol service protocol fiber.
+ * \brief Entry point for a protocol service protocol fiber.
  *
  * This fiber manages the protocol for a single client connection.
  *
