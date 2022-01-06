@@ -12,8 +12,9 @@
 #include <agentd/protocolservice/api.h>
 #include <rcpr/allocator.h>
 #include <rcpr/fiber.h>
-#include <rcpr/psock.h>
 #include <rcpr/message.h>
+#include <rcpr/psock.h>
+#include <rcpr/rbtree.h>
 #include <rcpr/resource/protected.h>
 #include <rcpr/uuid.h>
 #include <stdbool.h>
@@ -37,6 +38,21 @@ extern "C" {
 #define CONTROL_FIBER_STACK_SIZE 16384
 
 /**
+ * \brief An authorized entity.
+ */
+typedef struct protocolservice_authorized_entity
+protocolservice_authorized_entity;
+
+struct protocolservice_authorized_entity
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    RCPR_SYM(rcpr_uuid) entity_uuid;
+    vccrypt_buffer_t encryption_pubkey;
+    vccrypt_buffer_t signing_pubkey;
+};
+
+/**
  * \brief Context structure for the protocol service.
  */
 typedef struct protocolservice_context
@@ -52,6 +68,7 @@ struct protocolservice_context
     RCPR_SYM(mailbox_address) data_endpoint_addr;
     RCPR_SYM(mailbox_address) random_endpoint_addr;
     RCPR_SYM(fiber)* main_fiber;
+    RCPR_SYM(rbtree)* authorized_entity_dict;
     vccrypt_suite_options_t suite;
     size_t protocol_fiber_count;
     bool quiesce;
@@ -465,6 +482,33 @@ status protocolservice_control_dispatch_finalize(
  */
 status protocolservice_control_write_response(
     protocolservice_control_fiber_context* ctx, int request_id, int status);
+
+/**
+ * \brief Compare two opaque \ref rcpr_uuid values.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs.
+ */
+RCPR_SYM(rcpr_comparison_result) protocolservice_authorized_entity_uuid_compare(
+    void* context, const void* lhs, const void* rhs);
+
+/**
+ * \brief Given an authorized entity resource handle, return its \ref rcpr_uuid
+ * value.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of an authorized entity.
+ *
+ * \returns the key for the authorized entity resource.
+ */
+const void* protocolservice_authorized_entity_key(
+    void* context, const RCPR_SYM(resource)* r);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
