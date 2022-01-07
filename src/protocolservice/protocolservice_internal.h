@@ -510,6 +510,52 @@ RCPR_SYM(rcpr_comparison_result) protocolservice_authorized_entity_uuid_compare(
 const void* protocolservice_authorized_entity_key(
     void* context, const RCPR_SYM(resource)* r);
 
+/**
+ * \brief Add an authorized entity to the protocol service context.
+ *
+ * \param ctx                   The context to which the entity should be added.
+ * \param entity_uuid           The uuid of this entity.
+ * \param encryption_pubkey     The encryption public key of this entity.
+ * \param signing_pubkey        The signing public key of this entity.
+ *
+ * \note This method transfers ownership of the public keys on success; they do
+ * not have to be disposed afterward.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_authorized_entity_add(
+    protocolservice_context* ctx, const RCPR_SYM(rcpr_uuid)* entity_uuid,
+    vccrypt_buffer_t* encryption_pubkey, vccrypt_buffer_t* signing_pubkey);
+
+/**
+ * \brief Look up an authorized entity by entity id.
+ *
+ * \param entity                Pointer to the authorized entity pointer to
+ *                              receive this entity on success.
+ * \param ctx                   The context from which to look up this entity.
+ * \param entity_uuid           The uuid of the entity to look up.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_authorized_entity_lookup(
+    const protocolservice_authorized_entity** entity,
+    protocolservice_context* ctx, const RCPR_SYM(rcpr_uuid)* entity_uuid);
+
+/**
+ * \brief Release an authorized entity resource.
+ *
+ * \param r             The authorized entity resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_authorized_entity_release(RCPR_SYM(resource)* r);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
