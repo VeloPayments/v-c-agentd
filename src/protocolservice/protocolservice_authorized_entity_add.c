@@ -40,6 +40,8 @@ status protocolservice_authorized_entity_add(
 
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_context_valid(ctx));
+    MODEL_ASSERT(prop_vccrypt_buffer_valid(encryption_pubkey));
+    MODEL_ASSERT(prop_vccrypt_buffer_valid(signing_pubkey));
 
     /* allocate memory for the authorized entity. */
     retval = rcpr_allocator_allocate(ctx->alloc, (void**)&tmp, sizeof(*tmp));
