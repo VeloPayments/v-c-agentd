@@ -37,6 +37,18 @@ status protocolservice_context_release(RCPR_SYM(resource)* r)
     /* cache the allocator. */
     rcpr_allocator* alloc = ctx->alloc;
 
+    /* dispose the encryption pubkey buffer. */
+    dispose((disposable_t*)&ctx->agentd_enc_pubkey);
+
+    /* dispose the encryption privkey buffer. */
+    dispose((disposable_t*)&ctx->agentd_enc_privkey);
+
+    /* dispose the signing pubkey buffer. */
+    dispose((disposable_t*)&ctx->agentd_sign_pubkey);
+
+    /* dispose the signing privkey buffer. */
+    dispose((disposable_t*)&ctx->agentd_sign_privkey);
+
     /* dispose the crypto suite if initialized. */
     if (NULL != ctx->suite.vccrypt_suite_hash_alg_init)
     {

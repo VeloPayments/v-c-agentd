@@ -182,7 +182,10 @@ status protocolservice_control_dispatch_auth_entity_add(
     }
 
     /* success. */
-    retval = STATUS_SUCCESS;
+    retval =
+        protocolservice_control_write_response(
+            ctx, UNAUTH_PROTOCOL_CONTROL_REQ_ID_AUTH_ENTITY_ADD,
+            STATUS_SUCCESS);
     goto cleanup_sign_pubkey;
 
 cleanup_sign_pubkey:
