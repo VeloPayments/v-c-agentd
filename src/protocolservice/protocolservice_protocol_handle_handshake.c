@@ -37,6 +37,23 @@ protocolservice_protocol_handle_handshake(
         goto done;
     }
 
+    /* look up the client key. */
+    retval =
+        protocolservice_authorized_entity_lookup(&ctx->entity, ctx->ctx, 
+        &ctx->entity_uuid);
+    if (STATUS_SUCCESS != retval)
+    {
+        retval =
+            protocolservice_write_error_response(
+                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
+                AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, 0U, false);
+        if (STATUS_SUCCESS == retval)
+        {
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
+        }
+        goto done;
+    }
+
     /* TODO - fill out the rest of the handshake. */
     /* write the entropy request to the random service. */
     /* compute the shared secret and the C/R response. */
@@ -44,6 +61,7 @@ protocolservice_protocol_handle_handshake(
     /* read the handshake ack request from the client. */
     /* write the handshake ack response to the client. */
 
+    retval = -1;
     goto done;
 
 done:

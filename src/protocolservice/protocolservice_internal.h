@@ -111,6 +111,7 @@ struct protocolservice_protocol_fiber_context
     vccrypt_buffer_t client_key_nonce;
     vccrypt_buffer_t client_challenge_nonce;
     RCPR_SYM(rcpr_uuid) entity_uuid;
+    const protocolservice_authorized_entity* entity;
 };
 
 /**
