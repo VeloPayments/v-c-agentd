@@ -26,14 +26,12 @@
  *      - AGENTD_STATUS_SUCCESS on success.
  *      - AGENTD_ERROR_RANDOMSERVICE_IPC_WRITE_DATA_FAILURE if an error occurred
  *        when writing to the socket.
- *      - AGENTD_ERROR_IPC_WOULD_BLOCK if writing this request would cause the
- *        request socket to block.
  */
 int random_service_api_sendreq_random_bytes_get(
-    ipc_socket_context_t* sock, uint32_t offset, uint32_t count)
+    int sock, uint32_t offset, uint32_t count)
 {
     /* parameter sanity checks. */
-    MODEL_ASSERT(NULL != sock);
+    MODEL_ASSERT(sock >= 0);
 
     /* + ------------------------------------------------------------ + */
     /* | Random bytes read request.                                   | */
@@ -53,8 +51,8 @@ int random_service_api_sendreq_random_bytes_get(
     };
 
     /* write a data packet to the random socket. */
-    int retval = ipc_write_data_noblock(sock, payload, sizeof(payload));
-    if (AGENTD_ERROR_IPC_WOULD_BLOCK != retval && AGENTD_STATUS_SUCCESS != retval)
+    int retval = ipc_write_data_block(sock, payload, sizeof(payload));
+    if (AGENTD_STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_RANDOMSERVICE_IPC_WRITE_DATA_FAILURE;
     }
