@@ -46,6 +46,8 @@ status protocolservice_protocol_fiber_entry(void* vctx)
         goto cleanup_context;
     }
 
+    /* TODO - spawn protocol write endpoint for this connection. */
+    /* TODO - request data service context for this connection. */
     /* TODO - add decode-and-dispatch loop. */
     retval = STATUS_SUCCESS;
     goto cleanup_context;
