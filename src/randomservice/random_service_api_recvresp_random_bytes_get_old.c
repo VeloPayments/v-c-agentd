@@ -1,5 +1,5 @@
 /**
- * \file dataservice/random_service_api_recvresp_random_bytes_get_block.c
+ * \file dataservice/random_service_api_recvresp_random_bytes_get_old.c
  *
  * \brief Read the response from the random bytes get call.
  *
@@ -16,7 +16,7 @@
 
 /**
  * \brief Receive the response from the random bytes call from the random
- * service (blocking call).
+ * service. (Deprecated)
  *
  * \param sock          The socket on which this request is made.
  * \param offset        The offset of the response.
@@ -31,15 +31,17 @@
  *        out-of-memory condition.
  *      - AGENTD_ERROR_RANDOMSERVICE_IPC_READ_DATA_FAILURE if an error occurred
  *        when reading from the socket.
+ *      - AGENTD_ERROR_IPC_WOULD_BLOCK if reading this request would cause the
+ *        request socket to block.
  */
-int random_service_api_recvresp_random_bytes_get_block(
-    int sock, uint32_t* offset, uint32_t* status, void** bytes,
-    size_t* bytes_size)
+int random_service_api_recvresp_random_bytes_get_old(
+    ipc_socket_context_t* sock, uint32_t* offset, uint32_t* status,
+    void** bytes, size_t* bytes_size)
 {
     int retval = 0;
 
     /* parameter sanity check. */
-    MODEL_ASSERT(sock >= 0);
+    MODEL_ASSERT(NULL != sock);
     MODEL_ASSERT(NULL != offset);
     MODEL_ASSERT(NULL != status);
     MODEL_ASSERT(NULL != bytes);
@@ -48,8 +50,12 @@ int random_service_api_recvresp_random_bytes_get_block(
     /* read a data packet from the socket. */
     uint32_t* resp = NULL;
     uint32_t resp_size = 0U;
-    retval = ipc_read_data_block(sock, (void*)&resp, &resp_size);
-    if (AGENTD_STATUS_SUCCESS != retval)
+    retval = ipc_read_data_noblock(sock, (void*)&resp, &resp_size);
+    if (AGENTD_ERROR_IPC_WOULD_BLOCK == retval)
+    {
+        goto done;
+    }
+    else if (AGENTD_STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_RANDOMSERVICE_IPC_READ_DATA_FAILURE;
         goto done;

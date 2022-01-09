@@ -28,7 +28,7 @@ TEST_F(random_service_isolation_test, simple_spawn)
 /**
  * Test that we can get one byte of random data from the random service.
  */
-TEST_F(random_service_isolation_test, one_byte_blocking)
+TEST_F(random_service_isolation_test, one_byte)
 {
     const uint32_t EXPECTED_OFFSET = 17U;
     uint32_t offset, status;
@@ -37,12 +37,12 @@ TEST_F(random_service_isolation_test, one_byte_blocking)
 
     /* send a blocking request to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        random_service_api_sendreq_random_bytes_get_block(
+        random_service_api_sendreq_random_bytes_get(
             rprotosock, EXPECTED_OFFSET, 1));
 
     /* receive a blocking response to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        random_service_api_recvresp_random_bytes_get_block(
+        random_service_api_recvresp_random_bytes_get(
             rprotosock, &offset, &status, &random_byte_buffer,
             &random_byte_buffer_size));
 
@@ -55,7 +55,7 @@ TEST_F(random_service_isolation_test, one_byte_blocking)
 /**
  * Test that we can get many bytes of random data from the random service.
  */
-TEST_F(random_service_isolation_test, many_bytes_blocking)
+TEST_F(random_service_isolation_test, many_bytes)
 {
     const uint32_t EXPECTED_OFFSET = 17U;
     uint32_t offset, status;
@@ -64,12 +64,12 @@ TEST_F(random_service_isolation_test, many_bytes_blocking)
 
     /* send a blocking request to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        random_service_api_sendreq_random_bytes_get_block(
+        random_service_api_sendreq_random_bytes_get(
             rprotosock, EXPECTED_OFFSET, 100));
 
     /* receive a blocking response to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        random_service_api_recvresp_random_bytes_get_block(
+        random_service_api_recvresp_random_bytes_get(
             rprotosock, &offset, &status, &random_byte_buffer,
             &random_byte_buffer_size));
 
@@ -82,7 +82,7 @@ TEST_F(random_service_isolation_test, many_bytes_blocking)
 /**
  * Test that we can get one byte of random data from the random service.
  */
-TEST_F(random_service_isolation_test, one_byte)
+TEST_F(random_service_isolation_test, one_byte_deprecated)
 {
     const uint32_t EXPECTED_OFFSET = 17U;
     uint32_t offset, status;
@@ -97,7 +97,7 @@ TEST_F(random_service_isolation_test, one_byte)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    random_service_api_recvresp_random_bytes_get(
+                    random_service_api_recvresp_random_bytes_get_old(
                         &nonblockrandomsock, &offset, &status,
                         &random_byte_buffer, &random_byte_buffer_size);
 
@@ -112,7 +112,7 @@ TEST_F(random_service_isolation_test, one_byte)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    random_service_api_sendreq_random_bytes_get(
+                    random_service_api_sendreq_random_bytes_get_old(
                         &nonblockrandomsock, EXPECTED_OFFSET, 1);
             }
         });
@@ -130,7 +130,7 @@ TEST_F(random_service_isolation_test, one_byte)
 /**
  * Test that we can get many bytes of random data from the random service.
  */
-TEST_F(random_service_isolation_test, many_bytes)
+TEST_F(random_service_isolation_test, many_bytes_deprecated)
 {
     const uint32_t EXPECTED_OFFSET = 17U;
     uint32_t offset, status;
@@ -145,7 +145,7 @@ TEST_F(random_service_isolation_test, many_bytes)
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
-                    random_service_api_recvresp_random_bytes_get(
+                    random_service_api_recvresp_random_bytes_get_old(
                         &nonblockrandomsock, &offset, &status,
                         &random_byte_buffer, &random_byte_buffer_size);
 
@@ -160,7 +160,7 @@ TEST_F(random_service_isolation_test, many_bytes)
             if (sendreq_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 sendreq_status =
-                    random_service_api_sendreq_random_bytes_get(
+                    random_service_api_sendreq_random_bytes_get_old(
                         &nonblockrandomsock, EXPECTED_OFFSET, 100);
             }
         });
