@@ -3,7 +3,7 @@
  *
  * Helpers for the random service isolation test.
  *
- * \copyright 2020 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/randomservice.h>

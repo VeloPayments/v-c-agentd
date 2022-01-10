@@ -3,7 +3,7 @@
  *
  * \brief Request some random bytes from the random service.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
