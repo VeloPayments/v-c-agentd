@@ -3,7 +3,7 @@
  *
  * Private header for the random service isolation tests.
  *
- * \copyright 2020 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_RANDOM_SERVICE_ISOLATION_HEADER_GUARD

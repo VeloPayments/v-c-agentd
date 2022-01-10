@@ -3,7 +3,7 @@
  *
  * Isolation tests for the random service.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/randomservice/api.h>
@@ -45,7 +45,7 @@ TEST_F(random_service_isolation_test, one_byte)
     /* receive a blocking response to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         random_service_api_recvresp_random_bytes_get(
-            rprotosock, &offset, &status, &random_byte_buffer,
+            proto, ralloc, &offset, &status, &random_byte_buffer,
             &random_byte_buffer_size));
 
     /* verify offset, status, and size. */
@@ -72,7 +72,7 @@ TEST_F(random_service_isolation_test, many_bytes)
     /* receive a blocking response to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         random_service_api_recvresp_random_bytes_get(
-            rprotosock, &offset, &status, &random_byte_buffer,
+            proto, ralloc, &offset, &status, &random_byte_buffer,
             &random_byte_buffer_size));
 
     /* verify offset, status, and size. */

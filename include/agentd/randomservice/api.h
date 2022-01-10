@@ -3,7 +3,7 @@
  *
  * \brief API for the random service.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_RANDOMSERVICE_API_HEADER_GUARD
@@ -39,6 +39,7 @@ int random_service_api_sendreq_random_bytes_get(
  * service.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param offset        The offset of the response.
  * \param status        The status of the response.
  * \param bytes         Pointer to receive an allocated buffer of random bytes
@@ -53,8 +54,8 @@ int random_service_api_sendreq_random_bytes_get(
  *        when reading from the socket.
  */
 int random_service_api_recvresp_random_bytes_get(
-    int sock, uint32_t* offset, uint32_t* status, void** bytes,
-    size_t* bytes_size);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint32_t* offset,
+    uint32_t* status, void** bytes, size_t* bytes_size);
 
 /**
  * \brief Request some random bytes from the random service. (Deprecated)
