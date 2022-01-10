@@ -11,8 +11,11 @@
 #include <agentd/randomservice/api.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
+#include <rcpr/psock.h>
 #include <unistd.h>
 #include <vpr/parameters.h>
+
+RCPR_IMPORT_psock;
 
 /**
  * \brief Request some random bytes from the random service.
@@ -28,10 +31,10 @@
  *        when writing to the socket.
  */
 int random_service_api_sendreq_random_bytes_get(
-    int sock, uint32_t offset, uint32_t count)
+    RCPR_SYM(psock)* sock, uint32_t offset, uint32_t count)
 {
     /* parameter sanity checks. */
-    MODEL_ASSERT(sock >= 0);
+    MODEL_ASSERT(prop_psock_valid(sock));
 
     /* + ------------------------------------------------------------ + */
     /* | Random bytes read request.                                   | */
@@ -51,8 +54,8 @@ int random_service_api_sendreq_random_bytes_get(
     };
 
     /* write a data packet to the random socket. */
-    int retval = ipc_write_data_block(sock, payload, sizeof(payload));
-    if (AGENTD_STATUS_SUCCESS != retval)
+    status retval = psock_write_boxed_data(sock, payload, sizeof(payload));
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_RANDOMSERVICE_IPC_WRITE_DATA_FAILURE;
     }

@@ -16,6 +16,10 @@
 
 using namespace std;
 
+RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_psock;
+RCPR_IMPORT_resource;
+
 void random_service_isolation_test::SetUp()
 {
     /* log to standard error. */
@@ -54,6 +58,19 @@ void random_service_isolation_test::SetUp()
     random_proc_status =
         randomservice_proc(
             &bconf, &conf, &rlogsock, &rprotosock, &randompid, false);
+
+    /* create the rcpr allocator. */
+    ralloc_status = rcpr_malloc_allocator_create(&ralloc);
+
+    /* create the psock instance. */
+    if (STATUS_SUCCESS == ralloc_status && STATUS_SUCCESS == random_proc_status)
+    {
+        proto_status = psock_create_from_descriptor(&proto, ralloc, rprotosock);
+    }
+    else
+    {
+        proto_status = -1;
+    }
 }
 
 void random_service_isolation_test::TearDown()
@@ -64,6 +81,22 @@ void random_service_isolation_test::TearDown()
         dispose((disposable_t*)&nonblockrandomsock);
         dispose((disposable_t*)&loop);
         nonblockrandomsock_configured = false;
+    }
+
+    /* close the psock. */
+    if (STATUS_SUCCESS == proto_status)
+    {
+        resource_release(psock_resource_handle(proto));
+    }
+    else
+    {
+        close(rprotosock);
+    }
+
+    /* release the allocator. */
+    if (STATUS_SUCCESS == ralloc_status)
+    {
+        resource_release(rcpr_allocator_resource_handle(ralloc));
     }
 
     /* terminate the random service. */
@@ -81,7 +114,6 @@ void random_service_isolation_test::TearDown()
     dispose((disposable_t*)&bconf);
     if (rlogsock >= 0)
         close(rlogsock);
-    close(rprotosock);
 }
 
 void random_service_isolation_test::nonblockmode(

@@ -23,6 +23,8 @@ using namespace std;
 TEST_F(random_service_isolation_test, simple_spawn)
 {
     ASSERT_EQ(0, random_proc_status);
+    ASSERT_EQ(0, ralloc_status);
+    ASSERT_EQ(0, proto_status);
 }
 
 /**
@@ -38,7 +40,7 @@ TEST_F(random_service_isolation_test, one_byte)
     /* send a blocking request to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         random_service_api_sendreq_random_bytes_get(
-            rprotosock, EXPECTED_OFFSET, 1));
+            proto, EXPECTED_OFFSET, 1));
 
     /* receive a blocking response to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -65,7 +67,7 @@ TEST_F(random_service_isolation_test, many_bytes)
     /* send a blocking request to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         random_service_api_sendreq_random_bytes_get(
-            rprotosock, EXPECTED_OFFSET, 100));
+            proto, EXPECTED_OFFSET, 100));
 
     /* receive a blocking response to get random bytes. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,

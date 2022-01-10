@@ -14,6 +14,8 @@
 #include <agentd/string.h>
 #include <functional>
 #include <gtest/gtest.h>
+#include <rcpr/allocator.h>
+#include <rcpr/psock.h>
 #include <string>
 #include <vector>
 #include <vpr/disposable.h>
@@ -48,6 +50,10 @@ protected:
     ipc_event_loop_context_t loop;
     std::function<void()> onRead;
     std::function<void()> onWrite;
+    RCPR_SYM(allocator)* ralloc;
+    RCPR_SYM(psock)* proto;
+    status ralloc_status;
+    status proto_status;
 
     void nonblockmode(
         std::function<void()> onRead, std::function<void()> onWrite);
