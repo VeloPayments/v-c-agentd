@@ -11,6 +11,7 @@
 
 #include <agentd/randomservice.h>
 #include <agentd/ipc.h>
+#include <rcpr/psock.h>
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
@@ -31,7 +32,7 @@ extern "C" {
  *        when writing to the socket.
  */
 int random_service_api_sendreq_random_bytes_get(
-    int sock, uint32_t offset, uint32_t count);
+    RCPR_SYM(psock)* sock, uint32_t offset, uint32_t count);
 
 /**
  * \brief Receive the response from the random bytes call from the random
