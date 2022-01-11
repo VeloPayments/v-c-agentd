@@ -96,6 +96,21 @@ struct protocolservice_accept_endpoint_context
 };
 
 /**
+ * \brief Context structure for the protocol service random endpoint.
+ */
+typedef struct protocolservice_random_endpoint_context
+protocolservice_random_endpoint_context;
+
+struct protocolservice_random_endpoint_context
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    protocolservice_context* ctx;
+    RCPR_SYM(fiber)* fib;
+    RCPR_SYM(psock)* randomsock;
+};
+
+/**
  * \brief Context structure for a protocol fiber.
  */
 typedef struct protocolservice_protocol_fiber_context
