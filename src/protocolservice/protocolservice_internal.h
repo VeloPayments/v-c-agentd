@@ -28,6 +28,9 @@ extern "C" {
 /** \brief The accept endpoint fiber stack size. */
 #define ACCEPT_ENDPOINT_FIBER_STACK_SIZE 16384
 
+/** \brief The random endpoint fiber stack size. */
+#define RANDOM_ENDPOINT_STACK_SIZE 16384
+
 /** \brief The manager fiber stack size. */
 #define MANAGER_FIBER_STACK_SIZE 16384
 
@@ -105,9 +108,37 @@ struct protocolservice_random_endpoint_context
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
-    protocolservice_context* ctx;
     RCPR_SYM(fiber)* fib;
+    RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
+    RCPR_SYM(mailbox_address) addr;
     RCPR_SYM(psock)* randomsock;
+};
+
+/**
+ * \brief Request message for the random service endpoint.
+ */
+typedef struct protocolservice_random_request_message
+protocolservice_random_request_message;
+
+struct protocolservice_random_request_message
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    size_t size;
+};
+
+/**
+ * \brief Response message for the random service endpoint.
+ */
+typedef struct protocolservice_random_response_message
+protocolservice_random_response_message;
+
+struct protocolservice_random_response_message
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    void* data;
+    size_t size;
 };
 
 /**
@@ -291,6 +322,57 @@ status protocolservice_accept_endpoint_context_release(RCPR_SYM(resource)* r);
  *      - a non-zero error code on failure.
  */
 status protocolservice_accept_endpoint_fiber_entry(void* vctx);
+
+/**
+ * \brief Release the protocol service random endpoint context.
+ *
+ * \param r             The protocol service random endpoint context to be
+ *                      released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_random_endpoint_context_release(RCPR_SYM(resource)* r);
+
+/**
+ * \brief Entry point for the protocol service random endpoint fiber.
+ *
+ * This fiber forwards requests to the random service and returns responses.
+ *
+ * \param vctx          The type erased random endopint context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_random_endpoint_fiber_entry(void* vctx);
+
+/**
+ * \brief Create a response message payload for the random service endpoint.
+ *
+ * \param payload       Pointer to hold the created payload structure on
+ *                      success. This resource is owned by the caller.
+ * \param alloc         The allocator to use to create this payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_random_response_message_create(
+    protocolservice_random_response_message** payload,
+    RCPR_SYM(allocator)* alloc);
+
+/**
+ * \brief Release a protocol service random response payload resource.
+ *
+ * \param r             The payload resource to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_random_response_message_release(RCPR_SYM(resource)* r);
 
 /**
  * \brief Handle unexpected resume events in fibers relating to the protocol

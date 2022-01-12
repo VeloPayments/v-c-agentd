@@ -48,7 +48,12 @@ status protocolservice_fiber_unexpected_handler(
             FIBER_SCHEDULER_MANAGEMENT_RESUME_EVENT_QUIESCE_REQUEST
                 == resume_event)
         {
-            ctx->quiesce = true;
+            /* set the quiesce flag if context is set. */
+            if (NULL != ctx)
+            {
+                ctx->quiesce = true;
+            }
+
             return STATUS_SUCCESS;
         }
     }
