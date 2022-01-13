@@ -50,14 +50,6 @@ protocolservice_protocol_handle_handshake(
     retval = protocolservice_read_random_bytes(ctx);
     if (STATUS_SUCCESS != retval)
     {
-        retval =
-            protocolservice_write_error_response(
-                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
-                AGENTD_ERROR_PROTOCOLSERVICE_PRNG_REQUEST_FAILURE, 0U, false);
-        if (STATUS_SUCCESS == retval)
-        {
-            retval = AGENTD_ERROR_PROTOCOLSERVICE_PRNG_REQUEST_FAILURE;
-        }
         goto done;
     }
 
