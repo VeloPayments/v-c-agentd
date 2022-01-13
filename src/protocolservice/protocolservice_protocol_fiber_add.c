@@ -16,6 +16,7 @@
 
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_fiber;
+RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
@@ -73,6 +74,32 @@ status protocolservice_protocol_fiber_add(
     retval =
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
             &ctx->suite, &tmp->client_challenge_nonce);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* create the server key nonce buffer. */
+    retval =
+        vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
+            &ctx->suite, &tmp->server_key_nonce);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* create the server challenge nonce buffer. */
+    retval =
+        vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
+            &ctx->suite, &tmp->server_challenge_nonce);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* create the return mailbox for this fiber. */
+    retval =
+        mailbox_create(&tmp->return_addr, ctx->msgdisc);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_context;

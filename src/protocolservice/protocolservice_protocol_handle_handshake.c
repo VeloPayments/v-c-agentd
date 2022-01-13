@@ -54,8 +54,22 @@ protocolservice_protocol_handle_handshake(
         goto done;
     }
 
+    /* Read random bytes from the random service endpoint. */
+    retval = protocolservice_read_random_bytes(ctx);
+    if (STATUS_SUCCESS != retval)
+    {
+        retval =
+            protocolservice_write_error_response(
+                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
+                AGENTD_ERROR_PROTOCOLSERVICE_PRNG_REQUEST_FAILURE, 0U, false);
+        if (STATUS_SUCCESS == retval)
+        {
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_PRNG_REQUEST_FAILURE;
+        }
+        goto done;
+    }
+
     /* TODO - fill out the rest of the handshake. */
-    /* write the entropy request to the random service. */
     /* compute the shared secret and the C/R response. */
     /* write the handshake request response. */
     /* read the handshake ack request from the client. */
