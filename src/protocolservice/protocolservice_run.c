@@ -26,7 +26,7 @@ RCPR_IMPORT_resource;
 RCPR_IMPORT_thread;
 
 /* the number of microseconds to sleep for quiescing fibers. */
-#define PROTOCOLSERVICE_QUIESCE_SLEEP_USECS 2000000
+#define PROTOCOLSERVICE_QUIESCE_SLEEP_USECS 100000 /* 100 milliseconds. */
 
 /**
  * \brief Main entry point for the protocol service.  It handles the details of
