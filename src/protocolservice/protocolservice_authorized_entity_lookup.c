@@ -47,15 +47,7 @@ status protocolservice_authorized_entity_lookup(
             &tmp, ctx->ctx->authorized_entity_dict, (const void*)entity_uuid);
     if (STATUS_SUCCESS != retval)
     {
-        retval =
-            protocolservice_write_error_response(
-                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
-                AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, 0U, false);
-        if (STATUS_SUCCESS == retval)
-        {
-            retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
-        }
-        goto done;
+        goto write_error_response;
     }
 
     /* return the value on success. */
@@ -63,6 +55,16 @@ status protocolservice_authorized_entity_lookup(
     MODEL_ASSERT(prop_protocolservice_authorized_entity_valid(*entity));
     retval = STATUS_SUCCESS;
     goto done;
+
+write_error_response:
+    retval =
+        protocolservice_write_error_response(
+            ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
+            AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, 0U, false);
+    if (STATUS_SUCCESS == retval)
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
+    }
 
 done:
     return retval;
