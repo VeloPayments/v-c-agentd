@@ -43,7 +43,7 @@ status protocolservice_read_random_bytes(
             ctx->server_challenge_nonce.size + ctx->server_key_nonce.size);
     if (STATUS_SUCCESS != retval)
     {
-        goto done;
+        goto write_error_response;
     }
 
     /* create the message to send to the random endpoint. */
@@ -75,7 +75,7 @@ status protocolservice_read_random_bytes(
         message_receive(ctx->return_addr, &resp_message, ctx->ctx->msgdisc);
     if (STATUS_SUCCESS != retval)
     {
-        goto done;
+        goto write_error_response;
     }
 
     /* get the message payload. */
@@ -106,7 +106,7 @@ status protocolservice_read_random_bytes(
     retval = resource_release(message_resource_handle(resp_message));
     if (STATUS_SUCCESS != retval)
     {
-        goto done;
+        goto write_error_response;
     }
 
     /* success. */
@@ -133,6 +133,16 @@ cleanup_req_payload:
             retval = release_retval;
         }
         req_payload = NULL;
+    }
+
+write_error_response:
+    retval =
+        protocolservice_write_error_response(
+            ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
+            AGENTD_ERROR_PROTOCOLSERVICE_PRNG_REQUEST_FAILURE, 0U, false);
+    if (STATUS_SUCCESS == retval)
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_PRNG_REQUEST_FAILURE;
     }
 
 done:
