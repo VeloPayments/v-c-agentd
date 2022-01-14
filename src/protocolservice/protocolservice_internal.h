@@ -676,7 +676,8 @@ status protocolservice_authorized_entity_add(
  */
 status protocolservice_authorized_entity_lookup(
     const protocolservice_authorized_entity** entity,
-    protocolservice_context* ctx, const RCPR_SYM(rcpr_uuid)* entity_uuid);
+    protocolservice_protocol_fiber_context* ctx,
+    const RCPR_SYM(rcpr_uuid)* entity_uuid);
 
 /**
  * \brief Release an authorized entity resource.

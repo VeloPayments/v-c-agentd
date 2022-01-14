@@ -39,18 +39,10 @@ protocolservice_protocol_handle_handshake(
 
     /* look up the client key. */
     retval =
-        protocolservice_authorized_entity_lookup(&ctx->entity, ctx->ctx, 
+        protocolservice_authorized_entity_lookup(&ctx->entity, ctx, 
         &ctx->entity_uuid);
     if (STATUS_SUCCESS != retval)
     {
-        retval =
-            protocolservice_write_error_response(
-                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
-                AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, 0U, false);
-        if (STATUS_SUCCESS == retval)
-        {
-            retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
-        }
         goto done;
     }
 

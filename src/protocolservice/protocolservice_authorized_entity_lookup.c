@@ -7,6 +7,7 @@
  */
 
 #include <cbmc/model_assert.h>
+#include <agentd/status_codes.h>
 
 #include "protocolservice_internal.h"
 
@@ -29,22 +30,31 @@ RCPR_IMPORT_resource;
  */
 status protocolservice_authorized_entity_lookup(
     const protocolservice_authorized_entity** entity,
-    protocolservice_context* ctx, const RCPR_SYM(rcpr_uuid)* entity_uuid)
+    protocolservice_protocol_fiber_context* ctx,
+    const RCPR_SYM(rcpr_uuid)* entity_uuid)
 {
     status retval;
     resource* tmp = NULL;
 
     /* parameter sanity checks. */
-    MODEL_ASSERT(prop_protocolservice_context_valid(ctx));
+    MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
     MODEL_ASSERT(NULL != entity);
     MODEL_ASSERT(NULL != entity_uuid);
 
     /* attempt to find the entity in the authorized entities dict. */
     retval =
         rbtree_find(
-            &tmp, ctx->authorized_entity_dict, (const void*)entity_uuid);
+            &tmp, ctx->ctx->authorized_entity_dict, (const void*)entity_uuid);
     if (STATUS_SUCCESS != retval)
     {
+        retval =
+            protocolservice_write_error_response(
+                ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_INITIATE,
+                AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, 0U, false);
+        if (STATUS_SUCCESS == retval)
+        {
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
+        }
         goto done;
     }
 
