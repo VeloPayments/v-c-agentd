@@ -14,6 +14,7 @@
 #if defined(AGENTD_NEW_PROTOCOL)
 
 RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
@@ -30,6 +31,7 @@ RCPR_IMPORT_resource;
 status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
 {
     status protosock_release_retval = STATUS_SUCCESS;
+    status mailbox_close_retval = STATUS_SUCCESS;
     status context_release_retval = STATUS_SUCCESS;
     protocolservice_protocol_fiber_context* ctx =
         (protocolservice_protocol_fiber_context*)r;
@@ -59,6 +61,25 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
         dispose((disposable_t*)&ctx->client_challenge_nonce);
     }
 
+    /* dispose the server key nonce. */
+    if (NULL != ctx->server_key_nonce.data)
+    {
+        dispose((disposable_t*)&ctx->server_key_nonce);
+    }
+
+    /* dispose the server challenge nonce. */
+    if (NULL != ctx->server_challenge_nonce.data)
+    {
+        dispose((disposable_t*)&ctx->server_challenge_nonce);
+    }
+
+    /* close the mailbox associated with this fiber. */
+    if (ctx->return_addr > 0)
+    {
+        mailbox_close_retval =
+            mailbox_close(ctx->return_addr, ctx->ctx->msgdisc);
+    }
+
     /* reclaim memory. */
     context_release_retval = rcpr_allocator_reclaim(alloc, ctx);
 
@@ -66,6 +87,10 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
     if (STATUS_SUCCESS != protosock_release_retval)
     {
         return protosock_release_retval;
+    }
+    else if (STATUS_SUCCESS != mailbox_close_retval)
+    {
+        return mailbox_close_retval;
     }
     else
     {

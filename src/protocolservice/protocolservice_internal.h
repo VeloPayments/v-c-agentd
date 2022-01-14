@@ -156,7 +156,10 @@ struct protocolservice_protocol_fiber_context
     RCPR_SYM(psock)* protosock;
     vccrypt_buffer_t client_key_nonce;
     vccrypt_buffer_t client_challenge_nonce;
+    vccrypt_buffer_t server_key_nonce;
+    vccrypt_buffer_t server_challenge_nonce;
     RCPR_SYM(rcpr_uuid) entity_uuid;
+    RCPR_SYM(mailbox_address) return_addr;
     const protocolservice_authorized_entity* entity;
 };
 
@@ -347,6 +350,33 @@ status protocolservice_random_endpoint_context_release(RCPR_SYM(resource)* r);
  *      - a non-zero error code on failure.
  */
 status protocolservice_random_endpoint_fiber_entry(void* vctx);
+
+/**
+ * \brief Create a request message payload for the random service endpoint.
+ *
+ * \param payload       Pointer to hold the created payload structure on
+ *                      success. This resource is owned by the caller.
+ * \param alloc         The allocator to use to create this payload.
+ * \param size          The number of bytes requested.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_random_request_message_create(
+    protocolservice_random_request_message** payload,
+    RCPR_SYM(allocator)* alloc, size_t size);
+
+/**
+ * \brief Release a protocol service random request payload resource.
+ *
+ * \param r             The payload resource to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_random_request_message_release(RCPR_SYM(resource)* r);
 
 /**
  * \brief Create a response message payload for the random service endpoint.
@@ -658,6 +688,18 @@ status protocolservice_authorized_entity_lookup(
  *      - a non-zero error code on failure.
  */
 status protocolservice_authorized_entity_release(RCPR_SYM(resource)* r);
+
+/**
+ * \brief Read random bytes from the random service endpoint.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_read_random_bytes(
+    protocolservice_protocol_fiber_context* ctx);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
