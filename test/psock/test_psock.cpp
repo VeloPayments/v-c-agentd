@@ -23,7 +23,7 @@ RCPR_IMPORT_socket_utilities;
 /**
  * \brief We can read an authed packet from a psock instance.
  */
-TEST(psock_test, psock_read_authed_data)
+TEST(psock_test, psock_read_authed_data_happy_path)
 {
     int lhs, rhs;
     const char TEST_STRING[] = "This is a test.";
@@ -163,6 +163,99 @@ TEST(psock_test, psock_read_authed_data)
     dispose((disposable_t*)&key);
     ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
     ASSERT_EQ(0, close(lhs));
+    dispose((disposable_t*)&suite);
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        resource_release(rcpr_allocator_resource_handle(rcpr_alloc)));
+    dispose((disposable_t*)&alloc_opts);
+}
+
+/**
+ * \brief We can read an authed packed from a socket that was written by
+ * psock_write_authed_data.
+ */
+TEST(psock_test, psock_write_authed_data_happy_path)
+{
+    int lhs, rhs;
+    const char TEST_STRING[] = "This is a test.";
+    void* str = nullptr;
+    uint32_t str_size = 0;
+    uint64_t iv = 12345;
+    rcpr_allocator* rcpr_alloc;
+    allocator_options_t alloc_opts;
+    vccrypt_suite_options_t suite;
+
+    /* register the Velo V1 crypto suite. */
+    vccrypt_suite_register_velo_v1();
+
+    /* initialize the malloc allocator. */
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* create the rcpr allocator. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        rcpr_malloc_allocator_create(&rcpr_alloc));
+
+    /* initialize the crypto suite. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        vccrypt_suite_options_init(&suite, &alloc_opts, VCCRYPT_SUITE_VELO_V1));
+
+    /* create a socket pair for testing. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        socket_utility_socketpair(
+            AF_UNIX, SOCK_STREAM, 0, &lhs, &rhs));
+
+    /* create a psock instance for the rhs. */
+    psock* lsock;
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(
+            &lsock, rcpr_alloc, lhs));
+
+    /* create a psock instance for the rhs. */
+    psock* rsock;
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(
+            &rsock, rcpr_alloc, rhs));
+
+    /* create key for stream cipher. */
+    /* TODO - there should be a suite method for this. */
+    vccrypt_buffer_t key;
+    ASSERT_EQ(
+        0,
+        vccrypt_buffer_init(
+            &key, &alloc_opts, suite.stream_cipher_opts.key_size));
+
+    /* set a null key. */
+    memset(key.data, 0, key.size);
+
+    /* writing to the socket should succeed. */
+    ASSERT_EQ(
+        0,
+        psock_write_authed_data(
+            lsock, iv, TEST_STRING, strlen(TEST_STRING), &suite, &key));
+
+    /* read an authed packet from the rhs socket. */
+    ASSERT_EQ(0,
+        psock_read_authed_data(rsock, iv, &str, &str_size, &suite, &key));
+
+    /* the data is valid. */
+    ASSERT_NE(nullptr, str);
+
+    /* the string size is the length of our string. */
+    ASSERT_EQ(strlen(TEST_STRING), str_size);
+
+    /* the data is a copy of the test string. */
+    EXPECT_EQ(0, memcmp(TEST_STRING, str, str_size));
+
+    /* clean up. */
+    free(str);
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(lsock)));
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(rsock)));
+    dispose((disposable_t*)&key);
     dispose((disposable_t*)&suite);
     ASSERT_EQ(
         STATUS_SUCCESS,
