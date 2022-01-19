@@ -148,10 +148,10 @@ status protocolservice_control_dispatch_private_key_set(
 
     /* copy the data to the context buffers. */
     memcpy(&ctx->ctx->agentd_uuid, id, 16);
-    memcpy(&ctx->ctx->agentd_enc_pubkey, enc_pubkey, enc_pubkey_size);
-    memcpy(&ctx->ctx->agentd_enc_privkey, enc_privkey, enc_privkey_size);
-    memcpy(&ctx->ctx->agentd_sign_pubkey, sig_pubkey, sig_pubkey_size);
-    memcpy(&ctx->ctx->agentd_sign_privkey, sig_privkey, sig_privkey_size);
+    memcpy(ctx->ctx->agentd_enc_pubkey.data, enc_pubkey, enc_pubkey_size);
+    memcpy(ctx->ctx->agentd_enc_privkey.data, enc_privkey, enc_privkey_size);
+    memcpy(ctx->ctx->agentd_sign_pubkey.data, sig_pubkey, sig_pubkey_size);
+    memcpy(ctx->ctx->agentd_sign_privkey.data, sig_privkey, sig_privkey_size);
 
     /* success. */
     retval =
