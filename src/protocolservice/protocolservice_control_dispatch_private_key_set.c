@@ -153,6 +153,9 @@ status protocolservice_control_dispatch_private_key_set(
     memcpy(ctx->ctx->agentd_sign_pubkey.data, sig_pubkey, sig_pubkey_size);
     memcpy(ctx->ctx->agentd_sign_privkey.data, sig_privkey, sig_privkey_size);
 
+    /* the private key has been set. */
+    ctx->ctx->private_key_set = true;
+
     /* success. */
     retval =
         protocolservice_control_write_response(

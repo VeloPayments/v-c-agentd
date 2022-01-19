@@ -78,6 +78,7 @@ struct protocolservice_context
     vccrypt_buffer_t agentd_enc_privkey;
     vccrypt_buffer_t agentd_sign_pubkey;
     vccrypt_buffer_t agentd_sign_privkey;
+    bool private_key_set;
     size_t protocol_fiber_count;
     bool quiesce;
     bool terminate;
