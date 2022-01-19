@@ -462,4 +462,73 @@ TEST_F(protocolservice_isolation_test, handshake_req_bad_entity)
     dispose((disposable_t*)&client_challenge_nonce);
 }
 
+/**
+ * Test that writing a valid handshake request results in a valid handshake
+ * response.
+ */
+TEST_F(protocolservice_isolation_test, handshake_request_happy)
+{
+    uint32_t offset, status;
+
+    vccrypt_buffer_t client_key_nonce;
+    vccrypt_buffer_t client_challenge_nonce;
+    vccrypt_buffer_t server_public_key;
+    vccrypt_buffer_t server_id;
+    vccrypt_buffer_t shared_secret;
+    vccrypt_buffer_t server_challenge_nonce;
+
+    (void)offset;
+    (void)status;
+    (void)client_key_nonce;
+    (void)client_challenge_nonce;
+    (void)server_public_key;
+    (void)server_id;
+    (void)shared_secret;
+    (void)server_challenge_nonce;
+
+    /* we must have a valid crypto suite for this to work. */
+    ASSERT_TRUE(suite_initialized);
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
+    /* write the handshake request to the socket. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        protocolservice_api_sendreq_handshake_request_block(
+            protosock, &suite, authorized_entity_id, &client_key_nonce,
+            &client_challenge_nonce));
+
+    /* This should return successfully. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        protocolservice_api_recvresp_handshake_request_block(
+            protosock, &suite, &server_id, &client_private_key,
+            &server_public_key, &client_key_nonce,
+            &client_challenge_nonce, &server_challenge_nonce,
+            &shared_secret, &offset, &status));
+
+    /* the offset is always 0 for a handshake response. */
+    EXPECT_EQ(0U, offset);
+
+    /* the status code is AGENTD_STATUS_SUCCESS. */
+    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+
+    /* the server id is correct. */
+    EXPECT_EQ(16U, server_id.size);
+    EXPECT_EQ(0, memcmp(server_id.data, agent_id, server_id.size));
+
+    /* the server public key is correct. */
+    EXPECT_EQ(32U, server_public_key.size);
+    EXPECT_EQ(0,
+        memcmp(
+            server_public_key.data, agent_enc_pubkey_buffer,
+            server_public_key.size));
+
+    dispose((disposable_t*)&client_key_nonce);
+    dispose((disposable_t*)&client_challenge_nonce);
+    dispose((disposable_t*)&server_public_key);
+    dispose((disposable_t*)&server_id);
+    dispose((disposable_t*)&shared_secret);
+    dispose((disposable_t*)&server_challenge_nonce);
+}
+
 #endif /* defined(AGENTD_NEW_PROTOCOL) */

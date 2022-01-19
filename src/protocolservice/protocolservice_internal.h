@@ -158,6 +158,9 @@ struct protocolservice_protocol_fiber_context
     vccrypt_buffer_t client_challenge_nonce;
     vccrypt_buffer_t server_key_nonce;
     vccrypt_buffer_t server_challenge_nonce;
+    vccrypt_buffer_t shared_secret;
+    uint64_t client_iv;
+    uint64_t server_iv;
     RCPR_SYM(rcpr_uuid) entity_uuid;
     RCPR_SYM(mailbox_address) return_addr;
     const protocolservice_authorized_entity* entity;
@@ -700,6 +703,55 @@ status protocolservice_authorized_entity_release(RCPR_SYM(resource)* r);
  *      - a non-zero error code on failure.
  */
 status protocolservice_read_random_bytes(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Compute a shared secret based on the nonce data gathered during the
+ * handshake, the server private key, and the client public key.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_compute_shared_secret(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Write the response to the handshake request to the client.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_write_handshake_req_resp(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Read the handshake ack request from the client.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_read_handshake_ack_req(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Write the handshake ack response to the client.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_write_handshake_ack_resp(
     protocolservice_protocol_fiber_context* ctx);
 
 /* make this header C++ friendly. */

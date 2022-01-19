@@ -34,7 +34,7 @@ protocolservice_protocol_handle_handshake(
     retval = protocolservice_protocol_read_handshake_req(ctx);
     if (STATUS_SUCCESS != retval)
     {
-        goto done;
+        return retval;
     }
 
     /* look up the client key. */
@@ -43,27 +43,46 @@ protocolservice_protocol_handle_handshake(
         &ctx->entity_uuid);
     if (STATUS_SUCCESS != retval)
     {
-        goto done;
+        return retval;
     }
 
     /* Read random bytes from the random service endpoint. */
     retval = protocolservice_read_random_bytes(ctx);
     if (STATUS_SUCCESS != retval)
     {
-        goto done;
+        return retval;
     }
 
-    /* TODO - fill out the rest of the handshake. */
     /* compute the shared secret and the C/R response. */
+    retval = protocolservice_compute_shared_secret(ctx);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
     /* write the handshake request response. */
+    retval = protocolservice_protocol_write_handshake_req_resp(ctx);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
     /* read the handshake ack request from the client. */
+    retval = protocolservice_protocol_read_handshake_ack_req(ctx);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
     /* write the handshake ack response to the client. */
+    retval = protocolservice_protocol_write_handshake_ack_resp(ctx);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
 
-    retval = -1;
-    goto done;
-
-done:
-    return retval;
+    /* success. */
+    return STATUS_SUCCESS;
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */
