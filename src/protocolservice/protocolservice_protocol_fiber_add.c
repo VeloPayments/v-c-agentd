@@ -61,6 +61,9 @@ status protocolservice_protocol_fiber_add(
     tmp->alloc = alloc;
     tmp->ctx = ctx;
 
+    /* set the reference count for this context to one. */
+    tmp->reference_count = 1;
+
     /* create the client key nonce buffer. */
     retval =
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
