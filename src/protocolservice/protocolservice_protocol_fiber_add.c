@@ -97,6 +97,15 @@ status protocolservice_protocol_fiber_add(
         goto cleanup_context;
     }
 
+    /* create the short term shared key buffer. */
+    retval =
+        vccrypt_suite_buffer_init_for_cipher_key_agreement_shared_secret(
+            &ctx->suite, &tmp->shared_secret);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
     /* create the return mailbox for this fiber. */
     retval =
         mailbox_create(&tmp->return_addr, ctx->msgdisc);

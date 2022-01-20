@@ -6,6 +6,7 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <agentd/psock.h>
 #include <arpa/inet.h>
 #include <cbmc/model_assert.h>
 #include <string.h>
@@ -40,19 +41,16 @@ status protocolservice_write_error_response(
     /* attempt to write the response payload to the socket. */
     if (encrypted)
     {
-        /* TODO - handle encrypted write. */
-        #if 0
         /* encrypted write. */
         retval =
-            vcblockchain_psock_write_authed_data(
-                ctx->ctx, &ctx->server_iv, payload, sizeof(payload),
+            psock_write_authed_data(
+                ctx->protosock, ctx->server_iv, payload, sizeof(payload),
                 &ctx->ctx->suite, &ctx->shared_secret);
 
         /* Update the server iv. */
-        ++conn->server_iv;
-        #endif
+        ++ctx->server_iv;
 
-        return -1;
+        return retval;
     }
     else
     {

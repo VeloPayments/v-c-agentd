@@ -73,6 +73,12 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
         dispose((disposable_t*)&ctx->server_challenge_nonce);
     }
 
+    /* dispose of the shared secret. */
+    if (NULL != ctx->shared_secret.data)
+    {
+        dispose((disposable_t*)&ctx->shared_secret);
+    }
+
     /* close the mailbox associated with this fiber. */
     if (ctx->return_addr > 0)
     {
