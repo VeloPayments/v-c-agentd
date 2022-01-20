@@ -30,6 +30,12 @@ protocolservice_protocol_handle_handshake(
 {
     status retval;
 
+    /* if the private key hasn't been set, we can't do a handshake. */
+    if (!ctx->ctx->private_key_set)
+    {
+        return AGENTD_ERROR_PROTOCOLSERVICE_MISSING_PRIVATE_KEY;
+    }
+
     /* read the handshake request from the client. */
     retval = protocolservice_protocol_read_handshake_req(ctx);
     if (STATUS_SUCCESS != retval)

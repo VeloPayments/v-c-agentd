@@ -42,6 +42,9 @@ TEST_F(protocolservice_isolation_test, handshake_request_bad)
     vccrypt_buffer_t server_challenge_nonce;
     vccrypt_buffer_t shared_secret;
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
             &suite, &client_key_nonce));
@@ -79,6 +82,9 @@ TEST_F(protocolservice_isolation_test, handshake_req_bad_size)
     vccrypt_buffer_t client_challenge_nonce;
     vccrypt_buffer_t server_challenge_nonce;
     vccrypt_buffer_t shared_secret;
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
@@ -123,6 +129,9 @@ TEST_F(protocolservice_isolation_test, handshake_req_bad_reqid)
     vccrypt_buffer_t client_challenge_nonce;
     vccrypt_buffer_t server_challenge_nonce;
     vccrypt_buffer_t shared_secret;
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
@@ -195,6 +204,9 @@ TEST_F(protocolservice_isolation_test, handshake_req_bad_offset)
     vccrypt_buffer_t server_challenge_nonce;
     vccrypt_buffer_t shared_secret;
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
             &suite, &client_key_nonce));
@@ -264,6 +276,9 @@ TEST_F(protocolservice_isolation_test, handshake_req_bad_protocol_version)
     vccrypt_buffer_t client_challenge_nonce;
     vccrypt_buffer_t server_challenge_nonce;
     vccrypt_buffer_t shared_secret;
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
@@ -335,6 +350,9 @@ TEST_F(protocolservice_isolation_test, handshake_req_bad_crypto_suite)
     vccrypt_buffer_t server_challenge_nonce;
     vccrypt_buffer_t shared_secret;
 
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
     ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
             &suite, &client_key_nonce));
@@ -405,6 +423,9 @@ TEST_F(protocolservice_isolation_test, handshake_req_bad_entity)
     vccrypt_buffer_t client_challenge_nonce;
     vccrypt_buffer_t server_challenge_nonce;
     vccrypt_buffer_t shared_secret;
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
 
     ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
         vccrypt_suite_buffer_init_for_cipher_key_agreement_nonce(
