@@ -143,6 +143,30 @@ struct protocolservice_random_response_message
 };
 
 /**
+ * \brief Protocol write endpoint message.
+ */
+typedef struct protocolservice_protocol_write_endpoint_message
+protocolservice_protocol_write_endpoint_message;
+
+struct protocolservice_protocol_write_endpoint_message
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    uint32_t message_type;
+    vccrypt_buffer_t message_data;
+};
+
+/**
+ * \brief Message types for the protocol write endpoint.
+ */
+enum protocolservice_protocol_write_endpoint_message_type
+{
+    PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_MESSAGE_SHUTDOWN,
+    PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_MSG,
+    PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_NOTIFICATION_MSG,
+};
+
+/**
  * \brief Context structure for a protocol fiber.
  */
 typedef struct protocolservice_protocol_fiber_context
@@ -153,6 +177,7 @@ struct protocolservice_protocol_fiber_context
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
     int reference_count;
+    bool shutdown;
     protocolservice_context* ctx;
     RCPR_SYM(fiber)* fib;
     RCPR_SYM(psock)* protosock;
@@ -755,6 +780,81 @@ status protocolservice_protocol_read_handshake_ack_req(
  */
 status protocolservice_protocol_write_handshake_ack_resp(
     protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Request a data service context for this connection.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_request_data_service_context(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Create and add a protocol write endpoint instance to the fiber
+ * manager.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_write_endpoint_add(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Entry point for a protocol service protocol write endpoint fiber.
+ *
+ * This fiber writes messages from the messaging discipline to the client.
+ *
+ * \param vctx          The type erased protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_write_endpoint_entry(void* vctx);
+
+/**
+ * \brief Instruct the write endpoint fiber to shut down.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_shutdown_write_endpoint(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Release a protocol write endpoint message.
+ *
+ * \param r             The payload resource to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_write_endpoint_message_release(
+    RCPR_SYM(resource)* r);
+
+/**
+ * \brief Decode and dispatch a message sent to the protocol write endpoint.
+ *
+ * \param ctx           The protocol service protocol fiber context.
+ * \param msg           The message to be decoded and dispatched.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_write_endpoint_decode_and_dispatch(
+    protocolservice_protocol_fiber_context* ctx, RCPR_SYM(message)* msg);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

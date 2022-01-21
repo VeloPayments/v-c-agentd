@@ -46,12 +46,31 @@ status protocolservice_protocol_fiber_entry(void* vctx)
         goto cleanup_context;
     }
 
-    /* TODO - spawn protocol write endpoint for this connection. */
-    /* TODO - request data service context for this connection. */
+    /* request a data service context for this connection. */
+    retval = protocolservice_protocol_request_data_service_context(ctx);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* spawn a protocol write endpoint for this connection. */
+    retval = protocolservice_protocol_write_endpoint_add(ctx);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
     /* TODO - add decode-and-dispatch loop. */
     /* TODO - extend decode-and-dispatch with sentinel service registry. */
     retval = STATUS_SUCCESS;
-    goto cleanup_context;
+    goto shutdown_write_endpoint;
+
+shutdown_write_endpoint:
+    release_retval = protocolservice_protocol_shutdown_write_endpoint(ctx);
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
 
 cleanup_context:
     release_retval = resource_release(&ctx->hdr);
