@@ -49,8 +49,6 @@ status protocolservice_write_error_response(
 
         /* Update the server iv. */
         ++ctx->server_iv;
-
-        return retval;
     }
     else
     {

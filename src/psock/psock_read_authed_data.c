@@ -12,6 +12,7 @@
 #include <string.h>
 #include <vccrypt/compare.h>
 
+RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_psock;
 
 /**
@@ -22,6 +23,7 @@ RCPR_IMPORT_psock;
  * for freeing it when it is no longer in use.
  *
  * \param sock          The psock instance from which the packet is read.
+ * \param alloc         The allocator to use for this function.
  * \param iv            The 64-bit IV to expect for this packet.
  * \param val           Pointer to the pointer of the raw data buffer.
  * \param size          Pointer to the variable to receive the size of this
@@ -44,8 +46,9 @@ RCPR_IMPORT_psock;
  *        authenticated.
  */
 int psock_read_authed_data(
-    RCPR_SYM(psock)* sock, uint64_t iv, void** val, uint32_t* size,
-    vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret)
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint64_t iv,
+    void** val, uint32_t* size, vccrypt_suite_options_t* suite,
+    vccrypt_buffer_t* secret)
 {
     status retval = 0;
     uint32_t type = 0U;
@@ -88,18 +91,28 @@ int psock_read_authed_data(
     dheader = (uint8_t*)dhbuffer.data;
 
     /* attempt to read the header. */
-    read_size = header_size;
-    retval = psock_read_raw(sock, header, &read_size);
-    if (STATUS_SUCCESS != retval || header_size != read_size)
+    void* data = NULL;
+    retval = psock_read_raw_data(sock, alloc, &data, header_size);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_READ_BLOCK_FAILURE;
         goto cleanup_dhbuffer;
     }
 
+    /* copy the data. */
+    memcpy(header, data, header_size);
+
+    /* free the memory. */
+    retval = rcpr_allocator_reclaim(alloc, data);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_dhbuffer;
+    }
+
     /* set up the stream cipher. */
     vccrypt_stream_context_t stream;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_suite_stream_init(suite, &stream, secret))
+    retval = vccrypt_suite_stream_init(suite, &stream, secret);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_dhbuffer;
@@ -107,16 +120,16 @@ int psock_read_authed_data(
 
     /* set up the MAC. */
     vccrypt_mac_context_t mac;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_suite_mac_short_init(suite, &mac, secret))
+    retval = vccrypt_suite_mac_short_init(suite, &mac, secret);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_stream;
     }
 
     /* start decryption of the stream. */
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_stream_continue_decryption(&stream, &iv, sizeof(iv), 0))
+    retval = vccrypt_stream_continue_decryption(&stream, &iv, sizeof(iv), 0);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_mac;
@@ -124,9 +137,10 @@ int psock_read_authed_data(
 
     /* decrypt enough of the header to determine the type and size. */
     size_t offset = 0;
-    if (VCCRYPT_STATUS_SUCCESS !=
+    retval =
         vccrypt_stream_decrypt(
-            &stream, hbuffer.data, dheader_size, dhbuffer.data, &offset))
+            &stream, hbuffer.data, dheader_size, dhbuffer.data, &offset);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_mac;
@@ -151,8 +165,8 @@ int psock_read_authed_data(
 
     /* create a payload buffer for holding the encrypted payload. */
     vccrypt_buffer_t payload;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_buffer_init(&payload, suite->alloc_opts, *size))
+    retval = vccrypt_buffer_init(&payload, suite->alloc_opts, *size);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
         goto cleanup_mac;
@@ -168,10 +182,15 @@ int psock_read_authed_data(
     }
 
     /* digest the packet. */
-    if (VCCRYPT_STATUS_SUCCESS !=
-            vccrypt_mac_digest(&mac, hbuffer.data, dheader_size) ||
-        VCCRYPT_STATUS_SUCCESS !=
-            vccrypt_mac_digest(&mac, payload.data, *size))
+    retval = vccrypt_mac_digest(&mac, hbuffer.data, dheader_size);
+    if (STATUS_SUCCESS != retval)
+    {
+        retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
+        goto cleanup_payload;
+    }
+
+    retval = vccrypt_mac_digest(&mac, payload.data, *size);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_payload;
@@ -180,17 +199,18 @@ int psock_read_authed_data(
     /* create a buffer to hold the digest. */
     /* TODO - there should be a suite method for this. */
     vccrypt_buffer_t digest;
-    if (VCCRYPT_STATUS_SUCCESS !=
+    retval =
         vccrypt_buffer_init(
-            &digest, suite->alloc_opts, suite->mac_short_opts.mac_size))
+            &digest, suite->alloc_opts, suite->mac_short_opts.mac_size);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
         goto cleanup_payload;
     }
 
     /* finalize the mac. */
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_mac_finalize(&mac, &digest))
+    retval = vccrypt_mac_finalize(&mac, &digest);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_digest;
@@ -215,9 +235,10 @@ int psock_read_authed_data(
     }
 
     /* continue decryption in the payload. */
-    if (VCCRYPT_STATUS_SUCCESS !=
+    retval =
         vccrypt_stream_continue_decryption(
-            &stream, &iv, sizeof(iv), offset))
+            &stream, &iv, sizeof(iv), offset);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_val;
@@ -227,9 +248,10 @@ int psock_read_authed_data(
     offset = 0;
 
     /* decrypt the payload. */
-    if (VCCRYPT_STATUS_SUCCESS !=
+    retval =
         vccrypt_stream_decrypt(
-            &stream, payload.data, *size, *val, &offset))
+            &stream, payload.data, *size, *val, &offset);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_val;

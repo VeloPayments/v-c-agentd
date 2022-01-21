@@ -164,6 +164,7 @@ enum protocolservice_protocol_write_endpoint_message_type
     PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_MESSAGE_SHUTDOWN,
     PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_MSG,
     PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_NOTIFICATION_MSG,
+    PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_PACKET,
 };
 
 /**
@@ -501,7 +502,7 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r);
  *
  * \param ctx           The protocol fiber context for this socket.
  * \param request_id    The id of the request that caused the error.
- * \param status        The status code of the error.
+ * \param status_       The status code of the error.
  * \param offset        The request offset that caused the error.
  * \param encrypted     Set to true if this packet should be encrypted.
  *
@@ -512,6 +513,22 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r);
 status protocolservice_write_error_response(
     protocolservice_protocol_fiber_context* ctx, int request_id, int status,
     uint32_t offset, bool encrypted);
+
+/**
+ * \brief Send an error response to the protocol write endpoint.
+ *
+ * \param ctx           The protocol fiber context for this socket.
+ * \param request_id    The id of the request that caused the error.
+ * \param status_       The status code of the error.
+ * \param offset        The request offset that caused the error.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_send_error_response_message(
+    protocolservice_protocol_fiber_context* ctx, int request_id, int status,
+    uint32_t offset);
 
 /**
  * \brief Perform the handshake for the protocol.
@@ -855,6 +872,35 @@ status protocolservice_protocol_write_endpoint_message_release(
  */
 status protocolservice_protocol_write_endpoint_decode_and_dispatch(
     protocolservice_protocol_fiber_context* ctx, RCPR_SYM(message)* msg);
+
+/**
+ * \brief Read a packet from the client socket, and decode / dispatch it.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_read_decode_and_dispatch_packet(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Decode and dispatch a packet from the client.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_id        The request id of the packet.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_decode_and_dispatch(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_id,
+    uint32_t request_offset, const uint8_t* payload, size_t payload_size);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

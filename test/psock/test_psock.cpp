@@ -145,7 +145,8 @@ TEST(psock_test, psock_read_authed_data_happy_path)
 
     /* read an authed packet from the rhs socket. */
     ASSERT_EQ(0,
-        psock_read_authed_data(sock, iv, &str, &str_size, &suite, &key));
+        psock_read_authed_data(
+            sock, rcpr_alloc, iv, &str, &str_size, &suite, &key));
 
     /* the data is valid. */
     ASSERT_NE(nullptr, str);
@@ -240,7 +241,8 @@ TEST(psock_test, psock_write_authed_data_happy_path)
 
     /* read an authed packet from the rhs socket. */
     ASSERT_EQ(0,
-        psock_read_authed_data(rsock, iv, &str, &str_size, &suite, &key));
+        psock_read_authed_data(
+            rsock, rcpr_alloc, iv, &str, &str_size, &suite, &key));
 
     /* the data is valid. */
     ASSERT_NE(nullptr, str);

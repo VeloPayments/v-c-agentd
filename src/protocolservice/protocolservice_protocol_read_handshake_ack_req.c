@@ -37,15 +37,20 @@ status protocolservice_protocol_read_handshake_ack_req(
     /* attempt to read the ack packet. */
     retval =
         psock_read_authed_data(
-            ctx->protosock, ctx->client_iv, &req, &size, &ctx->ctx->suite,
-            &ctx->shared_secret);
+            ctx->protosock, ctx->alloc, ctx->client_iv, &req, &size,
+            &ctx->ctx->suite, &ctx->shared_secret);
     if (STATUS_SUCCESS != retval)
     {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_REQUEST;
         goto write_error_response;
     }
 
     /* if we've read a message, increment the client IV. */
     ++ctx->client_iv;
+
+    /* free the request; we no longer need it. */
+    memset(req, 0, size);
+    free(req);
 
     /* success. */
     retval = STATUS_SUCCESS;
@@ -53,9 +58,7 @@ status protocolservice_protocol_read_handshake_ack_req(
 
 write_error_response:
     release_retval =
-        protocolservice_write_error_response(
-            ctx, UNAUTH_PROTOCOL_REQ_ID_HANDSHAKE_ACKNOWLEDGE,
-            retval, 0U, true);
+        protocolservice_write_error_response(ctx, 0U, retval, 0U, true);
     if (STATUS_SUCCESS != release_retval)
     {
         retval = release_retval;
