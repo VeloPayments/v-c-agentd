@@ -39,6 +39,15 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
 
+    /* decrement the reference count. */
+    --ctx->reference_count;
+
+    /* if there are still references to this context, don't release it yet. */
+    if (ctx->reference_count > 0)
+    {
+        return STATUS_SUCCESS;
+    }
+
     /* cache the allocator. */
     rcpr_allocator* alloc = ctx->alloc;
 

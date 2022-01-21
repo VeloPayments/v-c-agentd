@@ -152,6 +152,7 @@ struct protocolservice_protocol_fiber_context
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
+    int reference_count;
     protocolservice_context* ctx;
     RCPR_SYM(fiber)* fib;
     RCPR_SYM(psock)* protosock;
