@@ -56,6 +56,7 @@ int psock_write_authed_data(
  * for freeing it when it is no longer in use.
  *
  * \param sock          The psock instance from which the packet is read.
+ * \param alloc         The allocator to use for this function.
  * \param iv            The 64-bit IV to expect for this packet.
  * \param val           Pointer to the pointer of the raw data buffer.
  * \param size          Pointer to the variable to receive the size of this
@@ -78,8 +79,8 @@ int psock_write_authed_data(
  *        authenticated.
  */
 int psock_read_authed_data(
-    RCPR_SYM(psock)* sock, uint64_t iv, void** val, uint32_t* size,
-    vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret);
+    RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint64_t iv, void** val,
+    uint32_t* size, vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret);
 
 /* C++ compatibility. */
 # ifdef   __cplusplus

@@ -60,7 +60,16 @@ status protocolservice_protocol_fiber_entry(void* vctx)
         goto cleanup_context;
     }
 
-    /* TODO - add decode-and-dispatch loop. */
+    /* decode-and-dispatch loop. */
+    while (!ctx->ctx->quiesce)
+    {
+        retval = protocolservice_protocol_read_decode_and_dispatch_packet(ctx);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto shutdown_write_endpoint;
+        }
+    }
+
     /* TODO - extend decode-and-dispatch with sentinel service registry. */
     retval = STATUS_SUCCESS;
     goto shutdown_write_endpoint;
