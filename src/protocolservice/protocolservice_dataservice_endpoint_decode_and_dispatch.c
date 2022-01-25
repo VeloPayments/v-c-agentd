@@ -44,20 +44,24 @@ status protocolservice_dataservice_endpoint_decode_and_dispatch(
 
     switch (req_payload->request_id)
     {
+        /* handle a database service context open request. */
         case PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_OPEN:
             return
                 pde_decode_and_dispatch_req_context_open(
                     ctx, req_payload, return_address, reply_payload);
 
+        /* handle a database service context close request. */
         case PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_CLOSE:
             return
                 pde_decode_and_dispatch_req_context_close(
                     ctx, req_payload, return_address, reply_payload);
 
+        /* handle a general database service request. */
         case PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_DATASERVICE_REQ:
             return pde_decode_and_dispatch_req_dataservice_req(
                     ctx, req_payload, return_address, reply_payload);
 
+        /* handle an invalid request. */
         default:
             return pde_decode_and_dispatch_invalid_req(
                     ctx, req_payload, return_address, reply_payload);

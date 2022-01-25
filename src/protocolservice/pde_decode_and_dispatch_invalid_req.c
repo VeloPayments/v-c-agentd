@@ -32,16 +32,21 @@
 status pde_decode_and_dispatch_invalid_req(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
-    RCPR_SYM(mailbox_address) return_address,
+    RCPR_SYM(mailbox_address) /*return_address*/,
     protocolservice_dataservice_response_message** reply_payload)
 {
-    /* TODO - implement. */
-    (void)ctx;
-    (void)req_payload;
-    (void)return_address;
-    (void)reply_payload;
+    /* parameter sanity checks. */
+    MODEL_ASSERT(prop_protocolservice_dataservice_endpoint_context_valid(ctx));
+    MODEL_ASSERT(
+        prop_protocolservice_dataservice_request_message_valid(req_payload));
+    MODEL_ASSERT(return_address > 0);
+    MODEL_ASSERT(NULL != reply_payload);
 
-    return -1;
+    /* create a response message payload. */
+    return
+        protocolservice_dataservice_response_message_create(
+            reply_payload, ctx, req_payload->request_id, -1,
+            req_payload->offset, NULL);
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */
