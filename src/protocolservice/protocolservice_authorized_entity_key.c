@@ -24,8 +24,8 @@
 const void* protocolservice_authorized_entity_key(
     void* /*context*/, const RCPR_SYM(resource)* r)
 {
-    protocolservice_authorized_entity* entity =
-        (protocolservice_authorized_entity*)r;
+    const protocolservice_authorized_entity* entity =
+        (const protocolservice_authorized_entity*)r;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_authorized_entity_valid(entity));
