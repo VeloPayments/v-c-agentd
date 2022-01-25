@@ -432,6 +432,41 @@ status pde_decode_and_dispatch_invalid_req(
     protocolservice_dataservice_response_message** reply_payload);
 
 /**
+ * \brief Create a dataservice endpoint request message.
+ *
+ * \param req_payload       Pointer to the pointer to be updated on success.
+ * \param ctx               The endpoint context.
+ * \param request_id        The request id.
+ * \param offset            The offset code.
+ * \param payload           The payload data.
+ *
+ * If \p payload is not NULL, then the data in \p payload is moved into an
+ * internal structure that is part of the request message owned by the caller
+ * on success. Either on success or failure, \p payload should be disposed
+ * after this call.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_dataservice_request_message_create(
+    protocolservice_dataservice_request_message** req_payload,
+    protocolservice_dataservice_endpoint_context* ctx, uint32_t request_id,
+    uint32_t offset, vccrypt_buffer_t* payload);
+
+/**
+ * \brief Release a dataservice endpoint request message.
+ *
+ * \param r             The message to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_dataservice_request_message_release(
+    RCPR_SYM(resource)* r);
+
+/**
  * \brief Create a dataservice endpoint response message.
  *
  * \param reply_payload     Pointer to the pointer to be updated on success.
