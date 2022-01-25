@@ -269,6 +269,7 @@ struct protocolservice_protocol_fiber_context
     RCPR_SYM(rcpr_uuid) entity_uuid;
     RCPR_SYM(mailbox_address) return_addr;
     const protocolservice_authorized_entity* entity;
+    bool dataservice_context_opened;
 };
 
 /**
@@ -435,7 +436,7 @@ status pde_decode_and_dispatch_invalid_req(
  * \brief Create a dataservice endpoint request message.
  *
  * \param req_payload       Pointer to the pointer to be updated on success.
- * \param ctx               The endpoint context.
+ * \param ctx               The protocol fiber context.
  * \param request_id        The request id.
  * \param offset            The offset code.
  * \param payload           The payload data.
@@ -451,7 +452,7 @@ status pde_decode_and_dispatch_invalid_req(
  */
 status protocolservice_dataservice_request_message_create(
     protocolservice_dataservice_request_message** req_payload,
-    protocolservice_dataservice_endpoint_context* ctx, uint32_t request_id,
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_id,
     uint32_t offset, vccrypt_buffer_t* payload);
 
 /**
@@ -1137,6 +1138,18 @@ status protocolservice_protocol_write_handshake_ack_resp(
  *      - a non-zero error code on failure.
  */
 status protocolservice_protocol_request_data_service_context(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Close the data service context for this connection.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_close_data_service_context(
     protocolservice_protocol_fiber_context* ctx);
 
 /**

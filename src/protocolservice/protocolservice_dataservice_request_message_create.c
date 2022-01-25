@@ -21,7 +21,7 @@ RCPR_IMPORT_resource;
  * \brief Create a dataservice endpoint request message.
  *
  * \param req_payload       Pointer to the pointer to be updated on success.
- * \param ctx               The endpoint context.
+ * \param ctx               The protocol fiber context.
  * \param request_id        The request id.
  * \param offset            The offset code.
  * \param payload           The payload data.
@@ -37,7 +37,7 @@ RCPR_IMPORT_resource;
  */
 status protocolservice_dataservice_request_message_create(
     protocolservice_dataservice_request_message** req_payload,
-    protocolservice_dataservice_endpoint_context* ctx, uint32_t request_id,
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_id,
     uint32_t offset, vccrypt_buffer_t* payload)
 {
     status retval;
@@ -45,7 +45,7 @@ status protocolservice_dataservice_request_message_create(
 
     /* parameter sanity checks. */
     MODEL_ASSERT(NULL != req_payload);
-    MODEL_ASSERT(prop_protocolservice_dataservice_endpoint_context_valid(ctx));
+    MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
 
     /* allocate memory for the request message. */
     retval = rcpr_allocator_allocate(ctx->alloc, (void**)&tmp, sizeof(*tmp));

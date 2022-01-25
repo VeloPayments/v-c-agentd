@@ -1,7 +1,7 @@
 /**
- * \file protocolservice/protocolservice_request_data_service_context.c
+ * \file protocolservice/protocolservice_close_data_service_context.c
  *
- * \brief Send a request to the data service endpoint for a context.
+ * \brief Send a request to the data service endpoint to close the context.
  *
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
@@ -19,7 +19,7 @@ RCPR_IMPORT_message;
 RCPR_IMPORT_resource;
 
 /**
- * \brief Request a data service context for this connection.
+ * \brief Close the data service context for this connection.
  *
  * \param ctx               The protocol service protocol fiber context.
  *
@@ -27,7 +27,7 @@ RCPR_IMPORT_resource;
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status protocolservice_protocol_request_data_service_context(
+status protocolservice_protocol_close_data_service_context(
     protocolservice_protocol_fiber_context* ctx)
 {
     status retval, release_retval;
@@ -43,7 +43,7 @@ status protocolservice_protocol_request_data_service_context(
     retval =
         protocolservice_dataservice_request_message_create(
             &request_payload, ctx,
-            PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_OPEN,
+            PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_CLOSE,
             0U, NULL);
     if (STATUS_SUCCESS != retval)
     {
@@ -95,7 +95,7 @@ status protocolservice_protocol_request_data_service_context(
     if (STATUS_SUCCESS == retval)
     {
         /* the context is now opened. */
-        ctx->dataservice_context_opened = true;
+        ctx->dataservice_context_opened = false;
     }
 
     /* release the response message. */

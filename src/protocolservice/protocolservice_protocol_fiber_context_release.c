@@ -30,6 +30,7 @@ RCPR_IMPORT_resource;
  */
 status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
 {
+    status dataservice_context_release_retval = STATUS_SUCCESS;
     status protosock_release_retval = STATUS_SUCCESS;
     status mailbox_close_retval = STATUS_SUCCESS;
     status context_release_retval = STATUS_SUCCESS;
@@ -50,6 +51,13 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
 
     /* cache the allocator. */
     rcpr_allocator* alloc = ctx->alloc;
+
+    /* close the dataservice context. */
+    if (ctx->dataservice_context_opened)
+    {
+        dataservice_context_release_retval =
+            protocolservice_protocol_close_data_service_context(ctx);
+    }
 
     /* release the protocol socket. */
     if (NULL != ctx->protosock)
@@ -99,7 +107,11 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
     context_release_retval = rcpr_allocator_reclaim(alloc, ctx);
 
     /* decode the appropriate response code. */
-    if (STATUS_SUCCESS != protosock_release_retval)
+    if (STATUS_SUCCESS != dataservice_context_release_retval)
+    {
+        return dataservice_context_release_retval;
+    }
+    else if (STATUS_SUCCESS != protosock_release_retval)
     {
         return protosock_release_retval;
     }
