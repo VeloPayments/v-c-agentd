@@ -31,6 +31,9 @@ extern "C" {
 /** \brief The random endpoint fiber stack size. */
 #define RANDOM_ENDPOINT_STACK_SIZE 16384
 
+/** \brief The dataservice endpoint fiber stack size. */
+#define DATASERVICE_ENDPOINT_STACK_SIZE 16384
+
 /** \brief The manager fiber stack size. */
 #define MANAGER_FIBER_STACK_SIZE 16384
 
@@ -53,6 +56,21 @@ struct protocolservice_authorized_entity
     RCPR_SYM(rcpr_uuid) entity_uuid;
     vccrypt_buffer_t encryption_pubkey;
     vccrypt_buffer_t signing_pubkey;
+};
+
+/**
+ * \brief A mailbox context entry.
+ */
+typedef struct protocolservice_dataservice_mailbox_context_entry
+protocolservice_dataservice_mailbox_context_entry;
+
+struct protocolservice_dataservice_mailbox_context_entry
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    int reference_count;
+    RCPR_SYM(mailbox_address) addr;
+    uint32_t context;
 };
 
 /**
@@ -143,6 +161,65 @@ struct protocolservice_random_response_message
 };
 
 /**
+ * \brief Context structure for the protocol service dataservice endpoint.
+ */
+typedef struct protocolservice_dataservice_endpoint_context
+protocolservice_dataservice_endpoint_context;
+
+struct protocolservice_dataservice_endpoint_context
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    RCPR_SYM(fiber)* fib;
+    RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
+    RCPR_SYM(mailbox_address) addr;
+    RCPR_SYM(psock)* datasock;
+    RCPR_SYM(rbtree)* mailbox_context_tree;
+    RCPR_SYM(rbtree)* context_mailbox_tree;
+};
+
+/**
+ * \brief A request message payload for the dataservice endpoint.
+ */
+typedef struct protocolservice_dataservice_request_message
+protocolservice_dataservice_request_message;
+
+struct protocolservice_dataservice_request_message
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    uint32_t request_id;
+    uint32_t offset;
+    vccrypt_buffer_t payload;
+};
+
+/**
+ * \brief A response message payload for the dataservice endpoint.
+ */
+typedef struct protocolservice_dataservice_response_message
+protocolservice_dataservice_response_message;
+
+struct protocolservice_dataservice_response_message
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    uint32_t request_id;
+    uint32_t status;
+    uint32_t offset;
+    vccrypt_buffer_t payload;
+};
+
+/**
+ * \brief Request IDs supported by the dataservice endpoint.
+ */
+enum protocolservice_dataservice_endpoint_request_id
+{
+    PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_OPEN,
+    PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_CLOSE,
+    PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_DATASERVICE_REQ,
+};
+
+/**
  * \brief Protocol write endpoint message.
  */
 typedef struct protocolservice_protocol_write_endpoint_message
@@ -227,6 +304,187 @@ struct protocolservice_control_fiber_context
 status protocolservice_dataservice_endpoint_add(
     RCPR_SYM(mailbox_address)* addr, RCPR_SYM(allocator)* alloc,
     RCPR_SYM(fiber_scheduler)* sched, int datasock);
+
+/**
+ * \brief Release a protocolservice dataservice endpoint context resource.
+ *
+ * \param r             The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_dataservice_endpoint_context_release(
+    RCPR_SYM(resource)* r);
+
+/**
+ * \brief Entry point for the protocol service dataservice endpoint fiber.
+ *
+ * This fiber manages communication with the dataservice instance assigned to
+ * the protocol service.
+ *
+ * \param vctx          The type erased context for this endpoint fiber.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_dataservice_endpoint_fiber_entry(void* vctx);
+
+/**
+ * \brief Decode and dispatch a dataservice endpoint request.
+ *
+ * \param ctx               The endpoint context.
+ * \param req_payload       The request payload.
+ * \param return_address    The return mailbox address, needed for looking up
+ *                          the request context.
+ * \param reply_payload     Pointer to the pointer to receive the reply payload
+ *                          for this request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_dataservice_endpoint_decode_and_dispatch(
+    protocolservice_dataservice_endpoint_context* ctx,
+    protocolservice_dataservice_request_message* req_payload,
+    RCPR_SYM(mailbox_address) return_address,
+    protocolservice_dataservice_response_message** reply_payload);
+
+/**
+ * \brief Decode and dispatch a dataservice context open request.
+ *
+ * \param ctx               The endpoint context.
+ * \param req_payload       The request payload.
+ * \param return_address    The return mailbox address, needed for looking up
+ *                          the request context.
+ * \param reply_payload     Pointer to the pointer to receive the reply payload
+ *                          for this request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status pde_decode_and_dispatch_req_context_open(
+    protocolservice_dataservice_endpoint_context* ctx,
+    protocolservice_dataservice_request_message* req_payload,
+    RCPR_SYM(mailbox_address) return_address,
+    protocolservice_dataservice_response_message** reply_payload);
+
+/**
+ * \brief Decode and dispatch a dataservice context close request.
+ *
+ * \param ctx               The endpoint context.
+ * \param req_payload       The request payload.
+ * \param return_address    The return mailbox address, needed for looking up
+ *                          the request context.
+ * \param reply_payload     Pointer to the pointer to receive the reply payload
+ *                          for this request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status pde_decode_and_dispatch_req_context_close(
+    protocolservice_dataservice_endpoint_context* ctx,
+    protocolservice_dataservice_request_message* req_payload,
+    RCPR_SYM(mailbox_address) return_address,
+    protocolservice_dataservice_response_message** reply_payload);
+
+/**
+ * \brief Decode and dispatch a generic dataservice request.
+ *
+ * \param ctx               The endpoint context.
+ * \param req_payload       The request payload.
+ * \param return_address    The return mailbox address, needed for looking up
+ *                          the request context.
+ * \param reply_payload     Pointer to the pointer to receive the reply payload
+ *                          for this request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status pde_decode_and_dispatch_req_dataservice_req(
+    protocolservice_dataservice_endpoint_context* ctx,
+    protocolservice_dataservice_request_message* req_payload,
+    RCPR_SYM(mailbox_address) return_address,
+    protocolservice_dataservice_response_message** reply_payload);
+
+/**
+ * \brief Report an error for an invalid dataservice endpoint request.
+ *
+ * \param ctx               The endpoint context.
+ * \param req_payload       The request payload.
+ * \param return_address    The return mailbox address, needed for looking up
+ *                          the request context.
+ * \param reply_payload     Pointer to the pointer to receive the reply payload
+ *                          for this request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status pde_decode_and_dispatch_invalid_req(
+    protocolservice_dataservice_endpoint_context* ctx,
+    protocolservice_dataservice_request_message* req_payload,
+    RCPR_SYM(mailbox_address) return_address,
+    protocolservice_dataservice_response_message** reply_payload);
+
+/**
+ * \brief Compare two opaque \ref mailbox_address values.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs.
+ */
+RCPR_SYM(rcpr_comparison_result)
+protocolservice_dataservice_endpoint_mailbox_context_tree_compare(
+    void* context, const void* lhs, const void* rhs);
+
+/**
+ * \brief Given a mailbox_context resource handle, return its \ref
+ * mailbox_address value.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of an authorized entity.
+ *
+ * \returns the key for the authorized entity resource.
+ */
+const void* protocolservice_dataservice_endpoint_mailbox_context_tree_key(
+    void* context, const RCPR_SYM(resource)* r);
+
+/**
+ * \brief Compare two opaque context values.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs.
+ */
+RCPR_SYM(rcpr_comparison_result)
+protocolservice_dataservice_endpoint_context_mailbox_tree_compare(
+    void* context, const void* lhs, const void* rhs);
+
+/**
+ * \brief Given an mailbox_context resource handle, return its context value.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of an authorized entity.
+ *
+ * \returns the key for the authorized entity resource.
+ */
+const void* protocolservice_dataservice_endpoint_context_mailbox_tree_key(
+    void* context, const RCPR_SYM(resource)* r);
 
 /**
  * \brief Create and add the protocol service random endpoint fiber.
