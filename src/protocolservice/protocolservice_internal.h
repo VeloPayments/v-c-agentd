@@ -1153,6 +1153,21 @@ status protocolservice_protocol_close_data_service_context(
     protocolservice_protocol_fiber_context* ctx);
 
 /**
+ * \brief Map the user capabilities in a form that the data service open context
+ * request can understand.
+ *
+ * \param payload           The buffer to receive the payload to the open
+ *                          context request. This buffer must be uninitialized.
+ * \param ctx               The protocol service protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_dataservice_map_user_capabilities(
+    vccrypt_buffer_t* payload, protocolservice_protocol_fiber_context* ctx);
+
+/**
  * \brief Create and add a protocol write endpoint instance to the fiber
  * manager.
  *

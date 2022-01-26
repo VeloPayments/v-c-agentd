@@ -50,6 +50,15 @@ status protocolservice_protocol_request_data_service_context(
         goto done;
     }
 
+    /* create the capabilities set for this user, saved to the payload. */
+    retval =
+        protocolservice_dataservice_map_user_capabilities(
+            &request_payload->payload, ctx);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_request_payload;
+    }
+
     /* create the request message. */
     retval =
         message_create(&request, ctx->alloc, ctx->return_addr,
