@@ -7,6 +7,7 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <agentd/dataservice/api.h>
 #include <agentd/randomservice/api.h>
 #include <cbmc/model_assert.h>
 #include <unistd.h>
@@ -14,6 +15,9 @@
 #include "protocolservice_internal.h"
 
 #if defined(AGENTD_NEW_PROTOCOL)
+
+RCPR_IMPORT_rbtree;
+RCPR_IMPORT_resource;
 
 /**
  * \brief Decode and dispatch a dataservice context close request.
@@ -35,10 +39,73 @@ status pde_decode_and_dispatch_req_context_close(
     RCPR_SYM(mailbox_address) return_address,
     protocolservice_dataservice_response_message** reply_payload)
 {
-    /* TODO - implement. For now, just mark it as an invalid request. */
+    status retval;
+    uint32_t status, offset;
+    protocolservice_dataservice_mailbox_context_entry* entry = NULL;
+
+    /* parameter sanity checks. */
+    MODEL_ASSERT(prop_protocolservice_dataservice_endpoint_context_valid(ctx));
+    MODEL_ASSERT(
+        prop_protocolservice_dataservice_request_message_valid(req_payload));
+    MODEL_ASSERT(return_address > 0);
+    MODEL_ASSERT(NULL != reply_payload);
+
+    /* look up the context entry by return address. */
+    retval =
+        rbtree_find(
+            (resource**)&entry, ctx->mailbox_context_tree, &return_address);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto send_response;
+    }
+
+    /* send the dataservice child context close request. */
+    retval =
+        dataservice_api_sendreq_child_context_close(
+            ctx->datasock, entry->context);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto send_response;
+    }
+
+    /* receive the dataservice child context close response. */
+    retval =
+        dataservice_api_recvresp_child_context_close(
+            ctx->datasock, ctx->alloc, &offset, &status);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto send_response;
+    }
+
+    /* if the request failed on the dataservice side, log the error. */
+    if (STATUS_SUCCESS != status)
+    {
+        retval = status;
+        goto send_response;
+    }
+
+    /* remove the entry from the mailbox_context tree. */
+    retval = rbtree_delete(NULL, ctx->mailbox_context_tree, &entry->addr);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto send_response;
+    }
+
+    /* remove the entry from the context_mailbox tree. */
+    retval = rbtree_delete(NULL, ctx->context_mailbox_tree, &entry->context);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto send_response;
+    }
+
+    /* success. */
+    goto send_response;
+
+send_response:
     return
-        pde_decode_and_dispatch_invalid_req(
-            ctx, req_payload, return_address, reply_payload);
+        protocolservice_dataservice_response_message_create(
+            reply_payload, ctx, req_payload->request_id, retval,
+            req_payload->offset, NULL);
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */

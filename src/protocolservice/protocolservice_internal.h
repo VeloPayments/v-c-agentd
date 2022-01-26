@@ -504,6 +504,18 @@ status protocolservice_dataservice_response_message_release(
     RCPR_SYM(resource)* r);
 
 /**
+ * \brief Release a mailbox context resource.
+ *
+ * \param r             The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_dataservice_mailbox_context_release(
+    RCPR_SYM(resource)* r);
+
+/**
  * \brief Compare two opaque \ref mailbox_address values.
  *
  * \param context       Unused.
