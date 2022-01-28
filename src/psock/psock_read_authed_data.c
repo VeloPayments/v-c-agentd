@@ -50,12 +50,11 @@ int psock_read_authed_data(
     void** val, uint32_t* size, vccrypt_suite_options_t* suite,
     vccrypt_buffer_t* secret)
 {
-    status retval = 0;
+    status retval = 0, release_retval = 0;
     uint32_t type = 0U;
     uint32_t nsize = 0U;
     uint8_t* header = NULL;
     uint8_t* dheader = NULL;
-    size_t read_size = 0U;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_psock_valid(sock));
@@ -163,19 +162,10 @@ int psock_read_authed_data(
         goto cleanup_mac;
     }
 
-    /* create a payload buffer for holding the encrypted payload. */
-    vccrypt_buffer_t payload;
-    retval = vccrypt_buffer_init(&payload, suite->alloc_opts, *size);
-    if (STATUS_SUCCESS != retval)
-    {
-        retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
-        goto cleanup_mac;
-    }
-
     /* read the payload. */
-    read_size = *size;
-    retval = psock_read_raw(sock, payload.data, &read_size);
-    if (VCCRYPT_STATUS_SUCCESS != retval || *size != read_size)
+    void* payload = NULL;
+    retval = psock_read_raw_data(sock, alloc, &payload, *size);
+    if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_READ_BLOCK_FAILURE;
         goto cleanup_payload;
@@ -189,7 +179,7 @@ int psock_read_authed_data(
         goto cleanup_payload;
     }
 
-    retval = vccrypt_mac_digest(&mac, payload.data, *size);
+    retval = vccrypt_mac_digest(&mac, payload, *size);
     if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
@@ -250,7 +240,7 @@ int psock_read_authed_data(
     /* decrypt the payload. */
     retval =
         vccrypt_stream_decrypt(
-            &stream, payload.data, *size, *val, &offset);
+            &stream, payload, *size, *val, &offset);
     if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
@@ -270,7 +260,12 @@ cleanup_digest:
     dispose((disposable_t*)&digest);
 
 cleanup_payload:
-    dispose((disposable_t*)&payload);
+    memset(payload, 0, *size);
+    release_retval = rcpr_allocator_reclaim(alloc, payload);
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
 
 cleanup_mac:
     dispose((disposable_t*)&mac);
