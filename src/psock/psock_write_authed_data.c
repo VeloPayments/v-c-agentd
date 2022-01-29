@@ -49,11 +49,11 @@ int psock_write_authed_data(
     MODEL_ASSERT(prop_vccrypt_buffer_valid(secret));
 
     /* create a buffer for holding the digest. */
-    /* TODO - there should be a suite method for this. */
     vccrypt_buffer_t digest;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_buffer_init(
-            &digest, suite->alloc_opts, suite->mac_short_opts.mac_size))
+    retval =
+        vccrypt_suite_buffer_init_for_mac_authentication_code(
+            suite, &digest, true);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
         goto done;
@@ -63,8 +63,8 @@ int psock_write_authed_data(
     size_t packet_size =
         sizeof(type) + sizeof(nsize) + digest.size + size;
     vccrypt_buffer_t packet;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_buffer_init(&packet, suite->alloc_opts, packet_size))
+    retval = vccrypt_buffer_init(&packet, suite->alloc_opts, packet_size);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
         goto cleanup_digest;
@@ -72,8 +72,8 @@ int psock_write_authed_data(
 
     /* create a stream cipher for encrypting this packet. */
     vccrypt_stream_context_t stream;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_suite_stream_init(suite, &stream, secret))
+    retval = vccrypt_suite_stream_init(suite, &stream, secret);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_packet;
@@ -81,16 +81,16 @@ int psock_write_authed_data(
 
     /* create a mac instance for building the packet authentication code. */
     vccrypt_mac_context_t mac;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_suite_mac_short_init(suite, &mac, secret))
+    retval = vccrypt_suite_mac_short_init(suite, &mac, secret);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_stream;
     }
 
     /* start the stream cipher. */
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_stream_continue_encryption(&stream, &iv, sizeof(iv), 0))
+    retval = vccrypt_stream_continue_encryption(&stream, &iv, sizeof(iv), 0);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_mac;
@@ -101,47 +101,55 @@ int psock_write_authed_data(
     size_t offset = 0;
 
     /* encrypt the type. */
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_stream_encrypt(
-            &stream, &type, sizeof(type), bpacket, &offset))
+    retval =
+        vccrypt_stream_encrypt(&stream, &type, sizeof(type), bpacket, &offset);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_mac;
     }
 
     /* encrypt the size. */
-    if (VCCRYPT_STATUS_SUCCESS !=
+    retval =
         vccrypt_stream_encrypt(
-            &stream, &nsize, sizeof(nsize), bpacket, &offset))
+            &stream, &nsize, sizeof(nsize), bpacket, &offset);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_mac;
     }
 
     /* encrypt the payload. */
-    if (VCCRYPT_STATUS_SUCCESS !=
+    retval =
         vccrypt_stream_encrypt(
-            &stream, val, size, bpacket + digest.size, &offset))
+            &stream, val, size, bpacket + digest.size, &offset);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_mac;
     }
 
-    /* digest the packet header and payload. */
-    if (VCCRYPT_STATUS_SUCCESS !=
-            vccrypt_mac_digest(
-                &mac, bpacket, sizeof(type) + sizeof(nsize)) ||
-        VCCRYPT_STATUS_SUCCESS !=
-            vccrypt_mac_digest(
-                &mac, bpacket + sizeof(type) + sizeof(nsize) + digest.size,
-                size))
+    /* digest the packet header. */
+    retval = vccrypt_mac_digest(&mac, bpacket, sizeof(type) + sizeof(nsize));
+    if (STATUS_SUCCESS != retval)
+    {
+        retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
+        goto cleanup_mac;
+    }
+
+    /* digest the packet payload. */
+    retval =
+        vccrypt_mac_digest(
+            &mac, bpacket + sizeof(type) + sizeof(nsize) + digest.size, size);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_mac;
     }
 
     /* finalize the digest. */
-    if (VCCRYPT_STATUS_SUCCESS != vccrypt_mac_finalize(&mac, &digest))
+    retval = vccrypt_mac_finalize(&mac, &digest);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_CRYPTO_FAILURE;
         goto cleanup_mac;
