@@ -67,8 +67,8 @@ int psock_read_authed_data(
     const size_t header_size =
         sizeof(type) + sizeof(nsize) + suite->mac_short_opts.mac_size;
     vccrypt_buffer_t hbuffer;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_buffer_init(&hbuffer, suite->alloc_opts, header_size))
+    retval = vccrypt_buffer_init(&hbuffer, suite->alloc_opts, header_size);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
         goto done;
@@ -78,8 +78,8 @@ int psock_read_authed_data(
     const size_t dheader_size =
         sizeof(type) + sizeof(nsize);
     vccrypt_buffer_t dhbuffer;
-    if (VCCRYPT_STATUS_SUCCESS !=
-        vccrypt_buffer_init(&dhbuffer, suite->alloc_opts, dheader_size))
+    retval = vccrypt_buffer_init(&dhbuffer, suite->alloc_opts, dheader_size);
+    if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
         goto cleanup_hbuffer;
@@ -168,10 +168,10 @@ int psock_read_authed_data(
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_IPC_READ_BLOCK_FAILURE;
-        goto cleanup_payload;
+        goto cleanup_mac;
     }
 
-    /* digest the packet. */
+    /* digest the packet header. */
     retval = vccrypt_mac_digest(&mac, hbuffer.data, dheader_size);
     if (STATUS_SUCCESS != retval)
     {
@@ -179,6 +179,7 @@ int psock_read_authed_data(
         goto cleanup_payload;
     }
 
+    /* digest the packet payload. */
     retval = vccrypt_mac_digest(&mac, payload, *size);
     if (STATUS_SUCCESS != retval)
     {
@@ -187,11 +188,10 @@ int psock_read_authed_data(
     }
 
     /* create a buffer to hold the digest. */
-    /* TODO - there should be a suite method for this. */
     vccrypt_buffer_t digest;
     retval =
-        vccrypt_buffer_init(
-            &digest, suite->alloc_opts, suite->mac_short_opts.mac_size);
+        vccrypt_suite_buffer_init_for_mac_authentication_code(
+            suite, &digest, true);
     if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
