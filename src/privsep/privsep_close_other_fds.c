@@ -26,7 +26,7 @@
  */
 int privsep_close_other_fds(int fd)
 {
-    for (int i = fd + 1; i <= FD_SETSIZE; ++i)
+    for (int i = fd + 1; i < FD_SETSIZE; ++i)
     {
         close(i);
     }
