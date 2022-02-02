@@ -160,6 +160,12 @@ extern "C" {
 #define AGENTD_ERROR_PROTOCOLSERVICE_MISSING_PRIVATE_KEY \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x0018U)
 
+/**
+ * \brief An invalid request id was given.
+ */
+#define AGENTD_ERROR_PROTOCOLSERVICE_INVALID_REQUEST_ID \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x0019U)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }

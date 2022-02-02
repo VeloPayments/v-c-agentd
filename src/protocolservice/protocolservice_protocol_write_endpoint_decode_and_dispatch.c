@@ -61,6 +61,12 @@ status protocolservice_protocol_write_endpoint_decode_and_dispatch(
         case PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_NOTIFICATION_MSG:
             return STATUS_SUCCESS;
 
+        /* Handle the write endpoint packet request. */
+        case PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_PACKET:
+            return
+                protocolservice_protocol_write_endpoint_write_packet(
+                    ctx, payload);
+
         default:
             return AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_RESPONSE;
     }
