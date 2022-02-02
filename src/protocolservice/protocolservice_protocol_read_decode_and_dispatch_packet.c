@@ -52,7 +52,7 @@ status protocolservice_protocol_read_decode_and_dispatch_packet(
     ++ctx->client_iv;
 
     /* set up the read buffer pointer. */
-    const uint8_t* breq = (const uint8_t*)breq;
+    const uint8_t* breq = (const uint8_t*)req;
 
     /* verify that the size matches what we expect. */
     const size_t request_id_size = sizeof(request_id);
