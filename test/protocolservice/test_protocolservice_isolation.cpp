@@ -633,4 +633,74 @@ TEST_F(protocolservice_isolation_test, handshake_response_plaintext_error)
     free(val);
 }
 
+/**
+ * Test that writing a valid response to the server challenge results in a
+ * successful response packet.
+ */
+TEST_F(protocolservice_isolation_test, handshake_response_happy_path)
+{
+    uint32_t offset, status;
+
+    vccrypt_buffer_t client_key_nonce;
+    vccrypt_buffer_t client_challenge_nonce;
+    vccrypt_buffer_t server_public_key;
+    vccrypt_buffer_t server_id;
+    vccrypt_buffer_t shared_secret;
+    vccrypt_buffer_t server_challenge_nonce;
+
+    /* we must have a valid crypto suite for this to work. */
+    ASSERT_TRUE(suite_initialized);
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
+    /* write the handshake request to the socket. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        protocolservice_api_sendreq_handshake_request_block(
+            protosock, &suite, authorized_entity_id, &client_key_nonce,
+            &client_challenge_nonce));
+
+    /* This should return successfully. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        protocolservice_api_recvresp_handshake_request_block(
+            protosock, &suite, &server_id, &client_private_key,
+            &server_public_key, &client_key_nonce,
+            &client_challenge_nonce, &server_challenge_nonce,
+            &shared_secret, &offset, &status));
+
+    /* the offset is always 0 for a handshake response. */
+    EXPECT_EQ(0U, offset);
+
+    /* the status code is AGENTD_STATUS_SUCCESS. */
+    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+
+    /* send the handshake ack request. */
+    uint64_t client_iv = 0;
+    uint64_t server_iv = 0;
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        protocolservice_api_sendreq_handshake_ack_block(
+            protosock, &suite, &client_iv, &shared_secret,
+            &server_challenge_nonce));
+
+    /* receive the handshake ack response. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        protocolservice_api_recvresp_handshake_ack_block(
+            protosock, &suite, &server_iv, &shared_secret, &offset,
+            &status));
+
+    /* the status should indicate success. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    /* the offset should be zero. */
+    ASSERT_EQ(0U, offset);
+
+    /* at this point, we have successfully established a secure channel. */
+
+    dispose((disposable_t*)&client_key_nonce);
+    dispose((disposable_t*)&client_challenge_nonce);
+    dispose((disposable_t*)&server_public_key);
+    dispose((disposable_t*)&server_id);
+    dispose((disposable_t*)&shared_secret);
+    dispose((disposable_t*)&server_challenge_nonce);
+}
+
 #endif /* defined(AGENTD_NEW_PROTOCOL) */
