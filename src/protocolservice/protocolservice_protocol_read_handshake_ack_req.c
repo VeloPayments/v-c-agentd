@@ -48,10 +48,6 @@ status protocolservice_protocol_read_handshake_ack_req(
     /* if we've read a message, increment the client IV. */
     ++ctx->client_iv;
 
-    /* free the request; we no longer need it. */
-    memset(req, 0, size);
-    free(req);
-
     /* success. */
     retval = STATUS_SUCCESS;
     goto done;
@@ -68,7 +64,7 @@ done:
     if (NULL != req)
     {
         memset(req, 0, size);
-        release(&ctx->ctx->vpr_alloc, req);
+        free(req);
     }
 
     return retval;
