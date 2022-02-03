@@ -1,6 +1,5 @@
 /**
- * \file
- * protocolservice/protocolservice_protocol_decode_and_dispatch.c
+ * \file protocolservice/protocolservice_protocol_decode_and_dispatch.c
  *
  * \brief Decode and dispatch a client protocol packet.
  *
@@ -44,10 +43,25 @@ status protocolservice_protocol_decode_and_dispatch(
 
     switch (request_id)
     {
+        case UNAUTH_PROTOCOL_REQ_ID_LATEST_BLOCK_ID_GET:
+            retval =
+                protocolservice_protocol_dnd_latest_block_id_get(
+                    ctx, request_offset, payload, payload_size);
+            break;
+
         default:
             retval = AGENTD_ERROR_PROTOCOLSERVICE_INVALID_REQUEST_ID;
-            goto write_error_response;
+            break;
     }
+
+    /* if the request failed, send an error response. */
+    if (STATUS_SUCCESS != retval)
+    {
+        goto write_error_response;
+    }
+
+    /* if we made it this far, we succeeded. */
+    goto done;
 
 write_error_response:
     release_retval =
@@ -63,6 +77,7 @@ write_error_response:
         retval = STATUS_SUCCESS;
     }
 
+done:
     return retval;
 }
 
