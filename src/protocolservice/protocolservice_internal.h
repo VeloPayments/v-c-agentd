@@ -1243,6 +1243,20 @@ status protocolservice_protocol_write_endpoint_decode_and_dispatch(
     protocolservice_protocol_fiber_context* ctx, RCPR_SYM(message)* msg);
 
 /**
+ * \brief Write a packet to the peer.
+ *
+ * \param ctx           The protocol service protocol fiber context.
+ * \param msg           The packet message to be written
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_write_endpoint_write_packet(
+    protocolservice_protocol_fiber_context* ctx,
+    const protocolservice_protocol_write_endpoint_message* msg);
+
+/**
  * \brief Read a packet from the client socket, and decode / dispatch it.
  *
  * \param ctx               The protocol service protocol fiber context.

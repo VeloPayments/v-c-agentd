@@ -34,14 +34,36 @@ status protocolservice_protocol_decode_and_dispatch(
     protocolservice_protocol_fiber_context* ctx, uint32_t request_id,
     uint32_t request_offset, const uint8_t* payload, size_t payload_size)
 {
-    /* TODO - fill out. */
-    (void)ctx;
-    (void)request_id;
-    (void)request_offset;
+    status retval, release_retval;
     (void)payload;
     (void)payload_size;
 
-    return STATUS_SUCCESS;
+    /* parameter sanity checks. */
+    MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
+    MODEL_ASSERT(NULL != payload);
+
+    switch (request_id)
+    {
+        default:
+            retval = AGENTD_ERROR_PROTOCOLSERVICE_INVALID_REQUEST_ID;
+            goto write_error_response;
+    }
+
+write_error_response:
+    release_retval =
+        protocolservice_send_error_response_message(
+            ctx, request_id, retval, request_offset);
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
+    else
+    {
+        /* Once the protocol is running, normal error responses aren't fatal. */
+        retval = STATUS_SUCCESS;
+    }
+
+    return retval;
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */
