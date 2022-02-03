@@ -406,6 +406,12 @@ extern "C" {
 #define AGENTD_ERROR_DATASERVICE_PRIVSEP_CLOSE_OTHER_FDS \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_DATASERVICE, 0x0044U)
 
+/**
+ * \brief An invalid parameter was passed to a dataservice method.
+ */
+#define AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_DATASERVICE, 0x0045U)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
