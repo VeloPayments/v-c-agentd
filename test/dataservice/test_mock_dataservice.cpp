@@ -731,8 +731,9 @@ TEST_F(mock_dataservice_test, default_block_make)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_make_old(
-                        &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
-                        EXPECTED_BLOCK_CERT, sizeof(EXPECTED_BLOCK_CERT));
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
+                        sizeof(EXPECTED_BLOCK_CERT));
             }
         });
 
@@ -785,8 +786,9 @@ TEST_F(mock_dataservice_test, matches_block_make)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_make_old(
-                        &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
-                        EXPECTED_BLOCK_CERT, sizeof(EXPECTED_BLOCK_CERT));
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
+                        sizeof(EXPECTED_BLOCK_CERT));
             }
         });
 
@@ -882,8 +884,9 @@ TEST_F(mock_dataservice_test, block_make_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_make_old(
-                        &nonblockdatasock, child_context, EXPECTED_BLOCK_ID,
-                        EXPECTED_BLOCK_CERT, sizeof(EXPECTED_BLOCK_CERT));
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
+                        sizeof(EXPECTED_BLOCK_CERT));
             }
         });
 

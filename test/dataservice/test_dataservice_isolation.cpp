@@ -3337,8 +3337,8 @@ TEST_F(dataservice_isolation_test, make_block_simple_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_make_old(
-                        &nonblockdatasock, child_context, foo_block_id,
-                        foo_block_cert, foo_block_cert_length);
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        foo_block_id, foo_block_cert, foo_block_cert_length);
             }
         });
     /* verify that everything ran correctly. */
@@ -4815,8 +4815,8 @@ TEST_F(dataservice_isolation_test, read_block_no_cert_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_make_old(
-                        &nonblockdatasock, child_context, foo_block_id,
-                        foo_block_cert, foo_block_cert_length);
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        foo_block_id, foo_block_cert, foo_block_cert_length);
             }
         });
     /* verify that everything ran correctly. */
