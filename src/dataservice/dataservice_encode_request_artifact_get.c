@@ -40,6 +40,15 @@ status dataservice_encode_request_artifact_get(
         return AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER;
     }
 
+    /* | Artifact Get request packet.                                         */
+    /* | ---------------------------------------------------- | ----------- | */
+    /* | DATA                                                 | SIZE        | */
+    /* | ---------------------------------------------------- | ----------- | */
+    /* | DATASERVICE_API_METHOD_APP_ARTIFACT_READ             |  4 bytes    | */
+    /* | child_context_index                                  |  4 bytes    | */
+    /* | artifact UUID.                                       | 16 bytes    | */
+    /* | ---------------------------------------------------- | ----------- | */
+
     /* compute the request buffer size. */
     size_t reqbuflen =
         sizeof(uint32_t)  /* request id */

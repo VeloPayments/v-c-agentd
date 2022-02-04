@@ -4,7 +4,7 @@
  * \brief Get a copy of the artifact record from a tree or query it from the
  * data service.
  *
- * \copyright 2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2021-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/control.h>
@@ -46,7 +46,8 @@ status attestationservice_get_or_query_artifact(
         /* send an artifact query request to the data service. */
         TRY_OR_FAIL(
             dataservice_api_sendreq_artifact_get(
-                inst->data_sock, child_context, artifact_id->data),
+                inst->data_sock, &inst->vpr_alloc, child_context,
+                artifact_id->data),
             done);
 
         /* get the response for this request. */

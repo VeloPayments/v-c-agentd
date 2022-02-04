@@ -3,7 +3,7 @@
  *
  * \brief Internal header for the attestation service.
  *
- * \copyright 2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2021-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_ATTESTATIONSERVICE_INTERNAL_HEADER_GUARD
@@ -33,6 +33,7 @@ struct attestationservice_instance
     RCPR_SYM(resource) hdr;
 
     RCPR_SYM(allocator)* alloc;
+    allocator_options_t vpr_alloc;
     RCPR_SYM(fiber)* fib;
     RCPR_SYM(psock)* sleep_sock;
     RCPR_SYM(psock)* data_sock;

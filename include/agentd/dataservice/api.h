@@ -3,7 +3,7 @@
  *
  * \brief API for the data service.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_DATASERVICE_API_HEADER_GUARD
@@ -1915,6 +1915,7 @@ int dataservice_api_recvresp_transaction_promote_old(
  * \brief Get an artifact from the artifact database by ID.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for the query.
  * \param artifact_id   The artifact UUID of the artifact to retrieve.
  *
@@ -1928,7 +1929,8 @@ int dataservice_api_recvresp_transaction_promote_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_artifact_get(
-    RCPR_SYM(psock)* sock, uint32_t child, const uint8_t* artifact_id);
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* artifact_id);
 
 /**
  * \brief Receive a response from the get artifact query.
