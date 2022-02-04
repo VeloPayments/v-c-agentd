@@ -586,6 +586,25 @@ status dataservice_encode_request_block_make(
     const RCPR_SYM(rcpr_uuid)* block_id, const void* block_cert,
     uint32_t block_cert_size);
 
+/**
+ * \brief Encode a request to query a canonized transaction by ID.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param child         The child context for this request.
+ * \param txn_id        The transaction UUID for this request.
+ * \param read_cert     Flag set to true if the transaction certificate should
+ *                      be returned.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_canonized_transaction_get(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
+    const RCPR_SYM(rcpr_uuid)* txn_id, bool read_cert);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
