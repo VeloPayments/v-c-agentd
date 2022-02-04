@@ -2454,6 +2454,7 @@ int dataservice_api_recvresp_block_id_by_height_get(
  * \brief Get the block id associated with the given block height.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for the query.
  * \param height        The block height whose UUID we wish to retrieve.
  *
@@ -2467,7 +2468,8 @@ int dataservice_api_recvresp_block_id_by_height_get(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_block_id_by_height_get_old(
-    ipc_socket_context_t* sock, uint32_t child, uint64_t height);
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts, uint32_t child,
+    uint64_t height);
 
 /**
  * \brief Receive a response from the get block id by height query.
