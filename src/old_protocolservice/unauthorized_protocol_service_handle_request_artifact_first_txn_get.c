@@ -3,7 +3,7 @@
  *
  * \brief Handle an artifact get first txn id request.
  *
- * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <config.h>
@@ -59,7 +59,8 @@ void unauthorized_protocol_service_handle_request_artifact_first_txn_get(
     /* TODO - this needs to go to the application service. */
     retval =
         dataservice_api_sendreq_artifact_get_old(
-            &conn->svc->data, conn->dataservice_child_context, artifact_id);
+            &conn->svc->data, &conn->svc->alloc_opts,
+            conn->dataservice_child_context, artifact_id);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         unauthorized_protocol_service_error_response(

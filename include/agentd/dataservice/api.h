@@ -1987,6 +1987,7 @@ int dataservice_api_recvresp_artifact_get(
  * \brief Get an artifact from the artifact database by ID.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for the query.
  * \param artifact_id   The artifact UUID of the artifact to retrieve.
  *
@@ -2000,7 +2001,8 @@ int dataservice_api_recvresp_artifact_get(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_artifact_get_old(
-    ipc_socket_context_t* sock, uint32_t child, const uint8_t* artifact_id);
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* artifact_id);
 
 /**
  * \brief Receive a response from the get artifact query.

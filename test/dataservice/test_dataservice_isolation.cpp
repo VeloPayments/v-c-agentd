@@ -3515,7 +3515,8 @@ TEST_F(dataservice_isolation_test, make_block_simple_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_artifact_get_old(
-                        &nonblockdatasock, child_context, foo_artifact);
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        foo_artifact);
             }
         });
 
@@ -4431,7 +4432,8 @@ TEST_F(dataservice_isolation_test, artifact_get_not_found_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_artifact_get_old(
-                        &nonblockdatasock, child_context, foo_artifact);
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        foo_artifact);
             }
         });
 

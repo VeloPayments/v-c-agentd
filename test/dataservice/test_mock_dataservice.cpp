@@ -3,7 +3,7 @@
  *
  * Test the mock data service private API.
  *
- * \copyright 2019 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -58,7 +58,8 @@ TEST_F(mock_dataservice_test, default_artifact_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_artifact_get_old(
-                        &nonblockdatasock, child_context, artifact_id);
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        artifact_id);
             }
         });
 
@@ -111,7 +112,8 @@ TEST_F(mock_dataservice_test, matches_artifact_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_artifact_get_old(
-                        &nonblockdatasock, child_context, artifact_id);
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        artifact_id);
             }
         });
 
@@ -231,7 +233,8 @@ TEST_F(mock_dataservice_test, artifact_get_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_artifact_get_old(
-                        &nonblockdatasock, child_context, artifact_id);
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        artifact_id);
             }
         });
 

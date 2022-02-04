@@ -3,22 +3,27 @@
  *
  * \brief Get an artifact by id from the artifact database.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
 #include <agentd/dataservice/api.h>
+#include <agentd/dataservice/async_api.h>
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/inet.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
+#include <rcpr/uuid.h>
 #include <unistd.h>
 #include <vpr/parameters.h>
+
+RCPR_IMPORT_uuid;
 
 /**
  * \brief Get an artifact from the artifact database by ID.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for the query.
  * \param artifact_id   The artifact UUID of the artifact to retrieve.
  *
@@ -32,49 +37,33 @@
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_artifact_get_old(
-    ipc_socket_context_t* sock, uint32_t child, const uint8_t* artifact_id)
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* artifact_id)
 {
+    status retval;
+    vccrypt_buffer_t reqbuf;
+
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != sock);
 
-    /* | Artifact Get request packet.                                         */
-    /* | ---------------------------------------------------- | ----------- | */
-    /* | DATA                                                 | SIZE        | */
-    /* | ---------------------------------------------------- | ----------- | */
-    /* | DATASERVICE_API_METHOD_APP_ARTIFACT_READ             |  4 bytes    | */
-    /* | child_context_index                                  |  4 bytes    | */
-    /* | artifact UUID.                                       | 16 bytes    | */
-    /* | ---------------------------------------------------- | ----------- | */
-
-    /* allocate a structure large enough for writing this request. */
-    size_t reqbuflen = 2 * sizeof(uint32_t) + 16;
-    uint8_t* reqbuf = (uint8_t*)malloc(reqbuflen);
-    if (NULL == reqbuf)
+    /* encode this request to a buffer. */
+    retval =
+        dataservice_encode_request_artifact_get(
+            &reqbuf, alloc_opts, child, (const rcpr_uuid*)artifact_id);
+    if (STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+        return retval;
     }
 
-    /* copy the request ID to the buffer. */
-    uint32_t req = htonl(DATASERVICE_API_METHOD_APP_ARTIFACT_READ);
-    memcpy(reqbuf, &req, sizeof(req));
-
-    /* copy the child context index parameter to the buffer. */
-    uint32_t nchild = htonl(child);
-    memcpy(reqbuf + sizeof(req), &nchild, sizeof(nchild));
-
-    /* copy the artifact id to the buffer. */
-    memcpy(reqbuf + 2 * sizeof(uint32_t), artifact_id, 16);
-
-    /* the request packet consists of the command, index, and artifact id. */
-    int retval = ipc_write_data_noblock(sock, reqbuf, reqbuflen);
+    /* write the request packet. */
+    retval = ipc_write_data_noblock(sock, reqbuf.data, reqbuf.size);
     if (AGENTD_ERROR_IPC_WOULD_BLOCK != retval && AGENTD_STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE;
     }
 
-    /* clean up memory. */
-    memset(reqbuf, 0, reqbuflen);
-    free(reqbuf);
+    /* clean up buffer. */
+    dispose((disposable_t*)&reqbuf);
 
     /* return the status of this request write to the caller. */
     return retval;
