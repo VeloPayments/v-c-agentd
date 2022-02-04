@@ -3,7 +3,7 @@
  *
  * \brief Asynchronous API for the data service.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_DATASERVICE_ASYNC_API_HEADER_GUARD
@@ -529,6 +529,25 @@ int dataservice_decode_response_block_get(
 status dataservice_encode_request_artifact_get(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
     const RCPR_SYM(rcpr_uuid)* artifact_id);
+
+/**
+ * \brief Encode a request to query a block by ID.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param child         The child context for this request.
+ * \param block_id      The block UUID for this request.
+ * \param read_cert     Flag set to true if the block certificate should be
+ *                      returned.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_block_get(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
+    const RCPR_SYM(rcpr_uuid)* block_id, bool read_cert);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
