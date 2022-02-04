@@ -3,7 +3,7 @@
  *
  * Isolation tests for the data service.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -3070,7 +3070,7 @@ TEST_F(dataservice_isolation_test, make_block_simple)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_artifact_get(
-            datapsock, child_context, foo_artifact));
+            datapsock, &alloc_opts, child_context, foo_artifact));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_artifact_get(
@@ -4297,7 +4297,7 @@ TEST_F(dataservice_isolation_test, artifact_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_artifact_get(
-            datapsock, child_context, foo_artifact));
+            datapsock, &alloc_opts, child_context, foo_artifact));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_artifact_get(

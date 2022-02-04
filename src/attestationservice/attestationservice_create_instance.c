@@ -3,12 +3,13 @@
  *
  * \brief Create an instance for the attestation service.
  *
- * \copyright 2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2021-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/control.h>
 #include <agentd/status_codes.h>
 #include <string.h>
+#include <vpr/allocator/malloc_allocator.h>
 
 #include "attestationservice_internal.h"
 
@@ -80,6 +81,9 @@ status attestationservice_create_instance(
 
     /* set init values. */
     tmp->alloc = alloc;
+
+    /* set up the vpr allocator. */
+    malloc_allocator_options_init(&tmp->vpr_alloc);
 
     /* get the main fiber. */
     TRY_OR_FAIL(
