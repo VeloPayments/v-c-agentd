@@ -3090,7 +3090,7 @@ TEST_F(dataservice_isolation_test, make_block_simple)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_canonized_transaction_get(
-            datapsock, child_context, foo_key, true));
+            datapsock, &alloc_opts, child_context, foo_key, true));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_canonized_transaction_get(
