@@ -566,6 +566,26 @@ status dataservice_encode_request_block_id_by_height_get(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
     uint64_t height);
 
+/**
+ * \brief Encode a request to make a block.
+ *
+ * \param buffer            Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                          receive the encoded request.
+ * \param alloc_opts        The allocator options to use.
+ * \param child             The child context for this request.
+ * \param block_id          The block id.
+ * \param block_cert        The block certificate.
+ * \param block_cert_size   The block certificate size.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_block_make(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
+    const RCPR_SYM(rcpr_uuid)* block_id, const void* block_cert,
+    uint32_t block_cert_size);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
