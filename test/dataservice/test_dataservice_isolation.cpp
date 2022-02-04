@@ -3445,7 +3445,7 @@ TEST_F(dataservice_isolation_test, make_block_simple_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_id_by_height_get_old(
-                        &nonblockdatasock, child_context, 1U);
+                        &nonblockdatasock, &alloc_opts, child_context, 1U);
             }
         });
 
@@ -4010,7 +4010,7 @@ TEST_F(dataservice_isolation_test, block_id_by_height_get_not_found_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_id_by_height_get_old(
-                        &nonblockdatasock, child_context, 1U);
+                        &nonblockdatasock, &alloc_opts, child_context, 1U);
             }
         });
 
