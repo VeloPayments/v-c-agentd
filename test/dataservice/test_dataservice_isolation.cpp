@@ -588,7 +588,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_close(
-            datapsock, child_context));
+            datapsock, &alloc_opts, child_context));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_close(
@@ -4947,7 +4947,7 @@ TEST_F(dataservice_isolation_test, no_context_leak)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_close(
-            datapsock, child_context));
+            datapsock, &alloc_opts, child_context));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_close(
@@ -4975,7 +4975,7 @@ TEST_F(dataservice_isolation_test, no_context_leak)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_close(
-            datapsock, child_context));
+            datapsock, &alloc_opts, child_context));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_close(
