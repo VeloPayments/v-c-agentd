@@ -4,7 +4,7 @@
  * \brief Build a new block for the blockchain, using the currently attested
  * transactions.
  *
- * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/canonizationservice.h>
@@ -238,8 +238,8 @@ int canonizationservice_block_make(
     /* call dataservice_sendreq_block_make. */
     retval =
         dataservice_api_sendreq_block_make_old(
-            instance->data, instance->data_child_context, instance->block_id,
-            block_cert_bytes, block_cert_size);
+            instance->data, &instance->alloc_opts, instance->data_child_context,
+            instance->block_id, block_cert_bytes, block_cert_size);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         canonizationservice_exit_event_loop(instance);

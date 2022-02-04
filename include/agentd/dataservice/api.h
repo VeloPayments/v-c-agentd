@@ -2144,6 +2144,7 @@ int dataservice_api_recvresp_block_make(
  * transactions are canonized.
  *
  * \param sock              The socket on which this request is made.
+ * \param alloc_opts        The allocator options to use.
  * \param child             The child index used for this operation.
  * \param txn_id            The block UUID bytes for this transaction.
  * \param block_cert        Buffer holding the raw bytes for the block cert.
@@ -2159,8 +2160,8 @@ int dataservice_api_recvresp_block_make(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_block_make_old(
-    ipc_socket_context_t* sock, uint32_t child, const uint8_t* block_id,
-    const void* block_cert, uint32_t block_cert_size);
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* block_id, const void* block_cert, uint32_t block_cert_size);
 
 /**
  * \brief Receive a response from the block make operation.
