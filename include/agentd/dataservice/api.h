@@ -2751,6 +2751,7 @@ int dataservice_api_recvresp_canonized_transaction_get(
  * \brief Get a canonized transaction from the transaction database by ID.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for the query.
  * \param txn_id        The transaction UUID of the transaction to retrieve.
  * \param read_cert     Set to true if the transaction certificate should be
@@ -2766,8 +2767,8 @@ int dataservice_api_recvresp_canonized_transaction_get(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_canonized_transaction_get_old(
-    ipc_socket_context_t* sock, uint32_t child, const uint8_t* txn_id,
-    bool read_cert);
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* txn_id, bool read_cert);
 
 /**
  * \brief Receive a response from the get canonized transaction query.
