@@ -605,6 +605,21 @@ status dataservice_encode_request_canonized_transaction_get(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
     const RCPR_SYM(rcpr_uuid)* txn_id, bool read_cert);
 
+/**
+ * \brief Encode a request to close a child context.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param child         The child context to be closed.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_child_context_close(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
