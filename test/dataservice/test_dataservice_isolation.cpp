@@ -3021,7 +3021,7 @@ TEST_F(dataservice_isolation_test, make_block_simple)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_block_get(
-            datapsock, child_context, foo_block_id, true));
+            datapsock, &alloc_opts, child_context, foo_block_id, true));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_block_get(
@@ -3655,7 +3655,7 @@ TEST_F(dataservice_isolation_test, block_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_block_get(
-            datapsock, child_context, foo_block_id, true));
+            datapsock, &alloc_opts, child_context, foo_block_id, true));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_block_get(
@@ -4587,7 +4587,7 @@ TEST_F(dataservice_isolation_test, read_block_no_cert)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_block_get(
-            datapsock, child_context, foo_block_id, false));
+            datapsock, &alloc_opts, child_context, foo_block_id, false));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_block_get(

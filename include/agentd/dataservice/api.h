@@ -2218,6 +2218,7 @@ int dataservice_api_recvresp_block_make_old(
  * \brief Get a block from the dataservice by ID.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator options to use.
  * \param child         The child index used for the query.
  * \param block_id      The block UUID of the block to retrieve.
  * \param read_cert     Set to true if the block certificate should be returned.
@@ -2232,8 +2233,8 @@ int dataservice_api_recvresp_block_make_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_block_get(
-    RCPR_SYM(psock)* sock, uint32_t child, const uint8_t* block_id,
-    bool read_cert);
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* block_id, bool read_cert);
 
 /**
  * \brief Receive a response from the get block query.
