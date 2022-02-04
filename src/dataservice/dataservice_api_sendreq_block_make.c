@@ -3,11 +3,12 @@
  *
  * \brief Make a block from transactions in the transaction queue.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
 #include <agentd/dataservice/api.h>
+#include <agentd/dataservice/async_api.h>
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/inet.h>
 #include <agentd/status_codes.h>
@@ -17,6 +18,7 @@
 #include <vpr/parameters.h>
 
 RCPR_IMPORT_psock;
+RCPR_IMPORT_uuid;
 
 /**
  * \brief Make a block from transactions in the transaction queue.
@@ -26,6 +28,7 @@ RCPR_IMPORT_psock;
  * transactions are canonized.
  *
  * \param sock              The socket on which this request is made.
+ * \param alloc_opts        The allocator options to use.
  * \param child             The child index used for this operation.
  * \param txn_id            The block UUID bytes for this transaction.
  * \param block_cert        Buffer holding the raw bytes for the block cert.
@@ -41,59 +44,37 @@ RCPR_IMPORT_psock;
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_block_make(
-    psock* sock, uint32_t child, const uint8_t* block_id,
-    const void* block_cert, uint32_t block_cert_size)
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* block_id, const void* block_cert, uint32_t block_cert_size)
 {
+    status retval;
+    vccrypt_buffer_t reqbuf;
+
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != sock);
     MODEL_ASSERT(NULL != block_id);
     MODEL_ASSERT(NULL != block_cert);
     MODEL_ASSERT(block_cert_size > 0);
 
-    /* | Block Make Packet.                                              | */
-    /* | ------------------------------------------------ | ------------ | */
-    /* | DATA                                             | SIZE         | */
-    /* | ------------------------------------------------ | ------------ | */
-    /* | DATASERVICE_API_METHOD_APP_BLOCK_WRITE           | 4 bytes      | */
-    /* | child_context_index                              | 4 bytes      | */
-    /* | block_id                                         | 16 bytes     | */
-    /* | block_cert                                       | n - 40 bytes | */
-    /* | ------------------------------------------------ | ------------ | */
-
-    /* allocate a structure large enough for writing this request. */
-    size_t reqbuflen = 2 * sizeof(uint32_t) + 1 * 16 + block_cert_size;
-    uint8_t* reqbuf = (uint8_t*)malloc(reqbuflen);
-    if (NULL == reqbuf)
+    /* encode this request to a buffer. */
+    retval =
+        dataservice_encode_request_block_make(
+            &reqbuf, alloc_opts, child, (const rcpr_uuid*)block_id, block_cert,
+            block_cert_size);
+    if (STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+        return retval;
     }
 
-    /* copy the request ID to the buffer. */
-    uint32_t req = htonl(DATASERVICE_API_METHOD_APP_BLOCK_WRITE);
-    memcpy(reqbuf, &req, sizeof(req));
-
-    /* copy the child context index parameter to the buffer. */
-    uint32_t nchild = htonl(child);
-    memcpy(reqbuf + sizeof(req), &nchild, sizeof(nchild));
-
-    /* copy the block id to the buffer. */
-    memcpy(reqbuf + sizeof(req) + sizeof(nchild), block_id, 16);
-
-    /* copy the value to the buffer. */
-    memcpy(reqbuf + sizeof(req) + sizeof(nchild) + 16,
-        block_cert, block_cert_size);
-
-    /* the request packet consists of the command, index, block_id, and
-     * block cert. */
-    int retval = psock_write_boxed_data(sock, reqbuf, reqbuflen);
+    /* write the request packet. */
+    retval = psock_write_boxed_data(sock, reqbuf.data, reqbuf.size);
     if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE;
     }
 
-    /* clean up memory. */
-    memset(reqbuf, 0, reqbuflen);
-    free(reqbuf);
+    /* clean up the buffer. */
+    dispose((disposable_t*)&reqbuf);
 
     /* return the status of this request write to the caller. */
     return retval;
