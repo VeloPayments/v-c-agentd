@@ -3,7 +3,7 @@
  *
  * \brief Handle a block by id get request.
  *
- * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <config.h>
@@ -59,8 +59,8 @@ void unauthorized_protocol_service_handle_request_block_by_id_get(
     /* TODO - this needs to go to the application service. */
     retval =
         dataservice_api_sendreq_block_get_old(
-            &conn->svc->data, conn->dataservice_child_context, block_id,
-            true);
+            &conn->svc->data, &conn->svc->alloc_opts,
+            conn->dataservice_child_context, block_id, true);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         unauthorized_protocol_service_error_response(
