@@ -774,6 +774,7 @@ int dataservice_api_recvresp_child_context_create_old(
  * \brief Close the specified child context.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index to be closed.
  *
  * \returns a status code indicating success or failure.
@@ -786,7 +787,7 @@ int dataservice_api_recvresp_child_context_create_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_child_context_close(
-    RCPR_SYM(psock)* sock, uint32_t child);
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child);
 
 /**
  * \brief Receive a response from the child context close API call.
