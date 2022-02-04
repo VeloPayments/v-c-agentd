@@ -3039,7 +3039,7 @@ TEST_F(dataservice_isolation_test, make_block_simple)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_block_id_by_height_get(
-            datapsock, child_context, 1U));
+            datapsock, &alloc_opts, child_context, 1U));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_block_id_by_height_get(
@@ -3875,7 +3875,7 @@ TEST_F(dataservice_isolation_test, block_id_by_height_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_block_id_by_height_get(
-            datapsock, child_context, 1U));
+            datapsock, &alloc_opts, child_context, 1U));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_block_id_by_height_get(
