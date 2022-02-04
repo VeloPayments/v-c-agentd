@@ -4,7 +4,7 @@
  * \brief Send the block get by id request to the data service from the
  * canonization service.
  *
- * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -33,7 +33,7 @@ int canonizationservice_dataservice_sendreq_block_get(
     /* send the request to read the previous block. */
     retval =
         dataservice_api_sendreq_block_get_old(
-            instance->data, instance->data_child_context,
+            instance->data, &instance->alloc_opts, instance->data_child_context,
             instance->previous_block_id, true);
     if (AGENTD_STATUS_SUCCESS != retval)
     {

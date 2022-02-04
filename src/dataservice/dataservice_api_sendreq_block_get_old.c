@@ -3,11 +3,12 @@
  *
  * \brief Get a block by id from the block database.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
 #include <agentd/dataservice/api.h>
+#include <agentd/dataservice/async_api.h>
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/inet.h>
 #include <agentd/status_codes.h>
@@ -15,10 +16,13 @@
 #include <unistd.h>
 #include <vpr/parameters.h>
 
+RCPR_IMPORT_uuid;
+
 /**
  * \brief Get a block from the dataservice by ID.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator options to use.
  * \param child         The child index used for the query.
  * \param block_id      The block UUID of the block to retrieve.
  * \param read_cert     Set to true if the block certificate should be returned.
@@ -33,62 +37,34 @@
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_block_get_old(
-    ipc_socket_context_t* sock, uint32_t child, const uint8_t* block_id,
-    bool read_cert)
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* block_id, bool read_cert)
 {
+    status retval;
+    vccrypt_buffer_t reqbuf;
+
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != sock);
     MODEL_ASSERT(NULL != block_id);
 
-    /* | Block get packet.                                                    */
-    /* | ---------------------------------------------------- | ----------- | */
-    /* | DATA                                                 | SIZE        | */
-    /* | ---------------------------------------------------- | ----------- | */
-    /* | DATASERVICE_API_METHOD_APP_BLOCK_READ                |  4 bytes    | */
-    /* | child_context_index                                  |  4 bytes    | */
-    /* | block UUID.                                          | 16 bytes    | */
-    /* | read cert flag.                                      |  1 byte     | */
-    /* | ---------------------------------------------------- | ----------- | */
-
-    /* allocate a structure large enough for writing this request. */
-    size_t reqbuflen = 2 * sizeof(uint32_t) + 16 + 1;
-    uint8_t* reqbuf = (uint8_t*)malloc(reqbuflen);
-    if (NULL == reqbuf)
+    /* encode this request. */
+    retval =
+        dataservice_encode_request_block_get(
+            &reqbuf, alloc_opts, child, (const rcpr_uuid*)block_id, read_cert);
+    if (STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+        return retval;
     }
 
-    /* copy the request ID to the buffer. */
-    uint32_t req = htonl(DATASERVICE_API_METHOD_APP_BLOCK_READ);
-    memcpy(reqbuf, &req, sizeof(req));
-
-    /* copy the child context index parameter to the buffer. */
-    uint32_t nchild = htonl(child);
-    memcpy(reqbuf + sizeof(req), &nchild, sizeof(nchild));
-
-    /* copy the block id to the buffer. */
-    memcpy(reqbuf + 2 * sizeof(uint32_t), block_id, 16);
-
-    /* set the read cert flag to true if specified. */
-    if (read_cert)
-    {
-        reqbuf[2 * sizeof(uint32_t) + 16] = 1;
-    }
-    else
-    {
-        reqbuf[2 * sizeof(uint32_t) + 16] = 0;
-    }
-
-    /* the request packet consists of the command, index, and block id. */
-    int retval = ipc_write_data_noblock(sock, reqbuf, reqbuflen);
+    /* write the request packet to the socket. */
+    retval = ipc_write_data_noblock(sock, reqbuf.data, reqbuf.size);
     if (AGENTD_ERROR_IPC_WOULD_BLOCK != retval && AGENTD_STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE;
     }
 
-    /* clean up memory. */
-    memset(reqbuf, 0, reqbuflen);
-    free(reqbuf);
+    /* clean up the buffer. */
+    dispose((disposable_t*)&reqbuf);
 
     /* return the status of this request write to the caller. */
     return retval;
