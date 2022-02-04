@@ -1449,7 +1449,7 @@ TEST_F(mock_dataservice_test, default_child_context_close)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
@@ -1497,7 +1497,7 @@ TEST_F(mock_dataservice_test, matches_child_context_close)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
@@ -1581,7 +1581,7 @@ TEST_F(mock_dataservice_test, child_context_close_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 

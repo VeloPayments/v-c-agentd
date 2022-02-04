@@ -714,7 +714,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
@@ -5123,7 +5123,7 @@ TEST_F(dataservice_isolation_test, no_context_leak_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
@@ -5193,7 +5193,7 @@ TEST_F(dataservice_isolation_test, no_context_leak_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
