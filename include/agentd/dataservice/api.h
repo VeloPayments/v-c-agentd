@@ -710,6 +710,7 @@ int dataservice_api_recvresp_child_context_create(
  * \brief Create a child context with further reduced capabilities.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param caps          The capabilities to use for this child context.
  * \param size          The size of the capabilities in bytes.
  *
@@ -723,7 +724,8 @@ int dataservice_api_recvresp_child_context_create(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_child_context_create_old(
-    ipc_socket_context_t* sock, const void* caps, size_t size);
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts,
+    const void* caps, size_t size);
 
 /**
  * \brief Receive a response from the child context create API call.

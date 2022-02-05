@@ -3,11 +3,12 @@
  *
  * \brief Request the creation of a child context.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
 #include <agentd/dataservice/api.h>
+#include <agentd/dataservice/async_api.h>
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
@@ -18,6 +19,7 @@
  * \brief Create a child context with further reduced capabilities.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param caps          The capabilities to use for this child context.
  * \param size          The size of the capabilities in bytes.
  *
@@ -31,45 +33,34 @@
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_child_context_create_old(
-    ipc_socket_context_t* sock, const void* caps, size_t size)
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts,
+    const void* caps, size_t size)
 {
+    status retval;
+    vccrypt_buffer_t reqbuf;
+
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != sock);
     MODEL_ASSERT(NULL != caps);
 
-    /* | Child context create packet.                                 | */
-    /* | --------------------------------------------- | ------------ | */
-    /* | DATA                                          | SIZE         | */
-    /* | --------------------------------------------- | ------------ | */
-    /* | DATASERVICE_API_METHOD_LL_CHILD_CONTEXT_CREATE| 4 bytes      | */
-    /* | caps                                          | n - 4 bytes  | */
-    /* | --------------------------------------------- | ------------ | */
-
-    /* allocate a structure large enough for writing this request. */
-    size_t reqbuflen = size + sizeof(uint32_t);
-    uint8_t* reqbuf = (uint8_t*)malloc(reqbuflen);
-    if (NULL == reqbuf)
+    /* encode this request. */
+    retval =
+        dataservice_encode_request_child_context_create(
+            &reqbuf, alloc_opts, caps, size);
+    if (STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+        return retval;
     }
 
-    /* copy the request ID to the buffer. */
-    uint32_t req = htonl(DATASERVICE_API_METHOD_LL_CHILD_CONTEXT_CREATE);
-    memcpy(reqbuf, &req, sizeof(req));
-
-    /* copy the caps parameter to this buffer. */
-    memcpy(reqbuf + sizeof(req), caps, size);
-
-    /* the request packet consists of the command and capabilities. */
-    int retval = ipc_write_data_noblock(sock, reqbuf, reqbuflen);
+    /* write the request packet to the socket. */
+    retval = ipc_write_data_noblock(sock, reqbuf.data, reqbuf.size);
     if (AGENTD_ERROR_IPC_WOULD_BLOCK != retval && AGENTD_STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE;
     }
 
-    /* clean up memory. */
-    memset(reqbuf, 0, reqbuflen);
-    free(reqbuf);
+    /* clean up the buffer. */
+    dispose((disposable_t*)&reqbuf);
 
     /* return the status of this request write to the caller. */
     return retval;

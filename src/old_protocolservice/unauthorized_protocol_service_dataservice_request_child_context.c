@@ -3,7 +3,7 @@
  *
  * \brief Send a child context create request to the data service.
  *
- * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <config.h>
@@ -65,7 +65,8 @@ void unauthorized_protocol_service_dataservice_request_child_context(
 
     /* send a child context create request to the dataservice. */
     dataservice_api_sendreq_child_context_create_old(
-        &svc->data, conn->dataservice_caps, sizeof(conn->dataservice_caps));
+        &svc->data, &svc->alloc_opts, conn->dataservice_caps,
+        sizeof(conn->dataservice_caps));
 
     /* set the write callback for the dataservice socket. */
     ipc_set_writecb_noblock(
