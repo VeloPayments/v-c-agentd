@@ -641,3 +641,84 @@ TEST(dataservice_encode_test, request_child_context_create_decoded)
     dispose((disposable_t*)&req);
     dispose((disposable_t*)&alloc_opts);
 }
+
+/**
+ * Test that the encode function performs parameter checks.
+ */
+TEST(dataservice_encode_test, request_global_settings_get)
+{
+    allocator_options_t alloc_opts;
+    vccrypt_buffer_t buffer;
+    uint32_t child = 0x1234;
+    uint64_t key = 0x98765432;
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* a NULL buffer is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_global_settings_get(
+            nullptr, &alloc_opts, child, key));
+
+    /* a NULL allocator is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_global_settings_get(
+            &buffer, nullptr, child, key));
+
+    /* clean up. */
+    dispose((disposable_t*)&alloc_opts);
+}
+
+/**
+ * Test that the decoded values match the encoded values.
+ */
+TEST(dataservice_encode_test, request_global_settings_get_decoded)
+{
+    allocator_options_t alloc_opts;
+    vccrypt_buffer_t buffer;
+    dataservice_request_global_setting_get_t req;
+    uint32_t child = 0x1234;
+    uint64_t key = 0x98765432;
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* the encode call should succeed. */
+    ASSERT_EQ(STATUS_SUCCESS,
+        dataservice_encode_request_global_settings_get(
+            &buffer, &alloc_opts, child, key));
+
+    /* make working with the request more convenient. */
+    const uint8_t* breq = (const uint8_t*)buffer.data;
+
+    /* the payload should be at least large enough for the method. */
+    ASSERT_GE(buffer.size, sizeof(uint32_t));
+
+    /* get the method. */
+    uint32_t nmethod = 0U;
+    memcpy(&nmethod, breq, sizeof(uint32_t));
+    uint32_t method = htonl(nmethod);
+
+    /* the method should be DATASERVICE_API_METHOD_APP_GLOBAL_SETTING_READ */
+    ASSERT_EQ(DATASERVICE_API_METHOD_APP_GLOBAL_SETTING_READ, method);
+
+    /* increment breq past command. */
+    breq += sizeof(uint32_t);
+
+    /* derive the payload size. */
+    size_t payload_size = buffer.size - sizeof(uint32_t);
+
+    /* the decode should succeed. */
+    ASSERT_EQ(STATUS_SUCCESS,
+        dataservice_decode_request_global_setting_get(
+            breq, payload_size, &req));
+
+    /* the child context should match. */
+    EXPECT_EQ(child, req.hdr.child_index);
+
+    /* the key should match. */
+    EXPECT_EQ(key, req.key);
+
+    /* clean up. */
+    dispose((disposable_t*)&buffer);
+    dispose((disposable_t*)&req);
+    dispose((disposable_t*)&alloc_opts);
+}
