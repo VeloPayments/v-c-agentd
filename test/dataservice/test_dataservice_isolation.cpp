@@ -786,7 +786,7 @@ TEST_F(dataservice_isolation_test, global_setting_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_global_settings_get(
-            datapsock, child_context,
+            datapsock, &alloc_opts, child_context,
             DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION));
     ASSERT_EQ(
         0,
@@ -1109,7 +1109,7 @@ TEST_F(dataservice_isolation_test, global_setting_set_get)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_global_settings_get(
-            datapsock, child_context,
+            datapsock, &alloc_opts, child_context,
             DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION));
     ASSERT_EQ(
         0,

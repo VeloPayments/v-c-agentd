@@ -905,6 +905,7 @@ int dataservice_api_recvresp_child_context_close_old(
  * \brief Query a global setting using the given child context.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for the query.
  * \param key           The global key to query.
  *
@@ -918,7 +919,8 @@ int dataservice_api_recvresp_child_context_close_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_global_settings_get(
-    RCPR_SYM(psock)* sock, uint32_t child, uint64_t key);
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    uint64_t key);
 
 /**
  * \brief Receive a response from the global settings query.
