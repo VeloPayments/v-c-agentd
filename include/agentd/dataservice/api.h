@@ -2612,6 +2612,7 @@ int dataservice_api_recvresp_latest_block_id_get(
  * \brief Get the latest block id.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for the query.
  *
  * \returns a status code indicating success or failure.
@@ -2624,7 +2625,8 @@ int dataservice_api_recvresp_latest_block_id_get(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_latest_block_id_get_old(
-    ipc_socket_context_t* sock, uint32_t child);
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts,
+    uint32_t child);
 
 /**
  * \brief Receive a response from the get latest block id query.
