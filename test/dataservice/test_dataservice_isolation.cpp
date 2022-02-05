@@ -919,7 +919,7 @@ TEST_F(dataservice_isolation_test, global_setting_not_found_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_global_settings_get_old(
-                        &nonblockdatasock, child_context,
+                        &nonblockdatasock, &alloc_opts, child_context,
                         DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION);
             }
         });
@@ -1286,7 +1286,7 @@ TEST_F(dataservice_isolation_test, global_setting_set_get_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_global_settings_get_old(
-                        &nonblockdatasock, child_context,
+                        &nonblockdatasock, &alloc_opts, child_context,
                         DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION);
             }
         });
