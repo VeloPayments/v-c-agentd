@@ -654,6 +654,25 @@ status dataservice_encode_request_global_settings_get(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
     uint64_t key);
 
+/**
+ * \brief Encode a request to set a global setting using a 64-bit key.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param child         The child context used for this call.
+ * \param key           The global key to set.
+ * \param val           Buffer holding the value to set for this key.
+ * \param val_size      The size of this value buffer.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_global_settings_set(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
+    uint64_t key, const void* val, size_t val_size);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
