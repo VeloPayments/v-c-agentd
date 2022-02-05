@@ -3,11 +3,12 @@
  *
  * \brief Request the query of a global settings value.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
 #include <agentd/dataservice/api.h>
+#include <agentd/dataservice/async_api.h>
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/status_codes.h>
 #include <agentd/inet.h>
@@ -22,6 +23,7 @@ RCPR_IMPORT_psock;
  * \brief Query a global setting using the given child context.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for the query.
  * \param key           The global key to query.
  *
@@ -35,50 +37,33 @@ RCPR_IMPORT_psock;
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_global_settings_get(
-    psock* sock, uint32_t child, uint64_t key)
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    uint64_t key)
 {
+    status retval;
+    vccrypt_buffer_t reqbuf;
+
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != sock);
 
-    /* | Global Settings get packet.                                   | */
-    /* | ---------------------------------------------- | ------------ | */
-    /* | DATA                                           | SIZE         | */
-    /* | ---------------------------------------------- | ------------ | */
-    /* | DATASERVICE_API_METHOD_APP_GLOBAL_SETTING_READ | 4 bytes      | */
-    /* | child_context_index                            | 4 bytes      | */
-    /* | key                                            | 8 bytes      | */
-    /* | ---------------------------------------------- | ------------ | */
-
-    /* allocate a structure large enough for writing this request. */
-    size_t reqbuflen = 2 * sizeof(uint32_t) + sizeof(uint64_t);
-    uint8_t* reqbuf = (uint8_t*)malloc(reqbuflen);
-    if (NULL == reqbuf)
+    /* encode this request. */
+    retval =
+        dataservice_encode_request_global_settings_get(
+            &reqbuf, alloc_opts, child, key);
+    if (STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+        return retval;
     }
 
-    /* copy the request ID to the buffer. */
-    uint32_t req = htonl(DATASERVICE_API_METHOD_APP_GLOBAL_SETTING_READ);
-    memcpy(reqbuf, &req, sizeof(req));
-
-    /* copy the child context index parameter to the buffer. */
-    uint32_t nchild = htonl(child);
-    memcpy(reqbuf + sizeof(req), &nchild, sizeof(nchild));
-
-    /* copy the key to the buffer. */
-    uint64_t nkey = htonll(key);
-    memcpy(reqbuf + sizeof(req) + sizeof(nchild), &nkey, sizeof(nkey));
-
-    /* the request packet consists of the command, index, and key. */
-    int retval = psock_write_boxed_data(sock, reqbuf, reqbuflen);
+    /* write the request packet to the socket. */
+    retval = psock_write_boxed_data(sock, reqbuf.data, reqbuf.size);
     if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE;
     }
 
-    /* clean up memory. */
-    memset(reqbuf, 0, reqbuflen);
-    free(reqbuf);
+    /* clean up the buffer. */
+    dispose((disposable_t*)&reqbuf);
 
     /* return the status of this request write to the caller. */
     return retval;
