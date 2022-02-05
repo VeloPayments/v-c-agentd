@@ -637,6 +637,23 @@ status dataservice_encode_request_child_context_create(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, const void* caps,
     size_t size);
 
+/**
+ * \brief Encode a request to query the global settings table.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param child         The child context used for this call.
+ * \param key           The global key to query.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_global_settings_get(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
+    uint64_t key);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
