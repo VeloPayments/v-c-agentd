@@ -1058,6 +1058,7 @@ int dataservice_api_recvresp_global_settings_get_old(
  * \brief Set a global setting using a 64-bit key.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator to use for this operation.
  * \param child         The child index used for this operation.
  * \param key           The global key to set.
  * \param val           Buffer holding the value to set for this key.
@@ -1073,8 +1074,8 @@ int dataservice_api_recvresp_global_settings_get_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_global_settings_set(
-    RCPR_SYM(psock)* sock, uint32_t child, uint64_t key, const void* val,
-    uint32_t val_size);
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    uint64_t key, const void* val, uint32_t val_size);
 
 /**
  * \brief Receive a response from the global settings set operation.
