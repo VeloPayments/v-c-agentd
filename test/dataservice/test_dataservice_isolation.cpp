@@ -573,7 +573,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -767,7 +767,7 @@ TEST_F(dataservice_isolation_test, global_setting_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -1068,7 +1068,7 @@ TEST_F(dataservice_isolation_test, global_setting_set_get)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -1342,7 +1342,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_first)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -1676,7 +1676,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -2012,7 +2012,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_drop)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -2452,7 +2452,7 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -2914,7 +2914,7 @@ TEST_F(dataservice_isolation_test, make_block_simple)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -3634,7 +3634,7 @@ TEST_F(dataservice_isolation_test, block_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -3853,7 +3853,7 @@ TEST_F(dataservice_isolation_test, block_id_by_height_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -4065,7 +4065,7 @@ TEST_F(dataservice_isolation_test, latest_block_id_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -4279,7 +4279,7 @@ TEST_F(dataservice_isolation_test, artifact_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -4506,7 +4506,7 @@ TEST_F(dataservice_isolation_test, read_block_no_cert)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -4932,7 +4932,7 @@ TEST_F(dataservice_isolation_test, no_context_leak)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(
@@ -4960,7 +4960,7 @@ TEST_F(dataservice_isolation_test, no_context_leak)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_child_context_create(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_child_context_create(

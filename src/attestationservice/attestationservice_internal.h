@@ -225,8 +225,7 @@ status attestationservice_verify_txn_is_unique(
 /**
  * \brief Create a child context for communicating with the data service.
  *
- * \param data_sock         Socket for the data service.
- * \param alloc             The allocator to use for this operation.
+ * \param inst              The attestation service instance.
  * \param child_context     Pointer to receive the child context.
  *
  * \returns a status code indicating success or failure.
@@ -234,8 +233,7 @@ status attestationservice_verify_txn_is_unique(
  *      - a non-zero error code on failure.
  */
 status attestationservice_dataservice_child_context_create(
-    RCPR_SYM(psock)* data_sock, RCPR_SYM(allocator)* alloc,
-    uint32_t* child_context);
+    attestationservice_instance* inst, uint32_t* child_context);
 
 /**
  * \brief Query the data service for either the first or the next pending
