@@ -673,6 +673,21 @@ status dataservice_encode_request_global_settings_set(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
     uint64_t key, const void* val, size_t val_size);
 
+/**
+ * \brief Encode a request to query the latest block id.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param child         The child context used for this call.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_latest_block_id_get(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
