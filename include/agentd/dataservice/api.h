@@ -148,7 +148,7 @@ int dataservice_api_recvresp_root_context_reduce_caps_block(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_child_context_create_block(
-    int sock, uint32_t* caps, size_t size);
+    int sock, const void* caps, size_t size);
 
 /**
  * \brief Receive a response from the child context create API call.
@@ -654,7 +654,7 @@ int dataservice_api_recvresp_root_context_reduce_caps_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_child_context_create(
-    RCPR_SYM(psock)* sock, uint32_t* caps, size_t size);
+    RCPR_SYM(psock)* sock, const void* caps, size_t size);
 
 /**
  * \brief Receive a response from the child context create API call.
@@ -721,7 +721,7 @@ int dataservice_api_recvresp_child_context_create(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_child_context_create_old(
-    ipc_socket_context_t* sock, uint32_t* caps, size_t size);
+    ipc_socket_context_t* sock, const void* caps, size_t size);
 
 /**
  * \brief Receive a response from the child context create API call.

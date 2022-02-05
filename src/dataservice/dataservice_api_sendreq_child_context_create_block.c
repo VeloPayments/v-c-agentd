@@ -29,7 +29,7 @@
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_child_context_create_block(
-    int sock, uint32_t* caps, size_t size)
+    int sock, const void* caps, size_t size)
 {
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != caps);
