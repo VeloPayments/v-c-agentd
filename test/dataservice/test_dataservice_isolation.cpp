@@ -3062,7 +3062,7 @@ TEST_F(dataservice_isolation_test, make_block_simple)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_latest_block_id_get(
-            datapsock, child_context));
+            datapsock, &alloc_opts, child_context));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_latest_block_id_get(
@@ -4098,7 +4098,7 @@ TEST_F(dataservice_isolation_test, latest_block_id_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_latest_block_id_get(
-            datapsock, child_context));
+            datapsock, &alloc_opts, child_context));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_latest_block_id_get(
