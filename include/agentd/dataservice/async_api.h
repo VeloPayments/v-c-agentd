@@ -620,6 +620,23 @@ status dataservice_encode_request_canonized_transaction_get(
 status dataservice_encode_request_child_context_close(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child);
 
+/**
+ * \brief Encode a request to create a child context.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param caps          Pointer to the capabilities buffer.
+ * \param size          Size of the capabilities buffer.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_child_context_create(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, const void* caps,
+    size_t size);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
