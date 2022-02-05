@@ -1091,8 +1091,8 @@ TEST_F(dataservice_isolation_test, global_setting_set_get)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_global_settings_set(
-            datapsock, child_context, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION,
-            val, val_size));
+            datapsock, &alloc_opts, child_context,
+            DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION, val, val_size));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_global_settings_set(
