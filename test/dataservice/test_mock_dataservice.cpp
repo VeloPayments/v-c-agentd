@@ -517,7 +517,7 @@ TEST_F(mock_dataservice_test, default_block_id_latest_read)
             {
                 sendreq_status =
                     dataservice_api_sendreq_latest_block_id_get_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
@@ -569,7 +569,7 @@ TEST_F(mock_dataservice_test, matches_block_id_latest_read)
             {
                 sendreq_status =
                     dataservice_api_sendreq_latest_block_id_get_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
@@ -676,7 +676,7 @@ TEST_F(mock_dataservice_test, block_id_latest_read_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_latest_block_id_get_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
