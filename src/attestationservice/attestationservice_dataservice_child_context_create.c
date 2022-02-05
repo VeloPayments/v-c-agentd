@@ -4,7 +4,7 @@
  *
  * \brief Create a child context for the data service connection.
  *
- * \copyright 2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2021-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/control.h>
@@ -19,8 +19,7 @@ RCPR_IMPORT_psock;
 /**
  * \brief Create a child context for communicating with the data service.
  *
- * \param data_sock         Socket for the data service.
- * \param alloc             The allocator to use for this operation.
+ * \param inst              The attestation service instance.
  * \param child_context     Pointer to receive the child context.
  *
  * \returns a status code indicating success or failure.
@@ -28,7 +27,7 @@ RCPR_IMPORT_psock;
  *      - a non-zero error code on failure.
  */
 status attestationservice_dataservice_child_context_create(
-    psock* data_sock, rcpr_allocator* alloc, uint32_t* child_context)
+    attestationservice_instance* inst, uint32_t* child_context)
 {
     status retval;
     uint32_t offset, status;
@@ -40,13 +39,13 @@ status attestationservice_dataservice_child_context_create(
     /* send a request to create the child context. */
     TRY_OR_FAIL(
         dataservice_api_sendreq_child_context_create(
-            data_sock, caps, sizeof(caps)),
+            inst->data_sock, &inst->vpr_alloc, caps, sizeof(caps)),
         done);
 
     /* read the response. */
     TRY_OR_FAIL(
         dataservice_api_recvresp_child_context_create(
-            data_sock, alloc, &offset, &status, child_context),
+            inst->data_sock, inst->alloc, &offset, &status, child_context),
         done);
     TRY_OR_FAIL(status, done);
 

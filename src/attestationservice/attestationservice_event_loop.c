@@ -3,7 +3,7 @@
  *
  * \brief Perform attestation of transactions in the pending transaction queue.
  *
- * \copyright 2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2021-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/control.h>
@@ -56,7 +56,7 @@ status attestationservice_event_loop(attestationservice_instance* inst)
     /* set up child node for data service. */
     TRY_OR_FAIL(
         attestationservice_dataservice_child_context_create(
-            inst->data_sock, inst->alloc, &child_context),
+            inst, &child_context),
         cleanup_inst);
 
     for (;;)
