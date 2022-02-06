@@ -1062,3 +1062,92 @@ TEST(dataservice_encode_test, request_root_context_reduce_caps_decoded)
     dispose((disposable_t*)&alloc_opts);
 }
 
+/**
+ * Test that the encode function performs parameter checks.
+ */
+TEST(dataservice_encode_test, request_transaction_drop)
+{
+    allocator_options_t alloc_opts;
+    vccrypt_buffer_t buffer;
+    rcpr_uuid txn_id = { .data = {
+        0x28, 0x6b, 0xe0, 0x32, 0x82, 0x7d, 0x4e, 0xab,
+        0x80, 0x42, 0xdf, 0x83, 0xe1, 0x50, 0xb3, 0xab } };
+    const uint32_t child = 0x1234;
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* a NULL buffer is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_transaction_drop(
+            nullptr, &alloc_opts, child, &txn_id));
+
+    /* a NULL allocator is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_transaction_drop(
+            &buffer, nullptr, child, &txn_id));
+
+    /* a NULL artifact id is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_transaction_drop(
+            &buffer, &alloc_opts, child, nullptr));
+
+    /* clean up. */
+    dispose((disposable_t*)&alloc_opts);
+}
+
+/**
+ * Test that the decoded values match the encoded values.
+ */
+TEST(dataservice_encode_test, request_transaction_drop_decoded)
+{
+    allocator_options_t alloc_opts;
+    vccrypt_buffer_t buffer;
+    dataservice_request_transaction_drop_t req;
+    rcpr_uuid txn_id = { .data = {
+        0x28, 0x6b, 0xe0, 0x32, 0x82, 0x7d, 0x4e, 0xab,
+        0x80, 0x42, 0xdf, 0x83, 0xe1, 0x50, 0xb3, 0xab } };
+    const uint32_t child = 0x1234;
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* the encode call should succeed. */
+    ASSERT_EQ(STATUS_SUCCESS,
+        dataservice_encode_request_transaction_drop(
+            &buffer, &alloc_opts, child, &txn_id));
+
+    /* make working with the request more convenient. */
+    const uint8_t* breq = (const uint8_t*)buffer.data;
+
+    /* the payload should be at least large enough for the method. */
+    ASSERT_GE(buffer.size, sizeof(uint32_t));
+
+    /* get the method. */
+    uint32_t nmethod = 0U;
+    memcpy(&nmethod, breq, sizeof(uint32_t));
+    uint32_t method = htonl(nmethod);
+
+    /* the method should be DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_DROP */
+    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_DROP, method);
+
+    /* increment breq past command. */
+    breq += sizeof(uint32_t);
+
+    /* derive the payload size. */
+    size_t payload_size = buffer.size - sizeof(uint32_t);
+
+    /* the decode should succeed. */
+    ASSERT_EQ(STATUS_SUCCESS,
+        dataservice_decode_request_transaction_drop(
+            breq, payload_size, &req));
+
+    /* the child index should match. */
+    EXPECT_EQ(child, req.hdr.child_index);
+
+    /* the txn id should match. */
+    EXPECT_EQ(0, memcmp(req.txn_id, &txn_id, 16));
+
+    /* clean up. */
+    dispose((disposable_t*)&buffer);
+    dispose((disposable_t*)&req);
+    dispose((disposable_t*)&alloc_opts);
+}
