@@ -146,7 +146,7 @@ TEST_F(dataservice_isolation_test, create_root_block)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* we should be able to receive the response from this request. */
     ASSERT_EQ(
@@ -227,7 +227,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -551,7 +551,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -746,7 +746,7 @@ TEST_F(dataservice_isolation_test, global_setting_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -1046,7 +1046,7 @@ TEST_F(dataservice_isolation_test, global_setting_set_get)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -1321,7 +1321,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_first)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -1656,7 +1656,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -1991,7 +1991,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_drop)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -2432,7 +2432,7 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -2882,7 +2882,7 @@ TEST_F(dataservice_isolation_test, make_block_simple)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -3620,7 +3620,7 @@ TEST_F(dataservice_isolation_test, block_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -3840,7 +3840,7 @@ TEST_F(dataservice_isolation_test, block_id_by_height_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -4053,7 +4053,7 @@ TEST_F(dataservice_isolation_test, latest_block_id_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -4268,7 +4268,7 @@ TEST_F(dataservice_isolation_test, artifact_get_not_found)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -4479,7 +4479,7 @@ TEST_F(dataservice_isolation_test, read_block_no_cert)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
@@ -4904,7 +4904,7 @@ TEST_F(dataservice_isolation_test, no_context_leak)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_init(
-            datapsock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datapsock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_init(
