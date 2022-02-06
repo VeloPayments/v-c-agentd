@@ -111,7 +111,7 @@ static status attestationservice_do_attestation(
     /* Query the pending transaction table for new entries. */
     retval = status =
         attestationservice_dataservice_query_pending_transaction(
-            inst->data_sock, inst->alloc, child_context, NULL,
+            inst->data_sock, &inst->vpr_alloc, inst->alloc, child_context, NULL,
             &txn_node, &txn_data, &txn_data_size);
     if (AGENTD_ERROR_DATASERVICE_NOT_FOUND == retval)
     {
@@ -201,8 +201,8 @@ static status attestationservice_do_attestation(
             /* query the next pending transaction. */
             TRY_OR_FAIL(
                 attestationservice_dataservice_query_pending_transaction(
-                    inst->data_sock, inst->alloc, child_context,
-                    (rcpr_uuid*)txn_node.next,
+                    inst->data_sock, &inst->vpr_alloc, inst->alloc,
+                    child_context, (rcpr_uuid*)txn_node.next,
                     &txn_node, &txn_data, &txn_data_size),
                 exit_fatal);
         }
