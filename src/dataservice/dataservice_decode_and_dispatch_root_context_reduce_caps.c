@@ -3,7 +3,7 @@
  *
  * \brief Decode and dispatch a root context reduce capabilities call.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/private/dataservice.h>
@@ -14,6 +14,7 @@
 #include <vpr/parameters.h>
 
 #include "dataservice_internal.h"
+#include "dataservice_protocol_internal.h"
 
 /**
  * \brief Decode and dispatch a root capabilities reduction request.
@@ -46,27 +47,23 @@ int dataservice_decode_and_dispatch_root_context_reduce_caps(
     MODEL_ASSERT(NULL != sock);
     MODEL_ASSERT(NULL != req);
 
-    /* storage for the capabilities. */
-    BITCAP(caps, DATASERVICE_API_CAP_BITS_MAX);
+    /* request structure. */
+    dataservice_request_payload_root_context_reduce_caps_t dreq;
 
-    /* make working with the request more convenient. */
-    uint8_t* breq = (uint8_t*)req;
-
-    /* the payload size should be equal to the size of the capabilities. */
-    if (size != sizeof(caps))
+    /* parse the request. */
+    retval =
+        dataservice_decode_request_root_context_reduce_caps(req, size, &dreq);
+    if (AGENTD_STATUS_SUCCESS != retval)
     {
-        retval = AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE;
         goto done;
     }
 
-    /* copy the caps. */
-    memcpy(caps, breq, size);
-
     /* call the root context reduce capabilites method. */
-    retval = dataservice_root_context_reduce_capabilities(&inst->ctx, caps);
+    retval =
+        dataservice_root_context_reduce_capabilities(&inst->ctx, dreq.caps);
 
     /* cleanup. */
-    memset(caps, 0, sizeof(caps));
+    dispose((disposable_t*)&dreq);
 
 done:
     /* write the status to output. */
