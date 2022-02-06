@@ -3,7 +3,7 @@
  *
  * \brief Internal header for the data service.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_DATASERVICE_INTERNAL_HEADER_GUARD
@@ -14,6 +14,7 @@
 #include <agentd/ipc.h>
 #include <event.h>
 #include <lmdb.h>
+#include <vpr/allocator/malloc_allocator.h>
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
@@ -55,6 +56,7 @@ typedef struct dataservice_child_details
 typedef struct dataservice_instance
 {
     disposable_t hdr;
+    allocator_options_t alloc_opts;
     dataservice_root_context_t ctx;
     dataservice_child_details_t children[DATASERVICE_MAX_CHILD_CONTEXTS];
     dataservice_child_details_t* child_head;

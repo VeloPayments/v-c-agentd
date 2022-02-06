@@ -3,7 +3,7 @@
  *
  * \brief Create a dataservice instance.
  *
- * \copyright 2018 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/private/dataservice.h>
@@ -31,6 +31,9 @@ dataservice_instance_t* dataservice_instance_create()
 
     /* clear the instance. */
     memset(instance, 0, sizeof(dataservice_instance_t));
+
+    /* create a malloc allocator for this instance. */
+    malloc_allocator_options_init(&instance->alloc_opts);
 
     /* explicitly allow the root context to be created. */
     BITCAP_SET_TRUE(
@@ -72,6 +75,9 @@ static void dataservice_instance_dispose(void* disposable)
     /* if the root context hasn't been disposed, dispose it. */
     if (instance->ctx.hdr.dispose)
         dispose((disposable_t*)&instance->ctx);
+
+    /* dispose the allocator options instance. */
+    dispose((disposable_t*)&instance->alloc_opts);
 
     /* clear the data structure. */
     memset(instance, 0, sizeof(dataservice_instance_t));

@@ -3,7 +3,7 @@
  *
  * \brief Decode requests and dispatch a root context create call.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/private/dataservice.h>
@@ -15,6 +15,7 @@
 #include <vpr/parameters.h>
 
 #include "dataservice_internal.h"
+#include "dataservice_protocol_internal.h"
 
 /**
  * \brief Decode and dispatch a root context create request.
@@ -40,45 +41,32 @@ int dataservice_decode_and_dispatch_root_context_create(
     dataservice_instance_t* inst, ipc_socket_context_t* sock, void* req,
     size_t size)
 {
+    int retval = 0;
+
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != inst);
     MODEL_ASSERT(NULL != sock);
     MODEL_ASSERT(NULL != req);
 
-    /* make working with the request more convenient. */
-    uint8_t* breq = (uint8_t*)req;
+    /* root context init request structure. */
+    dataservice_request_payload_root_context_init_t dreq;
 
-    /* the payload size should be greater than eight. */
-    if (size <= 8U)
+    /* parse the request. */
+    retval =
+        dataservice_decode_request_root_context_init(
+            req, &inst->alloc_opts, size, &dreq);
+    if (AGENTD_STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE;
+        return retval;
     }
-
-    /* get the max database size. */
-    uint64_t net_max_database_size = 0U;
-    memcpy(&net_max_database_size, breq, sizeof(net_max_database_size));
-    uint64_t max_database_size = ntohll(net_max_database_size);
-    size -= 8U;
-    breq += 8U;
-
-    /* allocate memory for the datadir string. */
-    char* datadir = (char*)malloc(size + 1);
-    if (NULL == datadir)
-    {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
-    }
-
-    /* copy the datadir string. */
-    memcpy(datadir, breq, size);
-    datadir[size] = 0;
 
     /* call the root context create method. */
-    int retval =
-        dataservice_root_context_init(&inst->ctx, max_database_size, datadir);
+    retval =
+        dataservice_root_context_init(
+            &inst->ctx, dreq.max_database_size, dreq.datadir);
 
     /* clean up. */
-    memset(datadir, 0, size);
-    free(datadir);
+    dispose((disposable_t*)&dreq);
 
     /* write the status to output. */
     return dataservice_decode_and_dispatch_write_status(
