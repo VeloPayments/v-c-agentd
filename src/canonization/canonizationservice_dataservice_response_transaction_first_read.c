@@ -4,7 +4,7 @@
  *
  * \brief Handle the response from the data service transaction first read call.
  *
- * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/canonizationservice.h>
@@ -103,7 +103,8 @@ void canonizationservice_dataservice_response_transaction_first_read(
      * process queue. */
     retval =
         dataservice_api_sendreq_transaction_get_old(
-            instance->data, instance->data_child_context, txn->node.next);
+            instance->data, &instance->alloc_opts, instance->data_child_context,
+            txn->node.next);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         canonizationservice_exit_event_loop(instance);
