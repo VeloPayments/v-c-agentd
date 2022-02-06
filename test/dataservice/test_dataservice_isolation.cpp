@@ -1939,7 +1939,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, child_context, foo_key);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key);
             }
         });
 
@@ -2307,7 +2307,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_drop_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, child_context, foo_key);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key);
             }
         });
 
@@ -2396,7 +2396,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_drop_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, child_context, foo_key);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key);
             }
         });
 
@@ -2757,7 +2757,7 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, child_context, foo_key);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key);
             }
         });
 
@@ -2840,7 +2840,7 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, child_context, foo_key);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key);
             }
         });
 
@@ -3383,7 +3383,7 @@ TEST_F(dataservice_isolation_test, make_block_simple_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, child_context, foo_key);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key);
             }
         });
 
