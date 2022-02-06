@@ -456,6 +456,7 @@ int dataservice_api_recvresp_root_context_init(
  * \brief Request the creation of a root data service context.
  *
  * \param sock              The socket on which this request is made.
+ * \param alloc_opts        The allocator to use for this operation.
  * \param max_database_size The maximum size of the database.
  * \param datadir           The data directory to open.
  *
@@ -469,8 +470,8 @@ int dataservice_api_recvresp_root_context_init(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_root_context_init_old(
-    ipc_socket_context_t* sock, uint64_t max_database_size,
-    const char* datadir);
+    ipc_socket_context_t* sock, allocator_options_t* alloc_opts,
+    uint64_t max_database_size, const char* datadir);
 
 /**
  * \brief Receive a response from the root context init api method call.
