@@ -518,6 +518,7 @@ int dataservice_api_recvresp_root_context_init_old(
  * \brief Request that the capabilities of the root context be reduced.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param caps          The capabilities to use for the reduction.
  * \param size          The size of the capabilities in bytes.
  *
@@ -531,7 +532,8 @@ int dataservice_api_recvresp_root_context_init_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_root_context_reduce_caps(
-    RCPR_SYM(psock)* sock, uint32_t* caps, size_t size);
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t* caps,
+    size_t size);
 
 /**
  * \brief Receive a response from the root context reduce capabilities call.
