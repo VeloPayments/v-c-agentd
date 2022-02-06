@@ -249,7 +249,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_reduce_caps(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_reduce_caps(
@@ -267,7 +267,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_reduce_caps(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_reduce_caps(
@@ -285,7 +285,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_root_context_reduce_caps(
-            datapsock, reducedcaps, sizeof(reducedcaps)));
+            datapsock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_root_context_reduce_caps(
