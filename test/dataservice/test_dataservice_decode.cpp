@@ -3,16 +3,104 @@
  *
  * Unit tests for decode methods in dataservice async_api.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/inet.h>
 #include <agentd/dataservice/async_api.h>
 #include <agentd/status_codes.h>
-#include <vpr/disposable.h>
 #include <gtest/gtest.h>
+#include <vpr/allocator/malloc_allocator.h>
+#include <vpr/disposable.h>
+
+#include "../../src/dataservice/dataservice_protocol_internal.h"
 
 using namespace std;
+
+/**
+ * Test that we check for sizes when decoding.
+ */
+TEST(dataservice_decode_test, request_root_context_init_bad_sizes)
+{
+    uint8_t req[100] = { 0 };
+    dataservice_request_payload_root_context_init_t dreq;
+    allocator_options_t alloc_opts;
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* a zero size is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE,
+        dataservice_decode_request_root_context_init(
+            req, &alloc_opts, 0, &dreq));
+
+    /* a truncated size is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE,
+        dataservice_decode_request_root_context_init(
+            req, &alloc_opts,
+            8 /* must have at least one byte for data dir. */, &dreq));
+
+    dispose((disposable_t*)&alloc_opts);
+}
+
+/**
+ * Test that we perform null checks in the decode.
+ */
+TEST(dataservice_decode_test, request_root_context_init_null_checks)
+{
+    uint8_t req[100] = { 0 };
+    dataservice_request_payload_root_context_init_t dreq;
+    allocator_options_t alloc_opts;
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* a null request packet pointer is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_decode_request_root_context_init(
+            nullptr, &alloc_opts, 25, &dreq));
+
+    /* a null allocator pointer is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_decode_request_root_context_init(
+            req, nullptr, 25, &dreq));
+
+    /* a null decoded request structure pointer is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_decode_request_root_context_init(
+            req, &alloc_opts, 25, nullptr));
+
+    dispose((disposable_t*)&alloc_opts);
+}
+
+/**
+ * Test that a request packet payload is successfully decoded.
+ */
+TEST(dataservice_decode_test, request_root_context_init_decoded)
+{
+    uint8_t req[13] = {
+        /* size == 16383 */
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xFF,
+
+        /* datadir == "/data" */
+        '/', 'd', 'a', 't', 'a'
+    };
+    dataservice_request_payload_root_context_init_t dreq;
+    allocator_options_t alloc_opts;
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* a valid request is successfully decoded. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        dataservice_decode_request_root_context_init(
+            req, &alloc_opts, sizeof(req), &dreq));
+
+    /* the size is correct. */
+    ASSERT_EQ(16383UL, dreq.max_database_size);
+    /* the data directory is correct. */
+    ASSERT_STREQ("/data", dreq.datadir);
+
+    dispose((disposable_t*)&dreq);
+    dispose((disposable_t*)&alloc_opts);
+}
 
 /**
  * Test that we check for sizes when decoding.

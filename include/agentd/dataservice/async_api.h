@@ -688,6 +688,24 @@ status dataservice_encode_request_global_settings_set(
 status dataservice_encode_request_latest_block_id_get(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child);
 
+/**
+ * \brief Encode a request to create the root dataservice context.
+ *
+ * \param buffer                Pointer to an uninitialized
+ *                              \ref vccrypt_buffer_t to receive the encoded
+ *                              request.
+ * \param alloc_opts            The allocator options to use.
+ * \param max_database_size     The maximum database size.
+ * \param datadir               The data directory to open.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_root_context_init(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts,
+    uint64_t max_database_size, const char* datadir);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
