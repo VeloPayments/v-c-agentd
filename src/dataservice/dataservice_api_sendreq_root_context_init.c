@@ -3,11 +3,12 @@
  *
  * \brief Request the creation of a root data service context.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
 #include <agentd/dataservice/api.h>
+#include <agentd/dataservice/async_api.h>
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
@@ -22,6 +23,7 @@ RCPR_IMPORT_psock;
  * \brief Request the creation of a root data service context.
  *
  * \param sock              The socket on which this request is made.
+ * \param alloc_opts        The allocator to use for this operation.
  * \param max_database_size The maximum size of the database.
  * \param datadir           The data directory to open.
  *
@@ -35,59 +37,34 @@ RCPR_IMPORT_psock;
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_root_context_init(
-    psock* sock, uint64_t max_database_size, const char* datadir)
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts,
+    uint64_t max_database_size, const char* datadir)
 {
+    status retval;
+    vccrypt_buffer_t reqbuf;
+
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != sock);
     MODEL_ASSERT(NULL != datadir);
 
-    /* | Root context init request packet.                            | */
-    /* | --------------------------------------------- | ------------ | */
-    /* | DATA                                          | SIZE         | */
-    /* | --------------------------------------------- | ------------ | */
-    /* | DATASERVICE_API_METHOD_LL_ROOT_CONTEXT_CREATE | 4 bytes      | */
-    /* | max database size                             | 8 bytes      | */
-    /* | datadir                                       | n - 4 bytes  | */
-    /* | --------------------------------------------- | ------------ | */
-
-    /* compute the length of the datadir parameter. */
-    size_t datadirlen = strlen(datadir);
-
-    /* allocate a structure large enough for writing this request. */
-    size_t reqbuflen = datadirlen + sizeof(uint64_t) + sizeof(uint32_t);
-    size_t idx = 0;
-    uint8_t* reqbuf = (uint8_t*)malloc(reqbuflen);
-    if (NULL == reqbuf)
+    /* encode this request. */
+    retval =
+        dataservice_encode_request_root_context_init(
+            &reqbuf, alloc_opts, max_database_size, datadir);
+    if (STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+        return retval;
     }
 
-    /* copy the request ID to the buffer. */
-    uint32_t req = htonl(DATASERVICE_API_METHOD_LL_ROOT_CONTEXT_CREATE);
-    memcpy(reqbuf, &req, sizeof(req));
-    idx += sizeof(req);
-
-    /* copy the max database size to the request buffer. */
-    uint64_t net_max_database_size = htonll(max_database_size);
-    memcpy(
-        reqbuf + idx, &net_max_database_size,
-        sizeof(net_max_database_size));
-    idx += sizeof(net_max_database_size);
-
-    /* copy the datadir parameter to this buffer. */
-    memcpy(reqbuf + idx, datadir, datadirlen);
-    idx += datadirlen;
-
-    /* the request packet consists of the data directory only. */
-    status retval = psock_write_boxed_data(sock, reqbuf, reqbuflen);
+    /* write the request packet to the socket. */
+    retval = psock_write_boxed_data(sock, reqbuf.data, reqbuf.size);
     if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE;
     }
 
-    /* clean up memory. */
-    memset(reqbuf, 0, reqbuflen);
-    free(reqbuf);
+    /* clean up the buffer. */
+    dispose((disposable_t*)&reqbuf);
 
     /* return the status of this request write to the caller. */
     return retval;
