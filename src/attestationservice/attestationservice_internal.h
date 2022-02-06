@@ -240,6 +240,7 @@ status attestationservice_dataservice_child_context_create(
  * transaction.
  *
  * \param data_sock         Socket for the data service.
+ * \param vpr_alloc         The VPR allocator to use for this operation.
  * \param alloc             The allocator to use for this operation.
  * \param child_context     The child context to use for this operation.
  * \param txn_id            The next transaction id, or NULL if the first
@@ -253,9 +254,10 @@ status attestationservice_dataservice_child_context_create(
  *      - a non-zero error code on failure.
  */
 status attestationservice_dataservice_query_pending_transaction(
-    RCPR_SYM(psock)* data_sock, RCPR_SYM(allocator)* alloc,
-    uint32_t child_context, RCPR_SYM(rcpr_uuid)* txn_id,
-    data_transaction_node_t* txn_node, void** txn_data, size_t* txn_data_size);
+    RCPR_SYM(psock)* data_sock, allocator_options_t* vpr_alloc,
+    RCPR_SYM(allocator)* alloc, uint32_t child_context,
+    RCPR_SYM(rcpr_uuid)* txn_id, data_transaction_node_t* txn_node,
+    void** txn_data, size_t* txn_data_size);
 
 /**
  * \brief Query the data service for an artifact record by artifact id.

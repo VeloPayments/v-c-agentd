@@ -1509,6 +1509,7 @@ int dataservice_api_recvresp_transaction_get_first_old(
  * \brief Get a transaction from the transaction queue by ID.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator options to use for this operation.
  * \param child         The child index used for the query.
  * \param txn_id        The transaction UUID of the transaction to retrieve.
  *
@@ -1522,7 +1523,8 @@ int dataservice_api_recvresp_transaction_get_first_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_transaction_get(
-    RCPR_SYM(psock)* sock, uint32_t child, const uint8_t* txn_id);
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* txn_id);
 
 /**
  * \brief Receive a response from the get transaction query.
