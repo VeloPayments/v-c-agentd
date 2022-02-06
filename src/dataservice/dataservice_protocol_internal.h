@@ -3,7 +3,7 @@
  *
  * \brief Internal header for the data service protocol.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_DATASERVICE_PROTOCOL_INTERNAL_HEADER_GUARD
@@ -30,6 +30,18 @@ typedef struct dataservice_request_header
     size_t size;
     uint32_t child_index;
 } dataservice_request_header_t;
+
+/**
+ * \brief Payload Root Context Init structure.
+ */
+typedef struct dataservice_request_payload_root_context_init
+{
+    dataservice_request_header_t hdr;
+    uint64_t max_database_size;
+    allocator_options_t* alloc_opts;
+    char* datadir;
+    size_t datadir_size;
+} dataservice_request_payload_root_context_init_t;
 
 /**
  * \brief Payload Artifact Read Request structure.
@@ -212,6 +224,24 @@ int dataservice_request_init_empty(
  * \param disposable        The disposable to dispose.
  */
 void dataservice_request_dispose(void* disposable);
+
+/**
+ * \brief Decode a root context init request into its constituent pieces.
+ *
+ * \param req           The request payload to parse.
+ * \param alloc_opts    The allocator options to use for this operation.
+ * \param size          The size of this request payload.
+ * \param dreq          The request structure into which this request is
+ *                      decoded.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE if the request
+ *        packet payload size is incorrect.
+ */
+int dataservice_decode_request_root_context_init(
+    const void* req, allocator_options_t* alloc_opts, size_t size,
+    dataservice_request_payload_root_context_init_t* dreq);
 
 /**
  * \brief Decode an artifact read request into its constituent pieces.
