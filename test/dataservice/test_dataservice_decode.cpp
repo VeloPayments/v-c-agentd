@@ -105,6 +105,66 @@ TEST(dataservice_decode_test, request_root_context_init_decoded)
 /**
  * Test that we check for sizes when decoding.
  */
+TEST(dataservice_decode_test, request_root_context_reduce_caps_sizes)
+{
+    uint8_t req[100] = { 0 };
+    dataservice_request_payload_root_context_reduce_caps_t dreq;
+
+    /* a zero size is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE,
+        dataservice_decode_request_root_context_reduce_caps(
+            req, 0, &dreq));
+
+    /* a truncated size is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE,
+        dataservice_decode_request_root_context_reduce_caps(
+            req, 2, &dreq));
+}
+
+/**
+ * Test that we perform null checks in the decode.
+ */
+TEST(dataservice_decode_test, request_root_context_reduce_caps_null_checks)
+{
+    uint8_t req[100] = { 0 };
+    dataservice_request_payload_root_context_reduce_caps_t dreq;
+
+    /* a null request packet pointer is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_decode_request_root_context_reduce_caps(
+            nullptr, sizeof(dreq.caps), &dreq));
+
+    /* a null decoded request structure pointer is invalid. */
+    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_decode_request_root_context_reduce_caps(
+            req, sizeof(dreq.caps), nullptr));
+}
+
+/**
+ * Test that a request packet payload is successfully decoded.
+ */
+TEST(dataservice_decode_test, request_root_context_reduce_caps_decoded)
+{
+    BITCAP(caps, DATASERVICE_API_CAP_BITS_MAX);
+    dataservice_request_payload_root_context_reduce_caps_t dreq;
+
+    BITCAP_INIT_TRUE(caps);
+
+    /* a valid request is successfully decoded. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+        dataservice_decode_request_root_context_reduce_caps(
+            &caps, sizeof(caps), &dreq));
+
+    /* the caps match. */
+    EXPECT_EQ(0, memcmp(&caps, &dreq.caps, sizeof(caps)));
+
+    /* clean up. */
+    dispose((disposable_t*)&dreq);
+}
+
+/**
+ * Test that we check for sizes when decoding.
+ */
 TEST(dataservice_decode_test, response_root_context_init_bad_sizes)
 {
     uint8_t resp[100] = { 0 };

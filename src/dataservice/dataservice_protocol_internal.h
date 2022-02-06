@@ -44,6 +44,15 @@ typedef struct dataservice_request_payload_root_context_init
 } dataservice_request_payload_root_context_init_t;
 
 /**
+ * \brief Payload Root Context Reduce Caps structure.
+ */
+typedef struct dataservice_request_payload_root_context_reduce_caps
+{
+    dataservice_request_header_t hdr;
+    BITCAP(caps, DATASERVICE_API_CAP_BITS_MAX);
+} dataservice_request_payload_root_context_reduce_caps_t;
+
+/**
  * \brief Payload Artifact Read Request structure.
  */
 typedef struct dataservice_request_payload_artifact_read
@@ -242,6 +251,23 @@ void dataservice_request_dispose(void* disposable);
 int dataservice_decode_request_root_context_init(
     const void* req, allocator_options_t* alloc_opts, size_t size,
     dataservice_request_payload_root_context_init_t* dreq);
+
+/**
+ * \brief Decode a root context reduce caps request into its constituent pieces.
+ *
+ * \param req           The request payload to parse.
+ * \param size          The size of this request payload.
+ * \param dreq          The request structure into which this request is
+ *                      decoded.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE if the request
+ *        packet payload size is incorrect.
+ */
+int dataservice_decode_request_root_context_reduce_caps(
+    const void* req, size_t size,
+    dataservice_request_payload_root_context_reduce_caps_t* dreq);
 
 /**
  * \brief Decode an artifact read request into its constituent pieces.

@@ -3,7 +3,7 @@
  *
  * \brief Initialize a dataservice request structure without a child context.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/status_codes.h>
@@ -28,13 +28,20 @@
  *        packet payload size is incorrect.
  */
 int dataservice_request_init_empty(
-    const uint8_t** UNUSED(breq), size_t* UNUSED(size),
+    const uint8_t** breq, size_t* UNUSED(size),
     dataservice_request_header_t* dreq, size_t dreq_size)
 {
+    /* parameter sanity checks. */
     MODEL_ASSERT(NULL != breq);
     MODEL_ASSERT(NULL != *breq);
     MODEL_ASSERT(NULL != size);
     MODEL_ASSERT(NULL != dreq);
+
+    /* runtime parameter sanity checks. */
+    if (NULL == breq || NULL == *breq || NULL == dreq)
+    {
+        return AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER;
+    }
 
     /* start by clearing out this structure. */
     memset(dreq, 0, dreq_size);

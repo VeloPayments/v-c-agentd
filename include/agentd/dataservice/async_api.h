@@ -706,6 +706,23 @@ status dataservice_encode_request_root_context_init(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts,
     uint64_t max_database_size, const char* datadir);
 
+/**
+ * \brief Encode a request to reduce the root capabilities of the dataservice.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param caps          Pointer to the capabilities buffer.
+ * \param size          Size of the capabilities buffer.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_root_context_reduce_caps(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, const void* caps,
+    size_t size);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
