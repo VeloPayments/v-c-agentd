@@ -2361,7 +2361,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_drop_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_drop_old(
-                        &nonblockdatasock, child_context, foo_key);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key);
             }
         });
 
