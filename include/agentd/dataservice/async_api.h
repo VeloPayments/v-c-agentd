@@ -740,6 +740,23 @@ status dataservice_encode_request_transaction_drop(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
     const RCPR_SYM(rcpr_uuid)* txn_id);
 
+/**
+ * \brief Encode a request to get a transaction from the process queue by id.
+ *
+ * \param buffer        Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                      receive the encoded request.
+ * \param alloc_opts    The allocator options to use.
+ * \param child         The child context for this request.
+ * \param txn_id        The transaction UUID for this request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_transaction_get(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
+    const RCPR_SYM(rcpr_uuid)* txn_id);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
