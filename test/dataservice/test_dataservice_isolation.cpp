@@ -375,7 +375,8 @@ TEST_F(dataservice_isolation_test, reduce_root_caps_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_reduce_caps_old(
-                        &nonblockdatasock, reducedcaps, sizeof(reducedcaps));
+                        &nonblockdatasock, &alloc_opts, reducedcaps,
+                        sizeof(reducedcaps));
             }
         });
 
@@ -413,7 +414,8 @@ TEST_F(dataservice_isolation_test, reduce_root_caps_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_reduce_caps_old(
-                        &nonblockdatasock, reducedcaps, sizeof(reducedcaps));
+                        &nonblockdatasock, &alloc_opts, reducedcaps,
+                        sizeof(reducedcaps));
             }
         });
 
@@ -451,7 +453,8 @@ TEST_F(dataservice_isolation_test, reduce_root_caps_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_root_context_reduce_caps_old(
-                        &nonblockdatasock, reducedcaps, sizeof(reducedcaps));
+                        &nonblockdatasock, &alloc_opts, reducedcaps,
+                        sizeof(reducedcaps));
             }
         });
 
