@@ -2738,7 +2738,7 @@ TEST_F(mock_dataservice_test, default_transaction_get_first)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_first_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
@@ -2790,7 +2790,7 @@ TEST_F(mock_dataservice_test, matches_transaction_get_first)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_first_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 
@@ -2915,7 +2915,7 @@ TEST_F(mock_dataservice_test, transaction_get_first_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_first_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 

@@ -1604,7 +1604,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_first_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_first_old(
-                        &nonblockdatasock, child_context);
+                        &nonblockdatasock, &alloc_opts, child_context);
             }
         });
 

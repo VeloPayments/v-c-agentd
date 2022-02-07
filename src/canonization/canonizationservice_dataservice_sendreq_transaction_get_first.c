@@ -4,7 +4,7 @@
  * \brief Send the transaction process queue get first request to the data
  * service from the canonization service.
  *
- * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -35,7 +35,8 @@ int canonizationservice_dataservice_sendreq_transaction_get_first(
      * process queue. */
     retval =
         dataservice_api_sendreq_transaction_get_first_old(
-            instance->data, instance->data_child_context);
+            instance->data, &instance->alloc_opts,
+            instance->data_child_context);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         goto done;
