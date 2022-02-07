@@ -1396,7 +1396,7 @@ TEST_F(dataservice_isolation_test, txn_submit_get_first)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_transaction_get_first(
-            datapsock, child_context));
+            datapsock, &alloc_opts, child_context));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_transaction_get_first(
