@@ -19,8 +19,9 @@ RCPR_IMPORT_uuid;
 
 /* forward decls. */
 static status attestationservice_dataservice_query_first_pending_txn(
-    psock* data_sock, rcpr_allocator* alloc, uint32_t child_context,
-    data_transaction_node_t* txn_node, void** txn_data, size_t* txn_data_size);
+    psock* data_sock, allocator_options_t* vpr_alloc, rcpr_allocator* alloc,
+    uint32_t child_context, data_transaction_node_t* txn_node, void** txn_data,
+    size_t* txn_data_size);
 static status attestationservice_dataservice_query_pending_txn(
     psock* data_sock, allocator_options_t* vpr_alloc, rcpr_allocator* alloc,
     uint32_t child_context, rcpr_uuid* txn_id,
@@ -54,7 +55,7 @@ status attestationservice_dataservice_query_pending_transaction(
     {
         return
             attestationservice_dataservice_query_first_pending_txn(
-                data_sock, alloc, child_context, txn_node,
+                data_sock, vpr_alloc, alloc, child_context, txn_node,
                 txn_data, txn_data_size);
     }
     /* no, query by transaction id. */
@@ -71,6 +72,7 @@ status attestationservice_dataservice_query_pending_transaction(
  * \brief Query the data service for the first pending transaction.
  *
  * \param data_sock         Socket for the data service.
+ * \param vpr_alloc         The VPR allocator to use for this operation.
  * \param alloc             The allocator to use for this operation.
  * \param child_context     The child context to use for this operation.
  * \param txn_node          The transaction node to return.
@@ -82,8 +84,9 @@ status attestationservice_dataservice_query_pending_transaction(
  *      - a non-zero error code on failure.
  */
 static status attestationservice_dataservice_query_first_pending_txn(
-    psock* data_sock, rcpr_allocator* alloc, uint32_t child_context,
-    data_transaction_node_t* txn_node, void** txn_data, size_t* txn_data_size)
+    psock* data_sock, allocator_options_t* vpr_alloc, rcpr_allocator* alloc,
+    uint32_t child_context, data_transaction_node_t* txn_node, void** txn_data,
+    size_t* txn_data_size)
 {
     status retval;
     uint32_t status, offset;
@@ -91,7 +94,7 @@ static status attestationservice_dataservice_query_first_pending_txn(
     /* send a request to the data service. */
     TRY_OR_FAIL(
         dataservice_api_sendreq_transaction_get_first(
-            data_sock, child_context),
+            data_sock, vpr_alloc, child_context),
         done);
 
     /* read the response. */
