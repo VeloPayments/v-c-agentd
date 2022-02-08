@@ -1943,7 +1943,7 @@ TEST_F(mock_dataservice_test, default_global_setting_set)
     /* we should be able to send the global settings get request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         dataservice_api_sendreq_global_settings_set_block(
-            datasock, 0U, 0U, EXPECTED_VAL, EXPECTED_VAL_SIZE));
+            datasock, &alloc_opts, 0U, 0U, EXPECTED_VAL, EXPECTED_VAL_SIZE));
 
     /* we should be able to get a response from this request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -1973,7 +1973,8 @@ TEST_F(mock_dataservice_test, matches_global_setting_set)
     /* we should be able to send the global settings get request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         dataservice_api_sendreq_global_settings_set_block(
-            datasock, child_context, key, EXPECTED_VAL, EXPECTED_VAL_SIZE));
+            datasock, &alloc_opts, child_context, key, EXPECTED_VAL,
+            EXPECTED_VAL_SIZE));
 
     /* we should be able to get a response from this request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -2037,7 +2038,7 @@ TEST_F(mock_dataservice_test, global_setting_set_override)
     /* we should be able to send the global settings get request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
         dataservice_api_sendreq_global_settings_set_block(
-            datasock, 0U, 0U, EXPECTED_VAL, EXPECTED_VAL_SIZE));
+            datasock, &alloc_opts, 0U, 0U, EXPECTED_VAL, EXPECTED_VAL_SIZE));
 
     /* we should be able to get a response from this request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
