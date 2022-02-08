@@ -513,7 +513,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close_blocking)
     uint32_t child_context;
     ASSERT_EQ(0,
         dataservice_api_sendreq_child_context_create_block(
-            datasock, reducedcaps, sizeof(reducedcaps)));
+            datasock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(0,
         dataservice_api_recvresp_child_context_create_block(
             datasock, &offset, &status, &child_context));
@@ -985,7 +985,7 @@ TEST_F(dataservice_isolation_test, global_setting_set_get_blocking)
     uint32_t child_context;
     ASSERT_EQ(0,
         dataservice_api_sendreq_child_context_create_block(
-            datasock, reducedcaps, sizeof(reducedcaps)));
+            datasock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(0,
         dataservice_api_recvresp_child_context_create_block(
             datasock, &offset, &status, &child_context));
