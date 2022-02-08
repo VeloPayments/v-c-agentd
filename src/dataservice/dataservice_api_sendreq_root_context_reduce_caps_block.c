@@ -4,11 +4,12 @@
  * \brief Request that the capabilities of the root context be reduced, using a
  * blocking socket.
  *
- * \copyright 2018-2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
 #include <agentd/dataservice/api.h>
+#include <agentd/dataservice/async_api.h>
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
@@ -19,6 +20,7 @@
  * \brief Request that the capabilities of the root context be reduced.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc         The allocator to use for this operation.
  * \param caps          The capabilities to use for the reduction.
  * \param size          The size of the capabilities in bytes.
  *
@@ -32,54 +34,34 @@
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_root_context_reduce_caps_block(
-    int sock, uint32_t* caps, size_t size)
+    int sock, allocator_options_t* alloc_opts, uint32_t* caps, size_t size)
 {
-    BITCAP(bitcaps, DATASERVICE_API_CAP_BITS_MAX);
+    status retval;
+    vccrypt_buffer_t reqbuf;
 
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != sock);
     MODEL_ASSERT(NULL != caps);
     MODEL_ASSERT(size == sizeof(bitcaps));
 
-    /* | Root context reduce capabilities request packet.                  | */
-    /* | -------------------------------------------------- | ------------ | */
-    /* | DATA                                               | SIZE         | */
-    /* | -------------------------------------------------- | ------------ | */
-    /* | DATASERVICE_API_METHOD_LL_ROOT_CONTEXT_REDUCE_CAPS | 4 bytes      | */
-    /* | caps                                               | n - 4 bytes  | */
-    /* | -------------------------------------------------- | ------------ | */
-
-    /* verify that caps is the correct size. */
-    if (size != sizeof(bitcaps))
+    /* encode this request. */
+    retval =
+        dataservice_encode_request_root_context_reduce_caps(
+            &reqbuf, alloc_opts, caps, size);
+    if (STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE;
+        return retval;
     }
 
-    /* allocate a structure large enough for writing this request. */
-    size_t reqbuflen = size + sizeof(uint32_t);
-    uint8_t* reqbuf = (uint8_t*)malloc(reqbuflen);
-    if (NULL == reqbuf)
-    {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
-    }
-
-    /* copy the request ID to the buffer. */
-    uint32_t req = htonl(DATASERVICE_API_METHOD_LL_ROOT_CONTEXT_REDUCE_CAPS);
-    memcpy(reqbuf, &req, sizeof(req));
-
-    /* copy the capabilities parameter to this buffer. */
-    memcpy(reqbuf + sizeof(req), caps, size);
-
-    /* write the data packet. */
-    int retval = ipc_write_data_block(sock, reqbuf, reqbuflen);
+    /* write the request packet to the socket. */
+    retval = ipc_write_data_block(sock, reqbuf.data, reqbuf.size);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE;
     }
 
-    /* clean up memory. */
-    memset(reqbuf, 0, reqbuflen);
-    free(reqbuf);
+    /* clean up the buffer. */
+    dispose((disposable_t*)&reqbuf);
 
     /* return the status of this request write to the caller. */
     return retval;
