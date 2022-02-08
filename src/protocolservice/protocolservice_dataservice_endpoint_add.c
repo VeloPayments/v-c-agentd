@@ -9,6 +9,7 @@
 #include <cbmc/model_assert.h>
 #include <rcpr/uuid.h>
 #include <string.h>
+#include <vpr/allocator/malloc_allocator.h>
 
 #include "protocolservice_internal.h"
 
@@ -67,6 +68,9 @@ status protocolservice_dataservice_endpoint_add(
     /* set the allocator and dummy mailbox address. */
     tmp->alloc = alloc;
     tmp->addr = 0;
+
+    /* Initialize a VPR allocator for this instance. */
+    malloc_allocator_options_init(&tmp->vpr_alloc);
 
     /* create the dataservice endpoint fiber. */
     retval =
