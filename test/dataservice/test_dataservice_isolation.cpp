@@ -2805,7 +2805,7 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_promote_old(
-                        &nonblockdatasock, child_context, foo_key);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key);
             }
         });
 

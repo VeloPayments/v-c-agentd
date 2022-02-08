@@ -3,7 +3,7 @@
  *
  * \brief Promote a transaction to promoted in the transaction process queue.
  *
- * \copyright 2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/control.h>
