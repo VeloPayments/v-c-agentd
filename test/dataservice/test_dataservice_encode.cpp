@@ -1407,3 +1407,128 @@ TEST(dataservice_encode_test, request_transaction_promote_decoded)
     dispose((disposable_t*)&req);
     dispose((disposable_t*)&alloc_opts);
 }
+
+/**
+ * Test that the encode function performs parameter checks.
+ */
+TEST(dataservice_encode_test, request_transaction_submit)
+{
+    allocator_options_t alloc_opts;
+    vccrypt_buffer_t buffer;
+    rcpr_uuid txn_id = { .data = {
+        0xfc, 0x62, 0x81, 0xfb, 0xd6, 0x56, 0x48, 0xd6,
+        0xa7, 0x40, 0x4f, 0xd5, 0x3b, 0xd8, 0x5c, 0x56 } };
+    rcpr_uuid artifact_id = { .data = {
+        0xbf, 0x6a, 0x49, 0x44, 0x3d, 0xcd, 0x44, 0x1b,
+        0x93, 0x62, 0x0d, 0x07, 0xb5, 0x4d, 0x4d, 0x3d } };
+    const uint32_t child = 0x1234;
+    const uint8_t txn_cert[] = { 0x00, 0x01, 0x02, 0x03 };
+    const uint32_t txn_cert_size = sizeof(txn_cert);
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* a NULL buffer is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_transaction_submit(
+            nullptr, &alloc_opts, child, &txn_id, &artifact_id, txn_cert,
+            txn_cert_size));
+
+    /* a NULL allocator is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_transaction_submit(
+            &buffer, nullptr, child, &txn_id, &artifact_id, txn_cert,
+            txn_cert_size));
+
+    /* a NULL transaction id is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_transaction_submit(
+            &buffer, &alloc_opts, child, nullptr, &artifact_id, txn_cert,
+            txn_cert_size));
+
+    /* a NULL artifact id is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_transaction_submit(
+            &buffer, &alloc_opts, child, &txn_id, nullptr, txn_cert,
+            txn_cert_size));
+
+    /* a NULL transaction id is invalid. */
+    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
+        dataservice_encode_request_transaction_submit(
+            &buffer, &alloc_opts, child, &txn_id, &artifact_id, nullptr,
+            txn_cert_size));
+
+    /* clean up. */
+    dispose((disposable_t*)&alloc_opts);
+}
+
+/**
+ * Test that the decoded values match the encoded values.
+ */
+TEST(dataservice_encode_test, request_transaction_submit_decoded)
+{
+    allocator_options_t alloc_opts;
+    vccrypt_buffer_t buffer;
+    dataservice_request_transaction_submit_t req;
+    rcpr_uuid txn_id = { .data = {
+        0xfc, 0x62, 0x81, 0xfb, 0xd6, 0x56, 0x48, 0xd6,
+        0xa7, 0x40, 0x4f, 0xd5, 0x3b, 0xd8, 0x5c, 0x56 } };
+    rcpr_uuid artifact_id = { .data = {
+        0xbf, 0x6a, 0x49, 0x44, 0x3d, 0xcd, 0x44, 0x1b,
+        0x93, 0x62, 0x0d, 0x07, 0xb5, 0x4d, 0x4d, 0x3d } };
+    const uint32_t child = 0x1234;
+    const uint8_t txn_cert[] = { 0x00, 0x01, 0x02, 0x03 };
+    const uint32_t txn_cert_size = sizeof(txn_cert);
+
+    malloc_allocator_options_init(&alloc_opts);
+
+    /* the encode call should succeed. */
+    EXPECT_EQ(STATUS_SUCCESS,
+        dataservice_encode_request_transaction_submit(
+            &buffer, &alloc_opts, child, &txn_id, &artifact_id, txn_cert,
+            txn_cert_size));
+
+    /* make working with the request more convenient. */
+    const uint8_t* breq = (const uint8_t*)buffer.data;
+
+    /* the payload should be at least large enough for the method. */
+    ASSERT_GE(buffer.size, sizeof(uint32_t));
+
+    /* get the method. */
+    uint32_t nmethod = 0U;
+    memcpy(&nmethod, breq, sizeof(uint32_t));
+    uint32_t method = htonl(nmethod);
+
+    /* method should be DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_SUBMIT */
+    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_SUBMIT, method);
+
+    /* increment breq past command. */
+    breq += sizeof(uint32_t);
+
+    /* derive the payload size. */
+    size_t payload_size = buffer.size - sizeof(uint32_t);
+
+    /* the decode should succeed. */
+    ASSERT_EQ(STATUS_SUCCESS,
+        dataservice_decode_request_transaction_submit(
+            breq, payload_size, &req));
+
+    /* the child index should match. */
+    EXPECT_EQ(child, req.hdr.child_index);
+
+    /* the transaction id should match. */
+    EXPECT_EQ(0, memcmp(&txn_id, req.txn_id, 16));
+
+    /* the artifact id should match. */
+    EXPECT_EQ(0, memcmp(&artifact_id, req.artifact_id, 16));
+
+    /* the cert size should match. */
+    EXPECT_EQ(txn_cert_size, req.cert_size);
+
+    /* the cert should match. */
+    EXPECT_EQ(0, memcmp(txn_cert, req.cert, req.cert_size));
+
+    /* clean up. */
+    dispose((disposable_t*)&buffer);
+    dispose((disposable_t*)&req);
+    dispose((disposable_t*)&alloc_opts);
+}
