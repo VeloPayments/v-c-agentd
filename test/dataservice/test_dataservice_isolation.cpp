@@ -88,7 +88,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps_blocking)
     /* reduce root capabilities. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_reduce_caps_block(
-            datasock, reducedcaps, sizeof(reducedcaps)));
+            datasock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_reduce_caps_block(
             datasock, &offset, &status));
@@ -103,7 +103,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps_blocking)
     /* reduce root capabilities. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_reduce_caps_block(
-            datasock, reducedcaps, sizeof(reducedcaps)));
+            datasock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_reduce_caps_block(
             datasock, &offset, &status));
@@ -118,7 +118,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps_blocking)
     /* reduce root capabilities fails. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_reduce_caps_block(
-            datasock, reducedcaps, sizeof(reducedcaps)));
+            datasock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_reduce_caps_block(
             datasock, &offset, &status));
@@ -501,7 +501,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close_blocking)
     /* reduce root capabilities. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_reduce_caps_block(
-            datasock, reducedcaps, sizeof(reducedcaps)));
+            datasock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_reduce_caps_block(
             datasock, &offset, &status));
@@ -973,7 +973,7 @@ TEST_F(dataservice_isolation_test, global_setting_set_get_blocking)
     /* reduce root capabilities. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_reduce_caps_block(
-            datasock, reducedcaps, sizeof(reducedcaps)));
+            datasock, &alloc_opts, reducedcaps, sizeof(reducedcaps)));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_reduce_caps_block(
             datasock, &offset, &status));

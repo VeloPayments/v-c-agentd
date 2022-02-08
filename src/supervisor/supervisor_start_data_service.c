@@ -59,7 +59,7 @@ int supervisor_start_data_service(process_t* proc)
     /* attempt to reduce the root capabilities. */
     TRY_OR_FAIL(
         dataservice_api_sendreq_root_context_reduce_caps_block(
-            *data_proc->supervisor_data_socket,
+            *data_proc->supervisor_data_socket, &alloc_opts,
             data_proc->reducedcaps, sizeof(data_proc->reducedcaps)),
         terminate_proc);
 
