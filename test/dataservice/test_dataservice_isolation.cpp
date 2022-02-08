@@ -525,7 +525,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close_blocking)
     /* close the child context */
     ASSERT_EQ(0,
         dataservice_api_sendreq_child_context_close_block(
-            datasock, child_context));
+            datasock, &alloc_opts, child_context));
     ASSERT_EQ(0,
         dataservice_api_recvresp_child_context_close_block(
             datasock, &offset, &status));
