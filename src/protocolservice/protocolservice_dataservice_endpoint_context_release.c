@@ -45,6 +45,9 @@ status protocolservice_dataservice_endpoint_context_release(
     /* cache the allocator. */
     rcpr_allocator* alloc = ctx->alloc;
 
+    /* release the VPR allocator. */
+    dispose((disposable_t*)&ctx->vpr_alloc);
+
     /* close the mailbox. */
     if (ctx->addr > 0)
     {

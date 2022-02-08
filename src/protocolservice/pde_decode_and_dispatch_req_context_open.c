@@ -71,7 +71,7 @@ status pde_decode_and_dispatch_req_context_open(
     /* send a dataservice child context create request to the data service. */
     retval =
         dataservice_api_sendreq_child_context_create(    
-            ctx->datasock, req_payload->payload.data,
+            ctx->datasock, &ctx->vpr_alloc, req_payload->payload.data,
             req_payload->payload.size);
     if (STATUS_SUCCESS != retval)
     {

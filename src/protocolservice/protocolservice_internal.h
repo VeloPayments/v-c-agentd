@@ -170,6 +170,7 @@ struct protocolservice_dataservice_endpoint_context
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
+    allocator_options_t vpr_alloc;
     RCPR_SYM(fiber)* fib;
     RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
     RCPR_SYM(mailbox_address) addr;

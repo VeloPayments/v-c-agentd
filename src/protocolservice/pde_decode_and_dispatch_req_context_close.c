@@ -62,7 +62,7 @@ status pde_decode_and_dispatch_req_context_close(
     /* send the dataservice child context close request. */
     retval =
         dataservice_api_sendreq_child_context_close(
-            ctx->datasock, entry->context);
+            ctx->datasock, &ctx->vpr_alloc, entry->context);
     if (STATUS_SUCCESS != retval)
     {
         goto send_response;
