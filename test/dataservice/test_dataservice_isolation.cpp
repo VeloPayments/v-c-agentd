@@ -1377,8 +1377,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get_first)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_transaction_submit(
-            datapsock, child_context, foo_key, foo_artifact, foo_data,
-            foo_data_size));
+            datapsock, &alloc_opts, child_context, foo_key, foo_artifact,
+            foo_data, foo_data_size));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_transaction_submit(
@@ -1712,8 +1712,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_transaction_submit(
-            datapsock, child_context, foo_key, foo_artifact, foo_data,
-            foo_data_size));
+            datapsock, &alloc_opts, child_context, foo_key, foo_artifact,
+            foo_data, foo_data_size));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_transaction_submit(
@@ -2049,8 +2049,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get_drop)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_transaction_submit(
-            datapsock, child_context, foo_key, foo_artifact, foo_data,
-            foo_data_size));
+            datapsock, &alloc_opts, child_context, foo_key, foo_artifact,
+            foo_data, foo_data_size));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_transaction_submit(
@@ -2490,8 +2490,8 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_transaction_submit(
-            datapsock, child_context, foo_key, foo_artifact, foo_data,
-            foo_data_size));
+            datapsock, &alloc_opts, child_context, foo_key, foo_artifact,
+            foo_data, foo_data_size));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_transaction_submit(
@@ -2963,8 +2963,8 @@ TEST_F(dataservice_isolation_test, make_block_simple)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_transaction_submit(
-            datapsock, child_context, foo_key, foo_artifact, foo_cert,
-            foo_cert_length));
+            datapsock, &alloc_opts, child_context, foo_key, foo_artifact,
+            foo_cert, foo_cert_length));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_transaction_submit(
@@ -4556,8 +4556,8 @@ TEST_F(dataservice_isolation_test, read_block_no_cert)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_transaction_submit(
-            datapsock, child_context, foo_key, foo_artifact, foo_cert,
-            foo_cert_length));
+            datapsock, &alloc_opts, child_context, foo_key, foo_artifact,
+            foo_cert, foo_cert_length));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_transaction_submit(
