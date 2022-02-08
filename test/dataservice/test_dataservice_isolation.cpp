@@ -2538,7 +2538,7 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote)
     ASSERT_EQ(
         0,
         dataservice_api_sendreq_transaction_promote(
-            datapsock, child_context, foo_key));
+            datapsock, &alloc_opts, child_context, foo_key));
     ASSERT_EQ(
         0,
         dataservice_api_recvresp_transaction_promote(

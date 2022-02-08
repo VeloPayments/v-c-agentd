@@ -3,11 +3,12 @@
  *
  * \brief Promote a transaction by id from the transaction queue.
  *
- * \copyright 2020-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <arpa/inet.h>
 #include <agentd/dataservice/api.h>
+#include <agentd/dataservice/async_api.h>
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/inet.h>
 #include <agentd/status_codes.h>
@@ -17,11 +18,13 @@
 #include <vpr/parameters.h>
 
 RCPR_IMPORT_psock;
+RCPR_IMPORT_uuid;
 
 /**
  * \brief Promote a transaction from the transaction queue by ID.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator options to use for this operation.
  * \param child         The child index used for the query.
  * \param txn_id        The transaction UUID of the transaction to promote.
  *
@@ -35,49 +38,33 @@ RCPR_IMPORT_psock;
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_transaction_promote(
-    psock* sock, uint32_t child, const uint8_t* txn_id)
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* txn_id)
 {
+    status retval;
+    vccrypt_buffer_t reqbuf;
+
     /* parameter sanity check. */
     MODEL_ASSERT(NULL != sock);
 
-    /* | Transaction Queue Promote packet.                                    */
-    /* | ---------------------------------------------------- | ----------- | */
-    /* | DATA                                                 | SIZE        | */
-    /* | ---------------------------------------------------- | ----------- | */
-    /* | DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_PROMOTE    |  4 bytes    | */
-    /* | child_context_index                                  |  4 bytes    | */
-    /* | transaction UUID.                                    | 16 bytes    | */
-    /* | ---------------------------------------------------- | ----------- | */
-
-    /* allocate a structure large enough for writing this request. */
-    size_t reqbuflen = 2 * sizeof(uint32_t) + 16;
-    uint8_t* reqbuf = (uint8_t*)malloc(reqbuflen);
-    if (NULL == reqbuf)
+    /* encode this request. */
+    retval =
+        dataservice_encode_request_transaction_promote(
+            &reqbuf, alloc_opts, child, (const rcpr_uuid*)txn_id);
+    if (STATUS_SUCCESS != retval)
     {
-        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+        return retval;
     }
 
-    /* copy the request ID to the buffer. */
-    uint32_t req = htonl(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_PROMOTE);
-    memcpy(reqbuf, &req, sizeof(req));
-
-    /* copy the child context index parameter to the buffer. */
-    uint32_t nchild = htonl(child);
-    memcpy(reqbuf + sizeof(req), &nchild, sizeof(nchild));
-
-    /* copy the transaction id to the buffer. */
-    memcpy(reqbuf + 2 * sizeof(uint32_t), txn_id, 16);
-
     /* the request packet consists of the command, index, and transaction id. */
-    int retval = psock_write_boxed_data(sock, reqbuf, reqbuflen);
+    retval = psock_write_boxed_data(sock, reqbuf.data, reqbuf.size);
     if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_DATASERVICE_IPC_WRITE_DATA_FAILURE;
     }
 
-    /* clean up memory. */
-    memset(reqbuf, 0, reqbuflen);
-    free(reqbuf);
+    /* clean up the buffer. */
+    dispose((disposable_t*)&reqbuf);
 
     /* return the status of this request write to the caller. */
     return retval;

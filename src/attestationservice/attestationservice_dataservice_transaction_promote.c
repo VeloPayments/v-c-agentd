@@ -36,7 +36,7 @@ status attestationservice_dataservice_transaction_promote(
     /* send the promotion request to the dataservice. */
     TRY_OR_FAIL(
         dataservice_api_sendreq_transaction_promote(
-            inst->data_sock, child_context, txn_node->key),
+            inst->data_sock, &inst->vpr_alloc, child_context, txn_node->key),
         done);
 
     /* receive the response from the promotion request. */
