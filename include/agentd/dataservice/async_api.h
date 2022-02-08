@@ -789,6 +789,27 @@ status dataservice_encode_request_transaction_promote(
     vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
     const RCPR_SYM(rcpr_uuid)* txn_id);
 
+/**
+ * \brief Encode a request to submit a transaction.
+ *
+ * \param buffer            Pointer to an uninitialized \ref vccrypt_buffer_t to
+ *                          receive the encoded request.
+ * \param alloc_opts        The allocator options to use.
+ * \param child             The child context for this request.
+ * \param txn_id            The transaction id.
+ * \param artifact_id       The artifact id for this transaction.
+ * \param val               The transaction certificate value.
+ * \param val_size          The transaction certificate size.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status dataservice_encode_request_transaction_submit(
+    vccrypt_buffer_t* buffer, allocator_options_t* alloc_opts, uint32_t child,
+    const RCPR_SYM(rcpr_uuid)* txn_id, const RCPR_SYM(rcpr_uuid)* artifact_id,
+    const void* val, uint32_t val_size);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
