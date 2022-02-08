@@ -1211,6 +1211,7 @@ int dataservice_api_recvresp_global_settings_set_old(
  * \brief Submit a transaction to the transaction queue.
  *
  * \param sock          The socket on which this request is made.
+ * \param alloc_opts    The allocator options to use.
  * \param child         The child index used for this operation.
  * \param txn_id        The transaction UUID bytes for this transaction.
  * \param artifact_id   The artifact UUID bytes for this transaction.
@@ -1227,8 +1228,9 @@ int dataservice_api_recvresp_global_settings_set_old(
  *        when writing to the socket.
  */
 int dataservice_api_sendreq_transaction_submit(
-    RCPR_SYM(psock)* sock, uint32_t child, const uint8_t* txn_id,
-    const uint8_t* artifact_id, const void* val, uint32_t val_size);
+    RCPR_SYM(psock)* sock, allocator_options_t* alloc_opts, uint32_t child,
+    const uint8_t* txn_id, const uint8_t* artifact_id, const void* val,
+    uint32_t val_size);
 
 /**
  * \brief Receive a response from the transaction submit operation.
