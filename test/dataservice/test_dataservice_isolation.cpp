@@ -45,7 +45,7 @@ TEST_F(dataservice_isolation_test, create_root_block_blocking)
 
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_init_block(
-            datasock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datasock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_init_block(
             datasock, &offset, &status));
@@ -69,7 +69,7 @@ TEST_F(dataservice_isolation_test, reduce_root_caps_blocking)
     /* open the database. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_init_block(
-            datasock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datasock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_init_block(
             datasock, &offset, &status));
@@ -480,7 +480,7 @@ TEST_F(dataservice_isolation_test, child_context_create_close_blocking)
     /* open the database. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_init_block(
-            datasock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datasock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_init_block(
             datasock, &offset, &status));
@@ -950,7 +950,7 @@ TEST_F(dataservice_isolation_test, global_setting_set_get_blocking)
     /* open the database. */
     ASSERT_EQ(0,
         dataservice_api_sendreq_root_context_init_block(
-            datasock, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+            datasock, &alloc_opts, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
     ASSERT_EQ(0,
         dataservice_api_recvresp_root_context_init_block(
             datasock, &offset, &status));

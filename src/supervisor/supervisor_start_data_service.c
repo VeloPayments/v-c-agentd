@@ -3,13 +3,14 @@
  *
  * \brief Start the data service process.
  *
- * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/control.h>
 #include <agentd/dataservice.h>
 #include <agentd/dataservice/api.h>
 #include <unistd.h>
+#include <vpr/allocator/malloc_allocator.h>
 
 #include "supervisor_private.h"
 
@@ -26,6 +27,10 @@ int supervisor_start_data_service(process_t* proc)
     dataservice_process_t* data_proc = (dataservice_process_t*)proc;
     int retval;
     uint32_t offset, status;
+    allocator_options_t alloc_opts;
+
+    /* create the malloc allocator. */
+    malloc_allocator_options_init(&alloc_opts);
 
     /* attempt to create the data service. */
     TRY_OR_FAIL(
@@ -38,7 +43,7 @@ int supervisor_start_data_service(process_t* proc)
     /* attempt to send the initialize root context request. */
     TRY_OR_FAIL(
         dataservice_api_sendreq_root_context_init_block(
-            *data_proc->supervisor_data_socket,
+            *data_proc->supervisor_data_socket, &alloc_opts,
             data_proc->conf->database_max_size, data_proc->conf->datastore),
         terminate_proc);
 
@@ -79,5 +84,7 @@ terminate_proc:
     process_kill((process_t*)data_proc);
 
 done:
+    dispose((disposable_t*)&alloc_opts);
+
     return retval;
 }
