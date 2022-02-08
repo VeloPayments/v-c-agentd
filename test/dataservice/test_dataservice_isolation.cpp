@@ -1564,8 +1564,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get_first_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, foo_key, foo_artifact,
-                        foo_data, foo_data_size);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key,
+                        foo_artifact, foo_data, foo_data_size);
             }
         });
 
@@ -1899,8 +1899,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, foo_key, foo_artifact,
-                        foo_data, foo_data_size);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key,
+                        foo_artifact, foo_data, foo_data_size);
             }
         });
 
@@ -2267,8 +2267,8 @@ TEST_F(dataservice_isolation_test, txn_submit_get_drop_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, foo_key, foo_artifact,
-                        foo_data, foo_data_size);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key,
+                        foo_artifact, foo_data, foo_data_size);
             }
         });
 
@@ -2717,8 +2717,8 @@ TEST_F(dataservice_isolation_test, DISABLED_txn_submit_get_promote_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, foo_key, foo_artifact,
-                        foo_data, foo_data_size);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key,
+                        foo_artifact, foo_data, foo_data_size);
             }
         });
 
@@ -3290,8 +3290,8 @@ TEST_F(dataservice_isolation_test, make_block_simple_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, foo_key, foo_artifact,
-                        foo_cert, foo_cert_length);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key,
+                        foo_artifact, foo_cert, foo_cert_length);
             }
         });
 
@@ -4778,8 +4778,8 @@ TEST_F(dataservice_isolation_test, read_block_no_cert_old)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, foo_key, foo_artifact,
-                        foo_cert, foo_cert_length);
+                        &nonblockdatasock, &alloc_opts, child_context, foo_key,
+                        foo_artifact, foo_cert, foo_cert_length);
             }
         });
 

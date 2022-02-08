@@ -2985,8 +2985,8 @@ TEST_F(mock_dataservice_test, default_transaction_submit)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, EXPECTED_TXN_ID,
-                        EXPECTED_ARTIFACT_ID,
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);
             }
         });
@@ -3045,8 +3045,8 @@ TEST_F(mock_dataservice_test, matches_transaction_submit)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, EXPECTED_TXN_ID,
-                        EXPECTED_ARTIFACT_ID,
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);
             }
         });
@@ -3153,8 +3153,8 @@ TEST_F(mock_dataservice_test, transaction_submit_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, child_context, EXPECTED_TXN_ID,
-                        EXPECTED_ARTIFACT_ID,
+                        &nonblockdatasock, &alloc_opts, child_context,
+                        EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);
             }
         });
