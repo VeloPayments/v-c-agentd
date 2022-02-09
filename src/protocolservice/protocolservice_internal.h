@@ -195,22 +195,6 @@ struct protocolservice_dataservice_request_message
 };
 
 /**
- * \brief A response message payload for the dataservice endpoint.
- */
-typedef struct protocolservice_dataservice_response_message
-protocolservice_dataservice_response_message;
-
-struct protocolservice_dataservice_response_message
-{
-    RCPR_SYM(resource) hdr;
-    RCPR_SYM(allocator)* alloc;
-    uint32_t request_id;
-    uint32_t status;
-    uint32_t offset;
-    vccrypt_buffer_t payload;
-};
-
-/**
  * \brief Request IDs supported by the dataservice endpoint.
  */
 enum protocolservice_dataservice_endpoint_request_id
@@ -231,7 +215,8 @@ struct protocolservice_protocol_write_endpoint_message
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
     uint32_t message_type;
-    vccrypt_buffer_t message_data;
+    uint32_t offset;
+    vccrypt_buffer_t payload;
 };
 
 /**
@@ -240,9 +225,11 @@ struct protocolservice_protocol_write_endpoint_message
 enum protocolservice_protocol_write_endpoint_message_type
 {
     PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_MESSAGE_SHUTDOWN,
+    PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_CONTEXT_CREATE_MSG,
     PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_MSG,
     PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_NOTIFICATION_MSG,
     PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_PACKET,
+    PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_ERROR_MESSAGE,
 };
 
 /**
@@ -288,6 +275,25 @@ struct protocolservice_control_fiber_context
     RCPR_SYM(psock)* controlsock;
     bool should_exit;
 };
+
+/**
+ * \brief Send a message to the dataservice endpoint.
+ *
+ * \note This function takes ownership of the contents of the request buffer on
+ * success. These contents are moved to the internal message sent to the
+ * endpoint and are no longer available to the caller when ownership is taken.
+ *
+ * \param ctx               The protocol fiber context.
+ * \param request_offset    The protocol request offset of the message.
+ * \param request_buffer    The buffer holding the encoded request message.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_dataservice_send_request(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    vccrypt_buffer_t* request_buffer);
 
 /**
  * \brief Create and add the protocol service data service endpoint fiber.
@@ -351,7 +357,7 @@ status protocolservice_dataservice_endpoint_decode_and_dispatch(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) return_address,
-    protocolservice_dataservice_response_message** reply_payload);
+    protocolservice_protocol_write_endpoint_message** reply_payload);
 
 /**
  * \brief Decode and dispatch a dataservice context open request.
@@ -371,7 +377,7 @@ status pde_decode_and_dispatch_req_context_open(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) return_address,
-    protocolservice_dataservice_response_message** reply_payload);
+    protocolservice_protocol_write_endpoint_message** reply_payload);
 
 /**
  * \brief Decode and dispatch a dataservice context close request.
@@ -391,7 +397,7 @@ status pde_decode_and_dispatch_req_context_close(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) return_address,
-    protocolservice_dataservice_response_message** reply_payload);
+    protocolservice_protocol_write_endpoint_message** reply_payload);
 
 /**
  * \brief Decode and dispatch a generic dataservice request.
@@ -411,7 +417,7 @@ status pde_decode_and_dispatch_req_dataservice_req(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) return_address,
-    protocolservice_dataservice_response_message** reply_payload);
+    protocolservice_protocol_write_endpoint_message** reply_payload);
 
 /**
  * \brief Report an error for an invalid dataservice endpoint request.
@@ -431,7 +437,7 @@ status pde_decode_and_dispatch_invalid_req(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) return_address,
-    protocolservice_dataservice_response_message** reply_payload);
+    protocolservice_protocol_write_endpoint_message** reply_payload);
 
 /**
  * \brief Create a dataservice endpoint request message.
@@ -469,12 +475,11 @@ status protocolservice_dataservice_request_message_release(
     RCPR_SYM(resource)* r);
 
 /**
- * \brief Create a dataservice endpoint response message.
+ * \brief Create a write endpoint message.
  *
  * \param reply_payload     Pointer to the pointer to be updated on success.
  * \param ctx               The endpoint context.
- * \param request_id        The request id.
- * \param status            The status code.
+ * \param message_type      The message type.
  * \param offset            The offset code.
  * \param payload           The payload data.
  *
@@ -487,13 +492,13 @@ status protocolservice_dataservice_request_message_release(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status protocolservice_dataservice_response_message_create(
-    protocolservice_dataservice_response_message** reply_payload,
-    protocolservice_dataservice_endpoint_context* ctx, uint32_t request_id,
-    uint32_t status_code, uint32_t offset, vccrypt_buffer_t* payload);
+status protocolservice_protocol_write_endpoint_message_create(
+    protocolservice_protocol_write_endpoint_message** reply_payload,
+    protocolservice_dataservice_endpoint_context* ctx, uint32_t message_type,
+    uint32_t offset, const void* payload, size_t payload_size);
 
 /**
- * \brief Release a dataservice endpoint response message.
+ * \brief Release a write endpoint message.
  *
  * \param r             The message to be released.
  *
@@ -501,7 +506,7 @@ status protocolservice_dataservice_response_message_create(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status protocolservice_dataservice_response_message_release(
+status protocolservice_protocol_write_endpoint_message_release(
     RCPR_SYM(resource)* r);
 
 /**
@@ -1244,6 +1249,20 @@ status protocolservice_protocol_write_endpoint_decode_and_dispatch(
     protocolservice_protocol_fiber_context* ctx, RCPR_SYM(message)* msg);
 
 /**
+ * \brief Decode and dispatch a response message from the data service.
+ *
+ * \param ctx           The protocol service protocol fiber context.
+ * \param payload       The message payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_pwe_dnd_dataservice_message(
+    protocolservice_protocol_fiber_context* ctx,
+    protocolservice_protocol_write_endpoint_message* payload);
+
+/**
  * \brief Write a packet to the peer.
  *
  * \param ctx           The protocol service protocol fiber context.
@@ -1299,6 +1318,22 @@ status protocolservice_protocol_decode_and_dispatch(
  *      - a non-zero error code on failure.
  */
 status protocolservice_protocol_dnd_latest_block_id_get(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
+ * \brief Decode and dispatch a close request.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_dnd_close(
     protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
     const uint8_t* payload, size_t payload_size);
 

@@ -1,15 +1,10 @@
 /**
- * \file protocolservice/protocolservice_close_data_service_context.c
+ * \file protocolservice/protocolservice_dataservice_send_request.c
  *
- * \brief Send a request to the data service endpoint to close the context.
+ * \brief Send a request message to the dataservice endpoint.
  *
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
-
-#include <cbmc/model_assert.h>
-#include <agentd/status_codes.h>
-#include <string.h>
-#include <unistd.h>
 
 #include "protocolservice_internal.h"
 
@@ -19,31 +14,38 @@ RCPR_IMPORT_message;
 RCPR_IMPORT_resource;
 
 /**
- * \brief Close the data service context for this connection.
+ * \brief Send a message to the dataservice endpoint.
  *
- * \param ctx               The protocol service protocol fiber context.
+ * \note This function takes ownership of the contents of the request buffer on
+ * success. These contents are moved to the internal message sent to the
+ * endpoint and are no longer available to the caller when ownership is taken.
+ *
+ * \param ctx               The protocol fiber context.
+ * \param request_offset    The protocol request offset of the message.
+ * \param request_buffer    The buffer holding the encoded request message.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status protocolservice_protocol_close_data_service_context(
-    protocolservice_protocol_fiber_context* ctx)
+status protocolservice_dataservice_send_request(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    vccrypt_buffer_t* request_buffer)
 {
     status retval, release_retval;
     message* request = NULL;
     protocolservice_dataservice_request_message* request_payload = NULL;
-    message* response = NULL;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
+    MODEL_ASSERT(prop_vccrypt_buffer_valid(request_buffer));
 
     /* create the request payload. */
     retval =
         protocolservice_dataservice_request_message_create(
             &request_payload, ctx,
-            PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_CLOSE,
-            0U, NULL);
+            PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_DATASERVICE_REQ,
+            request_offset, request_buffer);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
@@ -51,8 +53,8 @@ status protocolservice_protocol_close_data_service_context(
 
     /* create the request message. */
     retval =
-        message_create(&request, ctx->alloc, ctx->return_addr,
-        &request_payload->hdr);
+        message_create(
+            &request, ctx->alloc, ctx->return_addr, &request_payload->hdr);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_request_payload;
@@ -72,24 +74,8 @@ status protocolservice_protocol_close_data_service_context(
     /* the request message is now owned by the messaging discipline. */
     request = NULL;
 
-    /* receive the response message. */
-    retval = message_receive(ctx->return_addr, &response, ctx->ctx->msgdisc);
-    if (STATUS_SUCCESS != retval)
-    {
-        goto done;
-    }
-
-    /* the context is now closed. */
-    ctx->dataservice_context_opened = false;
-
-    /* release the response message. */
-    release_retval = resource_release(message_resource_handle(response));
-    if (STATUS_SUCCESS != release_retval)
-    {
-        retval = release_retval;
-    }
-
-    /* return the status code of the response. */
+    /* success. */
+    retval = STATUS_SUCCESS;
     goto done;
 
 cleanup_request:

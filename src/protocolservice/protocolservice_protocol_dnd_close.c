@@ -1,7 +1,7 @@
 /**
- * \file protocolservice/protocolservice_protocol_dnd_latest_block_id_get.c
+ * \file protocolservice/protocolservice_protocol_dnd_close.c
  *
- * \brief Decode and dispatch a latest block id get request.
+ * \brief Decode and dispatch a close request.
  *
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
@@ -18,7 +18,7 @@
 #if defined(AGENTD_NEW_PROTOCOL)
 
 /**
- * \brief Decode and dispatch a latest block id get request.
+ * \brief Decode and dispatch a close request.
  *
  * \param ctx               The protocol service protocol fiber context.
  * \param request_offset    The request offset of the packet.
@@ -29,42 +29,40 @@
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status protocolservice_protocol_dnd_latest_block_id_get(
+status protocolservice_protocol_dnd_close(
     protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
     const uint8_t* /*payload*/, size_t /*payload_size*/)
 {
-    status retval;
-    vccrypt_buffer_t reqbuf;
+    status retval, release_retval;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
 
-    /* encode this request. */
+    /* close the dataservice context. */
     retval =
-        dataservice_encode_request_latest_block_id_get(
-            &reqbuf, &ctx->ctx->vpr_alloc, 0U);
+        protocolservice_protocol_close_data_service_context(ctx);
     if (STATUS_SUCCESS != retval)
     {
-        goto done;
+        goto write_error_response;
     }
 
-    /* send this message to the dataservice endpoint. */
-    retval =
-        protocolservice_dataservice_send_request(
-            ctx, request_offset, &reqbuf);
-    if (STATUS_SUCCESS != retval)
-    {
-        goto cleanup_reqbuf;
-    }
+    /* set the shutdown flag. */
+    ctx->shutdown = true;
 
     /* success. */
     retval = STATUS_SUCCESS;
-    goto cleanup_reqbuf;
+    goto write_error_response;
 
-cleanup_reqbuf:
-    dispose((disposable_t*)&reqbuf);
+write_error_response:
+    /* send the response. */
+    release_retval =
+        protocolservice_send_error_response_message(
+            ctx, UNAUTH_PROTOCOL_REQ_ID_CLOSE, retval, request_offset);
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
 
-done:
     return retval;
 }
 

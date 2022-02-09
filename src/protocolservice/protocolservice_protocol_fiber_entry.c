@@ -61,7 +61,7 @@ status protocolservice_protocol_fiber_entry(void* vctx)
     }
 
     /* decode-and-dispatch loop. */
-    while (!ctx->ctx->quiesce)
+    while (!ctx->ctx->quiesce && !ctx->shutdown)
     {
         retval = protocolservice_protocol_read_decode_and_dispatch_packet(ctx);
         if (STATUS_SUCCESS != retval)

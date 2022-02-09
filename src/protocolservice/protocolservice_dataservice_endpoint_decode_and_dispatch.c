@@ -33,7 +33,7 @@ status protocolservice_dataservice_endpoint_decode_and_dispatch(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) return_address,
-    protocolservice_dataservice_response_message** reply_payload)
+    protocolservice_protocol_write_endpoint_message** reply_payload)
 {
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_dataservice_endpoint_context_valid(ctx));

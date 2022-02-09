@@ -37,7 +37,7 @@ status pde_decode_and_dispatch_req_context_close(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) return_address,
-    protocolservice_dataservice_response_message** reply_payload)
+    protocolservice_protocol_write_endpoint_message** reply_payload)
 {
     status retval;
     uint32_t status, offset;
@@ -103,9 +103,10 @@ status pde_decode_and_dispatch_req_context_close(
 
 send_response:
     return
-        protocolservice_dataservice_response_message_create(
-            reply_payload, ctx, req_payload->request_id, retval,
-            req_payload->offset, NULL);
+        protocolservice_protocol_write_endpoint_message_create(
+            reply_payload, ctx,
+            PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_CONTEXT_CREATE_MSG,
+            req_payload->offset, NULL, 0U);
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */

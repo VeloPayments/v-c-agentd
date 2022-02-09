@@ -64,14 +64,14 @@ status protocolservice_send_error_response_message(
     /* create a buffer for holding the response in the message payload. */
     retval =
         vccrypt_buffer_init(
-            &payload->message_data, &ctx->ctx->vpr_alloc, sizeof(response));
+            &payload->payload, &ctx->ctx->vpr_alloc, sizeof(response));
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_payload;
     }
 
     /* copy the response to this buffer. */
-    memcpy(payload->message_data.data, response, sizeof(response));
+    memcpy(payload->payload.data, response, sizeof(response));
 
     /* wrap this payload in a message envelope. */
     retval = message_create(&msg, ctx->alloc, ctx->return_addr, &payload->hdr);

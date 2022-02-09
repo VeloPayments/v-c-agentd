@@ -53,9 +53,11 @@ status protocolservice_protocol_write_endpoint_decode_and_dispatch(
             ctx->shutdown = true;
             return STATUS_SUCCESS;
 
-        /* TODO - add decode and dispatch for datasservice response messages. */
+        /* decode and dispatch for datasservice response messages. */
         case PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_MSG:
-            return STATUS_SUCCESS;
+            return
+                protocolservice_pwe_dnd_dataservice_message(
+                    ctx, payload);
 
         /* TODO - add decode and dispatch for notification service responses. */
         case PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_NOTIFICATION_MSG:

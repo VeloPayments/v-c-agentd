@@ -41,9 +41,9 @@ status protocolservice_protocol_write_endpoint_message_release(
     rcpr_allocator* alloc = msg->alloc;
 
     /* dispose the message data, if set. */
-    if (NULL != msg->message_data.data)
+    if (NULL != msg->payload.data)
     {
-        dispose((disposable_t*)&msg->message_data);
+        dispose((disposable_t*)&msg->payload);
     }
 
     /* reclaim memory. */
