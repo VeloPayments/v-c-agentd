@@ -706,7 +706,7 @@ TEST_F(protocolservice_isolation_test, handshake_response_happy_path)
 /**
  * Test that a request to get the latest block ID returns the latest block ID.
  */
-TEST_F(protocolservice_isolation_test, DISABLED_get_latest_block_id_happy_path)
+TEST_F(protocolservice_isolation_test, get_latest_block_id_happy_path)
 {
     uint32_t offset, status;
     uint64_t client_iv = 0;

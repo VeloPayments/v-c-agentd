@@ -33,7 +33,7 @@ status pde_decode_and_dispatch_invalid_req(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) /*return_address*/,
-    protocolservice_dataservice_response_message** reply_payload)
+    protocolservice_protocol_write_endpoint_message** reply_payload)
 {
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_dataservice_endpoint_context_valid(ctx));
@@ -44,9 +44,10 @@ status pde_decode_and_dispatch_invalid_req(
 
     /* create a response message payload. */
     return
-        protocolservice_dataservice_response_message_create(
-            reply_payload, ctx, req_payload->request_id, -1,
-            req_payload->offset, NULL);
+        protocolservice_protocol_write_endpoint_message_create(
+            reply_payload, ctx,
+            PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_ERROR_MESSAGE,
+            req_payload->offset, NULL, 0U);
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */

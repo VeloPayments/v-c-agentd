@@ -33,7 +33,7 @@ status protocolservice_dataservice_endpoint_fiber_entry(void* vctx)
 {
     status retval, release_retval;
     protocolservice_dataservice_request_message* req_payload;
-    protocolservice_dataservice_response_message* reply_payload;
+    protocolservice_protocol_write_endpoint_message* reply_payload;
     message* req_msg;
     message* reply_msg;
     mailbox_address return_address;

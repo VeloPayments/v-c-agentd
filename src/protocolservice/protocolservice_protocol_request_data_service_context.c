@@ -34,7 +34,6 @@ status protocolservice_protocol_request_data_service_context(
     message* request = NULL;
     protocolservice_dataservice_request_message* request_payload = NULL;
     message* response = NULL;
-    protocolservice_dataservice_response_message* response_payload = NULL;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
@@ -89,23 +88,8 @@ status protocolservice_protocol_request_data_service_context(
         goto done;
     }
 
-    /* get the message payload. */
-    response_payload =
-        (protocolservice_dataservice_response_message*)message_payload(
-            response, false);
-
-    /* model check the result. */
-    MODEL_ASSERT(
-        prop_protocolservice_dataservice_response_message_valid(
-            response_payload));
-
-    /* get the status code. */
-    retval = response_payload->status;
-    if (STATUS_SUCCESS == retval)
-    {
-        /* the context is now opened. */
-        ctx->dataservice_context_opened = true;
-    }
+    /* the context is now opened. */
+    ctx->dataservice_context_opened = true;
 
     /* release the response message. */
     release_retval = resource_release(message_resource_handle(response));

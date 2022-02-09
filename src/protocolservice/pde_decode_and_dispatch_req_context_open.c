@@ -38,7 +38,7 @@ status pde_decode_and_dispatch_req_context_open(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
     RCPR_SYM(mailbox_address) return_address,
-    protocolservice_dataservice_response_message** reply_payload)
+    protocolservice_protocol_write_endpoint_message** reply_payload)
 {
     status retval, release_retval;
     uint32_t offset, status, child;
@@ -118,9 +118,10 @@ status pde_decode_and_dispatch_req_context_open(
 
     /* create the response message. */
     retval =
-        protocolservice_dataservice_response_message_create(
-            reply_payload, ctx, req_payload->request_id, STATUS_SUCCESS,
-            req_payload->offset, NULL);
+        protocolservice_protocol_write_endpoint_message_create(
+            reply_payload, ctx,
+            PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_CONTEXT_CREATE_MSG,
+            0U, NULL, 0);
     if (STATUS_SUCCESS != retval)
     {
         goto remove_context_mailbox_entry;

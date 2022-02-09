@@ -34,8 +34,8 @@ status protocolservice_protocol_write_endpoint_write_packet(
     /* encrypt and write the message to the endpoint. */
     status retval =
         psock_write_authed_data(
-            ctx->protosock, ctx->server_iv, msg->message_data.data,
-            msg->message_data.size, &ctx->ctx->suite, &ctx->shared_secret);
+            ctx->protosock, ctx->server_iv, msg->payload.data,
+            msg->payload.size, &ctx->ctx->suite, &ctx->shared_secret);
 
     /* update the server iv. */
     ++ctx->server_iv;
