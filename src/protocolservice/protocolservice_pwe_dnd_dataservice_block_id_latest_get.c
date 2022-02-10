@@ -9,6 +9,7 @@
 
 #include <agentd/dataservice/async_api.h>
 #include <agentd/psock.h>
+#include <vcblockchain/protocol/serialization.h>
 
 #include "protocolservice_internal.h"
 
@@ -32,6 +33,7 @@ status protocolservice_pwe_dnd_dataservice_block_id_latest_get(
 {
     status retval;
     dataservice_response_latest_block_id_get_t dresp;
+    vccrypt_buffer_t respbuf;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
@@ -49,23 +51,25 @@ status protocolservice_pwe_dnd_dataservice_block_id_latest_get(
     }
 
     /* build the payload. */
-    /* TODO - turn this into an encode function. */
-    uint32_t net_method = htonl(UNAUTH_PROTOCOL_REQ_ID_LATEST_BLOCK_ID_GET);
-    uint32_t net_status = htonl(dresp.hdr.status);
-    uint32_t net_offset = htonl(payload->offset);
-    uint8_t packet[3 * sizeof(uint32_t) + 16];
-    memcpy(packet, &net_method, 4);
-    memcpy(packet + 4, &net_status, 4);
-    memcpy(packet + 8, &net_offset, 4);
-    memcpy(packet + 12, dresp.block_id, 16);
+    retval =
+        vcblockchain_protocol_encode_resp_latest_block_id_get(
+            &respbuf, &ctx->ctx->vpr_alloc, payload->offset, dresp.hdr.status,
+            (const vpr_uuid*)dresp.block_id);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_dresp;
+    }
 
     /* write this payload to the socket. */
     retval = 
         protocolservice_protocol_write_endpoint_write_raw_packet(
-            ctx, packet, sizeof(packet));
+            ctx, respbuf.data, respbuf.size);
 
     /* clean up. */
-    goto cleanup_dresp;
+    goto cleanup_respbuf;
+
+cleanup_respbuf:
+    dispose((disposable_t*)&respbuf);
 
 cleanup_dresp:
     dispose((disposable_t*)&dresp);
