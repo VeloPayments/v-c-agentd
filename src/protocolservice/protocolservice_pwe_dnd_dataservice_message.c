@@ -6,14 +6,12 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
-#include <agentd/dataservice/async_api.h>
-#include <agentd/psock.h>
+#include <agentd/dataservice/api.h>
+#include <agentd/status_codes.h>
 
 #include "protocolservice_internal.h"
 
 #if defined(AGENTD_NEW_PROTOCOL)
-
-RCPR_IMPORT_psock;
 
 /**
  * \brief Decode and dispatch a response message from the data service.
@@ -29,53 +27,23 @@ status protocolservice_pwe_dnd_dataservice_message(
     protocolservice_protocol_fiber_context* ctx,
     protocolservice_protocol_write_endpoint_message* payload)
 {
-    status retval;
-    dataservice_response_latest_block_id_get_t dresp;
+    /* make working with the payload more convenient. */
+    const uint32_t* uresp = (const uint32_t*)payload->payload.data;
 
-    /* parameter sanity checks. */
-    MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
-    MODEL_ASSERT(
-        prop_protocolservice_protocol_write_endpoint_message_valid(payload));
+    /* get the API method. */
+    uint32_t method = ntohl(uresp[0]);
 
-    /* decode the response. */
-    retval =
-        dataservice_decode_response_latest_block_id_get(
-            payload->payload.data, payload->payload.size, &dresp);
-    if (STATUS_SUCCESS != retval)
+    /* decode method. */
+    switch (method)
     {
-        /* TODO - log fatal error here. */
-        goto done;
+        case DATASERVICE_API_METHOD_APP_BLOCK_ID_LATEST_READ:
+            return
+                protocolservice_pwe_dnd_dataservice_block_id_latest_get(
+                    ctx, payload);
+
+        default:
+            return AGENTD_ERROR_PROTOCOLSERVICE_DATASERVICE_INVALID_RESPONSE_ID;
     }
-
-    /* build the payload. */
-    /* TODO - turn this into an encode function. */
-    uint32_t net_method = htonl(UNAUTH_PROTOCOL_REQ_ID_LATEST_BLOCK_ID_GET);
-    uint32_t net_status = htonl(dresp.hdr.status);
-    uint32_t net_offset = htonl(payload->offset);
-    uint8_t packet[3 * sizeof(uint32_t) + 16];
-    memcpy(packet, &net_method, 4);
-    memcpy(packet + 4, &net_status, 4);
-    memcpy(packet + 8, &net_offset, 4);
-    memcpy(packet + 12, dresp.block_id, 16);
-
-    /* write this payload to the socket. */
-    /* TODO - write generic method for writing raw encrypted packets. */
-    retval = 
-        psock_write_authed_data(
-            ctx->protosock, ctx->server_iv, packet, sizeof(packet),
-            &ctx->ctx->suite, &ctx->shared_secret);
-
-    /* update the server iv. */
-    ++ctx->server_iv;
-
-    /* clean up. */
-    goto cleanup_dresp;
-
-cleanup_dresp:
-    dispose((disposable_t*)&dresp);
-
-done:
-    return retval;
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */

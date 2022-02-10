@@ -165,6 +165,11 @@ extern "C" {
  */
 #define AGENTD_ERROR_PROTOCOLSERVICE_INVALID_REQUEST_ID \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x0019U)
+/**
+ * \brief An invalid or unknown response id was encountered.
+ */
+#define AGENTD_ERROR_PROTOCOLSERVICE_DATASERVICE_INVALID_RESPONSE_ID \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001AU)
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
