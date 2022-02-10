@@ -3,7 +3,7 @@
  *
  * \brief Status code definitions for the protocol service.
  *
- * \copyright 2019 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_STATUS_CODES_PROTOCOLSERVICE_HEADER_GUARD
@@ -165,6 +165,7 @@ extern "C" {
  */
 #define AGENTD_ERROR_PROTOCOLSERVICE_INVALID_REQUEST_ID \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x0019U)
+
 /**
  * \brief An invalid or unknown response id was encountered.
  */

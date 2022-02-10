@@ -41,6 +41,11 @@ status protocolservice_pwe_dnd_dataservice_message(
                 protocolservice_pwe_dnd_dataservice_block_id_latest_get(
                     ctx, payload);
 
+        case DATASERVICE_API_METHOD_APP_BLOCK_ID_BY_HEIGHT_READ:
+            return
+                protocolservice_pwe_dnd_dataservice_block_id_by_height_get(
+                    ctx, payload);
+
         default:
             return AGENTD_ERROR_PROTOCOLSERVICE_DATASERVICE_INVALID_RESPONSE_ID;
     }
