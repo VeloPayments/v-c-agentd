@@ -60,14 +60,9 @@ status protocolservice_pwe_dnd_dataservice_block_id_latest_get(
     memcpy(packet + 12, dresp.block_id, 16);
 
     /* write this payload to the socket. */
-    /* TODO - write generic method for writing raw encrypted packets. */
     retval = 
-        psock_write_authed_data(
-            ctx->protosock, ctx->server_iv, packet, sizeof(packet),
-            &ctx->ctx->suite, &ctx->shared_secret);
-
-    /* update the server iv. */
-    ++ctx->server_iv;
+        protocolservice_protocol_write_endpoint_write_raw_packet(
+            ctx, packet, sizeof(packet));
 
     /* clean up. */
     goto cleanup_dresp;

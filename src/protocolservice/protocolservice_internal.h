@@ -1291,6 +1291,20 @@ status protocolservice_protocol_write_endpoint_write_packet(
     const protocolservice_protocol_write_endpoint_message* msg);
 
 /**
+ * \brief Write a packet to the peer.
+ *
+ * \param ctx           The protocol service protocol fiber context.
+ * \param msg           The raw message buffer to write.
+ * \param size          The size of the message buffer to write.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_write_endpoint_write_raw_packet(
+    protocolservice_protocol_fiber_context* ctx, const void* msg, size_t size);
+
+/**
  * \brief Read a packet from the client socket, and decode / dispatch it.
  *
  * \param ctx               The protocol service protocol fiber context.
