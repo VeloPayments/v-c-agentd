@@ -21,6 +21,7 @@ RCPR_IMPORT_resource;
  * endpoint and are no longer available to the caller when ownership is taken.
  *
  * \param ctx               The protocol fiber context.
+ * \param protocol_req_id   The protocol request id.
  * \param request_offset    The protocol request offset of the message.
  * \param request_buffer    The buffer holding the encoded request message.
  *
@@ -29,8 +30,8 @@ RCPR_IMPORT_resource;
  *      - a non-zero error code on failure.
  */
 status protocolservice_dataservice_send_request(
-    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
-    vccrypt_buffer_t* request_buffer)
+    protocolservice_protocol_fiber_context* ctx, uint32_t protocol_req_id,
+    uint32_t request_offset, vccrypt_buffer_t* request_buffer)
 {
     status retval, release_retval;
     message* request = NULL;
@@ -43,7 +44,7 @@ status protocolservice_dataservice_send_request(
     /* create the request payload. */
     retval =
         protocolservice_dataservice_request_message_create(
-            &request_payload, ctx,
+            &request_payload, ctx, protocol_req_id,
             PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_DATASERVICE_REQ,
             request_offset, request_buffer);
     if (STATUS_SUCCESS != retval)

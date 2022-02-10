@@ -106,7 +106,7 @@ send_response:
         protocolservice_protocol_write_endpoint_message_create(
             reply_payload, ctx,
             PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_CONTEXT_CREATE_MSG,
-            req_payload->offset, NULL, 0U);
+            0U, req_payload->offset, NULL, 0U);
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */

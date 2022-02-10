@@ -51,7 +51,8 @@ status protocolservice_protocol_dnd_latest_block_id_get(
     /* send this message to the dataservice endpoint. */
     retval =
         protocolservice_dataservice_send_request(
-            ctx, request_offset, &reqbuf);
+            ctx, UNAUTH_PROTOCOL_REQ_ID_LATEST_BLOCK_ID_GET, request_offset,
+            &reqbuf);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_reqbuf;

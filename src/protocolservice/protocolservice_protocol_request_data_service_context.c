@@ -41,7 +41,7 @@ status protocolservice_protocol_request_data_service_context(
     /* create the request payload. */
     retval =
         protocolservice_dataservice_request_message_create(
-            &request_payload, ctx,
+            &request_payload, ctx, 0U,
             PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_OPEN,
             0U, NULL);
     if (STATUS_SUCCESS != retval)

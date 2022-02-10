@@ -1,7 +1,7 @@
 /**
- * \file protocolservice/protocolservice_protocol_dnd_transaction_submit.c
+ * \file protocolservice/protocolservice_protocol_dnd_block_by_id_get.c
  *
- * \brief Decode and dispatch a transaction submit request.
+ * \brief Decode and dispatch a block by id get request.
  *
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
@@ -14,12 +14,10 @@
 
 #if defined(AGENTD_NEW_PROTOCOL)
 
-#define MAX_TRANSACTION_CERTIFICATE_SIZE 32767
-
 RCPR_IMPORT_uuid;
 
 /**
- * \brief Decode and dispatch a transaction submit request.
+ * \brief Decode and dispatch a block by id get request.
  *
  * \param ctx               The protocol service protocol fiber context.
  * \param request_offset    The request offset of the packet.
@@ -30,13 +28,13 @@ RCPR_IMPORT_uuid;
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status protocolservice_protocol_dnd_transaction_submit(
+status protocolservice_protocol_dnd_block_by_id_get(
     protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
     const uint8_t* payload, size_t payload_size)
 {
     status retval;
     vccrypt_buffer_t reqbuf;
-    protocol_req_transaction_submit req;
+    protocol_req_block_get req;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
@@ -44,25 +42,17 @@ status protocolservice_protocol_dnd_transaction_submit(
 
     /* decode the request. */
     retval =
-        vcblockchain_protocol_decode_req_transaction_submit(
-            &req, &ctx->ctx->vpr_alloc, payload, payload_size);
+        vcblockchain_protocol_decode_req_block_get(&req, payload, payload_size);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
     }
 
-    /* verify that the certificate size is <= the max size. */
-    if (req.cert.size > MAX_TRANSACTION_CERTIFICATE_SIZE)
-    {
-        retval = AGENTD_ERROR_PROTOCOLSERVICE_TRANSACTION_VERIFICATION;
-        goto cleanup_req;
-    }
-
     /* encode the request to the dataservice endpoint. */
     retval = 0;
-        dataservice_encode_request_transaction_submit(
-            &reqbuf, &ctx->ctx->vpr_alloc, 0U, (const rcpr_uuid*)&req.txn_id,
-            (const rcpr_uuid*)&req.artifact_id, req.cert.data, req.cert.size);
+        dataservice_encode_request_block_get(
+            &reqbuf, &ctx->ctx->vpr_alloc, 0U, (const rcpr_uuid*)&req.block_id,
+            true);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_req;

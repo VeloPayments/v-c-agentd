@@ -121,7 +121,7 @@ status pde_decode_and_dispatch_req_context_open(
         protocolservice_protocol_write_endpoint_message_create(
             reply_payload, ctx,
             PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_CONTEXT_CREATE_MSG,
-            0U, NULL, 0);
+            0U, 0U, NULL, 0);
     if (STATUS_SUCCESS != retval)
     {
         goto remove_context_mailbox_entry;
