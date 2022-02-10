@@ -78,7 +78,7 @@ status protocolservice_protocol_read_decode_and_dispatch_packet(
     /* decode and dispatch this request. */
     retval =
         protocolservice_protocol_decode_and_dispatch(
-            ctx, request_id, request_offset, breq, size - expected_size);
+            ctx, request_id, request_offset, req, size);
 
     /* regardless of outcome, clean up the request. */
     goto cleanup_req;
