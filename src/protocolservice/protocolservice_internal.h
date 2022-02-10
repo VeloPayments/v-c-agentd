@@ -189,6 +189,7 @@ struct protocolservice_dataservice_request_message
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
+    uint32_t protocol_request_id;
     uint32_t request_id;
     uint32_t offset;
     vccrypt_buffer_t payload;
@@ -215,6 +216,7 @@ struct protocolservice_protocol_write_endpoint_message
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
     uint32_t message_type;
+    uint32_t original_request_id;
     uint32_t offset;
     vccrypt_buffer_t payload;
 };
@@ -284,6 +286,7 @@ struct protocolservice_control_fiber_context
  * endpoint and are no longer available to the caller when ownership is taken.
  *
  * \param ctx               The protocol fiber context.
+ * \param protocol_req_id   The protocol request id.
  * \param request_offset    The protocol request offset of the message.
  * \param request_buffer    The buffer holding the encoded request message.
  *
@@ -292,8 +295,8 @@ struct protocolservice_control_fiber_context
  *      - a non-zero error code on failure.
  */
 status protocolservice_dataservice_send_request(
-    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
-    vccrypt_buffer_t* request_buffer);
+    protocolservice_protocol_fiber_context* ctx, uint32_t protocol_req_id,
+    uint32_t request_offset, vccrypt_buffer_t* request_buffer);
 
 /**
  * \brief Create and add the protocol service data service endpoint fiber.
@@ -444,6 +447,7 @@ status pde_decode_and_dispatch_invalid_req(
  *
  * \param req_payload       Pointer to the pointer to be updated on success.
  * \param ctx               The protocol fiber context.
+ * \param protocol_req_id   The protocol request id.
  * \param request_id        The request id.
  * \param offset            The offset code.
  * \param payload           The payload data.
@@ -459,8 +463,8 @@ status pde_decode_and_dispatch_invalid_req(
  */
 status protocolservice_dataservice_request_message_create(
     protocolservice_dataservice_request_message** req_payload,
-    protocolservice_protocol_fiber_context* ctx, uint32_t request_id,
-    uint32_t offset, vccrypt_buffer_t* payload);
+    protocolservice_protocol_fiber_context* ctx, uint32_t protocol_req_id,
+    uint32_t request_id, uint32_t offset, vccrypt_buffer_t* payload);
 
 /**
  * \brief Release a dataservice endpoint request message.
@@ -480,6 +484,7 @@ status protocolservice_dataservice_request_message_release(
  * \param reply_payload     Pointer to the pointer to be updated on success.
  * \param ctx               The endpoint context.
  * \param message_type      The message type.
+ * \param original_req_id   The original protocol request id.
  * \param offset            The offset code.
  * \param payload           The payload data.
  *
@@ -495,7 +500,8 @@ status protocolservice_dataservice_request_message_release(
 status protocolservice_protocol_write_endpoint_message_create(
     protocolservice_protocol_write_endpoint_message** reply_payload,
     protocolservice_dataservice_endpoint_context* ctx, uint32_t message_type,
-    uint32_t offset, const void* payload, size_t payload_size);
+    uint32_t original_req_id, uint32_t offset, const void* payload,
+    size_t payload_size);
 
 /**
  * \brief Release a write endpoint message.
@@ -1277,6 +1283,20 @@ status protocolservice_pwe_dnd_dataservice_block_id_latest_get(
     protocolservice_protocol_write_endpoint_message* payload);
 
 /**
+ * \brief Decode and dispatch a block read response.
+ *
+ * \param ctx           The protocol service protocol fiber context.
+ * \param payload       The message payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_pwe_dnd_dataservice_block_get(
+    protocolservice_protocol_fiber_context* ctx,
+    protocolservice_protocol_write_endpoint_message* payload);
+
+/**
  * \brief Decode and dispatch a transaction submit response.
  *
  * \param ctx           The protocol service protocol fiber context.
@@ -1390,6 +1410,22 @@ status protocolservice_protocol_dnd_latest_block_id_get(
  *      - a non-zero error code on failure.
  */
 status protocolservice_protocol_dnd_transaction_submit(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
+ * \brief Decode and dispatch a block by id get request.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_dnd_block_by_id_get(
     protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
     const uint8_t* payload, size_t payload_size);
 

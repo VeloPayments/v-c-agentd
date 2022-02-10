@@ -45,7 +45,7 @@ status pde_decode_and_dispatch_invalid_req(
     /* create a response message payload. */
     return
         protocolservice_protocol_write_endpoint_message_create(
-            reply_payload, ctx,
+            reply_payload, ctx, 0U,
             PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_ERROR_MESSAGE,
             req_payload->offset, NULL, 0U);
 }

@@ -22,6 +22,7 @@ RCPR_IMPORT_resource;
  *
  * \param req_payload       Pointer to the pointer to be updated on success.
  * \param ctx               The protocol fiber context.
+ * \param protocol_req_id   The protocol request id.
  * \param request_id        The request id.
  * \param offset            The offset code.
  * \param payload           The payload data.
@@ -37,8 +38,8 @@ RCPR_IMPORT_resource;
  */
 status protocolservice_dataservice_request_message_create(
     protocolservice_dataservice_request_message** req_payload,
-    protocolservice_protocol_fiber_context* ctx, uint32_t request_id,
-    uint32_t offset, vccrypt_buffer_t* payload)
+    protocolservice_protocol_fiber_context* ctx, uint32_t protocol_req_id,
+    uint32_t request_id, uint32_t offset, vccrypt_buffer_t* payload)
 {
     status retval;
     protocolservice_dataservice_request_message* tmp = NULL;
@@ -63,6 +64,7 @@ status protocolservice_dataservice_request_message_create(
 
     /* set values. */
     tmp->alloc = ctx->alloc;
+    tmp->protocol_request_id = protocol_req_id;
     tmp->request_id = request_id;
     tmp->offset = offset;
 

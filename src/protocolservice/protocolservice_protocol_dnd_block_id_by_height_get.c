@@ -57,7 +57,7 @@ status protocolservice_protocol_dnd_block_id_by_height_get(
     /* send this message to the dataservice endpoint. */
     retval =
         protocolservice_dataservice_send_request(
-            ctx, request_offset, &reqbuf);
+            ctx, req.request_id, request_offset, &reqbuf);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_reqbuf;

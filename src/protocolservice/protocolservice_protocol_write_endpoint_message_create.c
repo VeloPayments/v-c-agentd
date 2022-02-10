@@ -24,6 +24,7 @@ RCPR_IMPORT_resource;
  * \param reply_payload     Pointer to the pointer to be updated on success.
  * \param ctx               The endpoint context.
  * \param message_type      The message type.
+ * \param original_req_id   The original protocol request id.
  * \param offset            The offset code.
  * \param payload           The payload data.
  *
@@ -39,7 +40,8 @@ RCPR_IMPORT_resource;
 status protocolservice_protocol_write_endpoint_message_create(
     protocolservice_protocol_write_endpoint_message** reply_payload,
     protocolservice_dataservice_endpoint_context* ctx, uint32_t message_type,
-    uint32_t offset, const void* payload, size_t payload_size)
+    uint32_t original_req_id, uint32_t offset, const void* payload,
+    size_t payload_size)
 {
     status retval, release_retval;
     protocolservice_protocol_write_endpoint_message* tmp = NULL;
@@ -65,6 +67,7 @@ status protocolservice_protocol_write_endpoint_message_create(
     /* set values. */
     tmp->alloc = ctx->alloc;
     tmp->message_type = message_type;
+    tmp->original_request_id = original_req_id;
     tmp->offset = offset;
 
     /* if the payload is set, move it to our payload. */
