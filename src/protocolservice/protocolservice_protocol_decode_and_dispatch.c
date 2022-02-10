@@ -49,6 +49,12 @@ status protocolservice_protocol_decode_and_dispatch(
                     ctx, request_offset, payload, payload_size);
             break;
 
+        case UNAUTH_PROTOCOL_REQ_ID_BLOCK_ID_BY_HEIGHT_GET:
+            retval =
+                protocolservice_protocol_dnd_block_id_by_height_get(
+                    ctx, request_offset, payload, payload_size);
+            break;
+
         case UNAUTH_PROTOCOL_REQ_ID_CLOSE:
             retval =
                 protocolservice_protocol_dnd_close(
