@@ -18,10 +18,19 @@
 #if defined(AGENTD_NEW_PROTOCOL)
 
 /* forward decls. */
+static status protocolservice_pwe_dnd_encode_protocol_transaction_id_get_next(
+    vccrypt_buffer_t* respbuf, protocolservice_protocol_fiber_context* ctx,
+    protocolservice_protocol_write_endpoint_message* payload,
+    const dataservice_response_canonized_transaction_get_t* dresp);
 static status protocolservice_pwe_dnd_encode_protocol_transaction_get(
     vccrypt_buffer_t* respbuf, protocolservice_protocol_fiber_context* ctx,
     protocolservice_protocol_write_endpoint_message* payload,
     const dataservice_response_canonized_transaction_get_t* dresp);
+
+static const uint8_t ff_uuid[16] = {
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+};
 
 /**
  * \brief Decode and dispatch a transaction read response.
@@ -74,6 +83,12 @@ status protocolservice_pwe_dnd_dataservice_transaction_get(
         /* decode the protocol request id to determine the response payload. */
         switch (payload->original_request_id)
         {
+            case UNAUTH_PROTOCOL_REQ_ID_TRANSACTION_ID_GET_NEXT:
+                retval =
+                    protocolservice_pwe_dnd_encode_protocol_transaction_id_get_next(
+                        &respbuf, ctx, payload, &dresp);
+                break;
+
             default:
                 retval =
                     protocolservice_pwe_dnd_encode_protocol_transaction_get(
@@ -104,6 +119,41 @@ cleanup_dresp:
 
 done:
     return retval;
+}
+
+/**
+ * \brief Encode a transaction id get next response.
+ *
+ * \param respbuf       The buffer in which the response is stored.
+ * \param ctx           The protocol service protocol fiber context.
+ * \param payload       The message payload.
+ * \param dresp         The decoded response from the data service.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status protocolservice_pwe_dnd_encode_protocol_transaction_id_get_next(
+    vccrypt_buffer_t* respbuf, protocolservice_protocol_fiber_context* ctx,
+    protocolservice_protocol_write_endpoint_message* payload,
+    const dataservice_response_canonized_transaction_get_t* dresp)
+{
+    if (!crypto_memcmp(dresp->node.next, ff_uuid, 16))
+    {
+        /* Encode an error response. */
+        return
+            vcblockchain_protocol_encode_error_resp(
+                respbuf, &ctx->ctx->vpr_alloc, payload->original_request_id,
+                payload->offset, AGENTD_ERROR_DATASERVICE_NOT_FOUND);
+    }
+    else
+    {
+        /* build a transaction get next id payload. */
+        return
+            vcblockchain_protocol_encode_resp_txn_next_id_get(
+                respbuf, &ctx->ctx->vpr_alloc, payload->offset,
+                dresp->hdr.status, (const vpr_uuid*)dresp->node.next);
+    }
 }
 
 /**
