@@ -1446,6 +1446,22 @@ status protocolservice_protocol_dnd_block_id_next_get(
     const uint8_t* payload, size_t payload_size);
 
 /**
+ * \brief Decode and dispatch a block get prev id request.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_dnd_block_id_prev_get(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
  * \brief Decode and dispatch a block id by height get request.
  *
  * \param ctx               The protocol service protocol fiber context.
