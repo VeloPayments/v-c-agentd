@@ -58,25 +58,15 @@ status protocolservice_pwe_dnd_dataservice_block_get(
     /* check to see if the call succeeded. */
     if (STATUS_SUCCESS != dresp.hdr.status)
     {
-        /* TODO - turn this into an encode method. */
-        uint8_t out[3 * sizeof(uint32_t)];
-        uint32_t net_req_id = htonl(payload->original_request_id);
-        memcpy(out, &net_req_id, 4);
-        uint32_t net_status = htonl(dresp.hdr.status);
-        memcpy(out + 4, &net_status, 4);
-        uint32_t net_offset = htonl(payload->offset);
-        memcpy(out + 8, &net_offset, 4);
-
-        /* create the response buffer. */
+        /* Encode an error response. */
         retval =
-            vccrypt_buffer_init(&respbuf, &ctx->ctx->vpr_alloc, sizeof(out));
+            vcblockchain_protocol_encode_error_resp(
+                &respbuf, &ctx->ctx->vpr_alloc, payload->original_request_id,
+                payload->offset, dresp.hdr.status);
         if (STATUS_SUCCESS != retval)
         {
             goto cleanup_dresp;
         }
-
-        /* copy the output to this buffer. */
-        memcpy(respbuf.data, out, sizeof(out));
     }
     else
     {
@@ -87,27 +77,16 @@ status protocolservice_pwe_dnd_dataservice_block_get(
                 /* TODO - refactor to extract function. */
                 if (!crypto_memcmp(dresp.node.next, ff_uuid, 16))
                 {
-                    /* TODO - turn this into an encode method. */
-                    uint8_t out[3 * sizeof(uint32_t)];
-                    uint32_t net_req_id = htonl(payload->original_request_id);
-                    memcpy(out, &net_req_id, 4);
-                    uint32_t net_status =
-                        htonl(AGENTD_ERROR_DATASERVICE_NOT_FOUND);
-                    memcpy(out + 4, &net_status, 4);
-                    uint32_t net_offset = htonl(payload->offset);
-                    memcpy(out + 8, &net_offset, 4);
-
-                    /* create the response buffer. */
+                    /* Encode an error response. */
                     retval =
-                        vccrypt_buffer_init(
-                            &respbuf, &ctx->ctx->vpr_alloc, sizeof(out));
+                        vcblockchain_protocol_encode_error_resp(
+                            &respbuf, &ctx->ctx->vpr_alloc,
+                            payload->original_request_id, payload->offset,
+                            AGENTD_ERROR_DATASERVICE_NOT_FOUND);
                     if (STATUS_SUCCESS != retval)
                     {
                         goto cleanup_dresp;
                     }
-
-                    /* copy the output to this buffer. */
-                    memcpy(respbuf.data, out, sizeof(out));
                 }
                 else
                 {
