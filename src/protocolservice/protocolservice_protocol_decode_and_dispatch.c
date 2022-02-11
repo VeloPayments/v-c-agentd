@@ -91,6 +91,12 @@ status protocolservice_protocol_decode_and_dispatch(
                     ctx, request_offset, payload, payload_size);
             break;
 
+        case UNAUTH_PROTOCOL_REQ_ID_TRANSACTION_ID_GET_PREV:
+            retval =
+                protocolservice_protocol_dnd_transaction_id_prev_get(
+                    ctx, request_offset, payload, payload_size);
+            break;
+
         case UNAUTH_PROTOCOL_REQ_ID_CLOSE:
             retval =
                 protocolservice_protocol_dnd_close(
