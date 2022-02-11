@@ -9,11 +9,18 @@
 
 #include <agentd/dataservice/async_api.h>
 #include <agentd/inet.h>
+#include <agentd/status_codes.h>
 #include <vcblockchain/protocol/serialization.h>
+#include <vccrypt/compare.h>
 
 #include "protocolservice_internal.h"
 
 #if defined(AGENTD_NEW_PROTOCOL)
+
+static uint8_t ff_uuid[16] = {
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+};
 
 /**
  * \brief Decode and dispatch a block read response.
@@ -76,6 +83,42 @@ status protocolservice_pwe_dnd_dataservice_block_get(
         /* decode the protocol request id to determine the response payload. */
         switch (payload->original_request_id)
         {
+            case UNAUTH_PROTOCOL_REQ_ID_BLOCK_ID_GET_NEXT:
+                /* TODO - refactor to extract function. */
+                if (!crypto_memcmp(dresp.node.next, ff_uuid, 16))
+                {
+                    /* TODO - turn this into an encode method. */
+                    uint8_t out[3 * sizeof(uint32_t)];
+                    uint32_t net_req_id = htonl(payload->original_request_id);
+                    memcpy(out, &net_req_id, 4);
+                    uint32_t net_status =
+                        htonl(AGENTD_ERROR_DATASERVICE_NOT_FOUND);
+                    memcpy(out + 4, &net_status, 4);
+                    uint32_t net_offset = htonl(payload->offset);
+                    memcpy(out + 8, &net_offset, 4);
+
+                    /* create the response buffer. */
+                    retval =
+                        vccrypt_buffer_init(
+                            &respbuf, &ctx->ctx->vpr_alloc, sizeof(out));
+                    if (STATUS_SUCCESS != retval)
+                    {
+                        goto cleanup_dresp;
+                    }
+
+                    /* copy the output to this buffer. */
+                    memcpy(respbuf.data, out, sizeof(out));
+                }
+                else
+                {
+                    /* build a block get next id payload. */
+                    retval =
+                        vcblockchain_protocol_encode_resp_block_next_id_get(
+                            &respbuf, &ctx->ctx->vpr_alloc, payload->offset,
+                            dresp.hdr.status, (const vpr_uuid*)dresp.node.next);
+                }
+                break;
+
             default:
                 /* build a block get payload. */
                 retval =
@@ -88,6 +131,7 @@ status protocolservice_pwe_dnd_dataservice_block_get(
                         ntohll(dresp.node.net_block_height),
                         ntohll(dresp.node.net_block_cert_size),
                         dresp.data, dresp.data_size);
+                break;
         }
     }
 
