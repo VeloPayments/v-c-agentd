@@ -33,6 +33,7 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
     status dataservice_context_release_retval = STATUS_SUCCESS;
     status protosock_release_retval = STATUS_SUCCESS;
     status mailbox_close_retval = STATUS_SUCCESS;
+    status fiber_mailbox_close_retval = STATUS_SUCCESS;
     status context_release_retval = STATUS_SUCCESS;
     protocolservice_protocol_fiber_context* ctx =
         (protocolservice_protocol_fiber_context*)r;
@@ -103,6 +104,13 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
             mailbox_close(ctx->return_addr, ctx->ctx->msgdisc);
     }
 
+    /* close the fiber mailbox associated with this fiber. */
+    if (ctx->fiber_addr > 0)
+    {
+        fiber_mailbox_close_retval =
+            mailbox_close(ctx->fiber_addr, ctx->ctx->msgdisc);
+    }
+
     /* reclaim memory. */
     context_release_retval = rcpr_allocator_reclaim(alloc, ctx);
 
@@ -118,6 +126,10 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
     else if (STATUS_SUCCESS != mailbox_close_retval)
     {
         return mailbox_close_retval;
+    }
+    else if (STATUS_SUCCESS != fiber_mailbox_close_retval)
+    {
+        return fiber_mailbox_close_retval;
     }
     else
     {

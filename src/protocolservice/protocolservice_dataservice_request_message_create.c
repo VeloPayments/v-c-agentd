@@ -25,6 +25,7 @@ RCPR_IMPORT_resource;
  * \param protocol_req_id   The protocol request id.
  * \param request_id        The request id.
  * \param offset            The offset code.
+ * \param data              Optional data for the request.
  * \param payload           The payload data.
  *
  * If \p payload is not NULL, then the data in \p payload is moved into an
@@ -39,7 +40,8 @@ RCPR_IMPORT_resource;
 status protocolservice_dataservice_request_message_create(
     protocolservice_dataservice_request_message** req_payload,
     protocolservice_protocol_fiber_context* ctx, uint32_t protocol_req_id,
-    uint32_t request_id, uint32_t offset, vccrypt_buffer_t* payload)
+    uint32_t request_id, uint32_t offset, uint64_t data,
+    vccrypt_buffer_t* payload)
 {
     status retval;
     protocolservice_dataservice_request_message* tmp = NULL;
@@ -67,6 +69,7 @@ status protocolservice_dataservice_request_message_create(
     tmp->protocol_request_id = protocol_req_id;
     tmp->request_id = request_id;
     tmp->offset = offset;
+    tmp->data = data;
 
     /* if the payload is set, move it to our payload. */
     if (NULL != payload)

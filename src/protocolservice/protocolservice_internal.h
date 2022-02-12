@@ -192,6 +192,7 @@ struct protocolservice_dataservice_request_message
     uint32_t protocol_request_id;
     uint32_t request_id;
     uint32_t offset;
+    uint64_t data;
     vccrypt_buffer_t payload;
 };
 
@@ -258,6 +259,7 @@ struct protocolservice_protocol_fiber_context
     uint64_t server_iv;
     RCPR_SYM(rcpr_uuid) entity_uuid;
     RCPR_SYM(mailbox_address) return_addr;
+    RCPR_SYM(mailbox_address) fiber_addr;
     const protocolservice_authorized_entity* entity;
     bool dataservice_context_opened;
 };
@@ -450,6 +452,7 @@ status pde_decode_and_dispatch_invalid_req(
  * \param protocol_req_id   The protocol request id.
  * \param request_id        The request id.
  * \param offset            The offset code.
+ * \param data              Optional data for the request.
  * \param payload           The payload data.
  *
  * If \p payload is not NULL, then the data in \p payload is moved into an
@@ -464,7 +467,8 @@ status pde_decode_and_dispatch_invalid_req(
 status protocolservice_dataservice_request_message_create(
     protocolservice_dataservice_request_message** req_payload,
     protocolservice_protocol_fiber_context* ctx, uint32_t protocol_req_id,
-    uint32_t request_id, uint32_t offset, vccrypt_buffer_t* payload);
+    uint32_t request_id, uint32_t offset, uint64_t data,
+    vccrypt_buffer_t* payload);
 
 /**
  * \brief Release a dataservice endpoint request message.

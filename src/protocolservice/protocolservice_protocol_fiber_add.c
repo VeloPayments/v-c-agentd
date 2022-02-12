@@ -117,6 +117,14 @@ status protocolservice_protocol_fiber_add(
         goto cleanup_context;
     }
 
+    /* create a special fiber mailbox for this fiber. */
+    retval =
+        mailbox_create(&tmp->fiber_addr, ctx->msgdisc);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
     /* create the protocol fiber. */
     retval =
         fiber_create(
