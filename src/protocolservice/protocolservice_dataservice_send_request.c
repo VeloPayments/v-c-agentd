@@ -46,7 +46,7 @@ status protocolservice_dataservice_send_request(
         protocolservice_dataservice_request_message_create(
             &request_payload, ctx, protocol_req_id,
             PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_DATASERVICE_REQ,
-            request_offset, request_buffer);
+            request_offset, 0U, request_buffer);
     if (STATUS_SUCCESS != retval)
     {
         goto done;

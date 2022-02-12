@@ -66,7 +66,7 @@ status pde_decode_and_dispatch_req_context_open(
         &tmp->hdr, &protocolservice_dataservice_mailbox_context_release);
     tmp->alloc = ctx->alloc;
     tmp->reference_count = 1;
-    tmp->addr = return_address;
+    tmp->addr = req_payload->data;
 
     /* send a dataservice child context create request to the data service. */
     retval =

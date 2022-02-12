@@ -36,7 +36,7 @@ RCPR_IMPORT_resource;
 status pde_decode_and_dispatch_req_context_close(
     protocolservice_dataservice_endpoint_context* ctx,
     protocolservice_dataservice_request_message* req_payload,
-    RCPR_SYM(mailbox_address) return_address,
+    RCPR_SYM(mailbox_address) /*return_address*/,
     protocolservice_protocol_write_endpoint_message** reply_payload)
 {
     status retval;
@@ -53,7 +53,7 @@ status pde_decode_and_dispatch_req_context_close(
     /* look up the context entry by return address. */
     retval =
         rbtree_find(
-            (resource**)&entry, ctx->mailbox_context_tree, &return_address);
+            (resource**)&entry, ctx->mailbox_context_tree, &req_payload->data);
     if (STATUS_SUCCESS != retval)
     {
         goto send_response;

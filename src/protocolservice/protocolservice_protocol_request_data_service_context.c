@@ -43,7 +43,7 @@ status protocolservice_protocol_request_data_service_context(
         protocolservice_dataservice_request_message_create(
             &request_payload, ctx, 0U,
             PROTOCOLSERVICE_DATASERVICE_ENDPOINT_REQ_CONTEXT_OPEN,
-            0U, NULL);
+            0U, ctx->return_addr, NULL);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
@@ -60,7 +60,7 @@ status protocolservice_protocol_request_data_service_context(
 
     /* create the request message. */
     retval =
-        message_create(&request, ctx->alloc, ctx->return_addr,
+        message_create(&request, ctx->alloc, ctx->fiber_addr,
         &request_payload->hdr);
     if (STATUS_SUCCESS != retval)
     {
@@ -82,7 +82,7 @@ status protocolservice_protocol_request_data_service_context(
     request = NULL;
 
     /* receive the response message. */
-    retval = message_receive(ctx->return_addr, &response, ctx->ctx->msgdisc);
+    retval = message_receive(ctx->fiber_addr, &response, ctx->ctx->msgdisc);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
