@@ -233,7 +233,7 @@ static status protocolservice_pwe_dnd_encode_protocol_transaction_block_id_get(
     protocolservice_protocol_write_endpoint_message* payload,
     const dataservice_response_canonized_transaction_get_t* dresp)
 {
-    /* build a transaction get prev id payload. */
+    /* build a transaction get block id payload. */
     return
         vcblockchain_protocol_encode_resp_txn_block_id_get(
             respbuf, &ctx->ctx->vpr_alloc, payload->offset,

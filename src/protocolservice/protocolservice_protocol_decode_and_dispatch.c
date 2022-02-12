@@ -103,6 +103,12 @@ status protocolservice_protocol_decode_and_dispatch(
                     ctx, request_offset, payload, payload_size);
             break;
 
+        case UNAUTH_PROTOCOL_REQ_ID_ARTIFACT_FIRST_TXN_BY_ID_GET:
+            retval =
+                protocolservice_protocol_dnd_artifact_first_transaction_id_get(
+                    ctx, request_offset, payload, payload_size);
+            break;
+
         case UNAUTH_PROTOCOL_REQ_ID_CLOSE:
             retval =
                 protocolservice_protocol_dnd_close(

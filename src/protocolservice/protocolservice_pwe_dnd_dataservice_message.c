@@ -51,6 +51,10 @@ status protocolservice_pwe_dnd_dataservice_message(
                 protocolservice_pwe_dnd_dataservice_transaction_get(
                     ctx, payload);
 
+        case DATASERVICE_API_METHOD_APP_ARTIFACT_READ:
+            return
+                protocolservice_pwe_dnd_dataservice_artifact_get(ctx, payload);
+
         case DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_SUBMIT:
             return
                 protocolservice_pwe_dnd_dataservice_transaction_submit(
