@@ -1311,6 +1311,20 @@ status protocolservice_pwe_dnd_dataservice_transaction_get(
     protocolservice_protocol_write_endpoint_message* payload);
 
 /**
+ * \brief Decode and dispatch an artifact read response.
+ *
+ * \param ctx           The protocol service protocol fiber context.
+ * \param payload       The message payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_pwe_dnd_dataservice_artifact_get(
+    protocolservice_protocol_fiber_context* ctx,
+    protocolservice_protocol_write_endpoint_message* payload);
+
+/**
  * \brief Decode and dispatch a transaction submit response.
  *
  * \param ctx           The protocol service protocol fiber context.
@@ -1552,6 +1566,22 @@ status protocolservice_protocol_dnd_transaction_id_prev_get(
  *      - a non-zero error code on failure.
  */
 status protocolservice_protocol_dnd_transaction_block_id_get(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
+ * \brief Decode and dispatch an artifact get first transaction id request.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_dnd_artifact_first_transaction_id_get(
     protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
     const uint8_t* payload, size_t payload_size);
 
