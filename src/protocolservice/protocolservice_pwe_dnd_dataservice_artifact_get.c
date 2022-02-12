@@ -22,6 +22,10 @@ static status protocolservice_pwe_dnd_encode_protocol_artifact_first_txn_get(
     vccrypt_buffer_t* respbuf, protocolservice_protocol_fiber_context* ctx,
     protocolservice_protocol_write_endpoint_message* payload,
     const dataservice_response_artifact_get_t* dresp);
+static status protocolservice_pwe_dnd_encode_protocol_artifact_last_txn_get(
+    vccrypt_buffer_t* respbuf, protocolservice_protocol_fiber_context* ctx,
+    protocolservice_protocol_write_endpoint_message* payload,
+    const dataservice_response_artifact_get_t* dresp);
 
 /**
  * \brief Decode and dispatch an artifact read response.
@@ -80,6 +84,12 @@ status protocolservice_pwe_dnd_dataservice_artifact_get(
                     protocolservice_pwe_dnd_encode_protocol_artifact_first_txn_get(
                         &respbuf, ctx, payload, &dresp);
                 break;
+
+            case UNAUTH_PROTOCOL_REQ_ID_ARTIFACT_LAST_TXN_BY_ID_GET:
+                retval =
+                    protocolservice_pwe_dnd_encode_protocol_artifact_last_txn_get(
+                        &respbuf, ctx, payload, &dresp);
+                break;
         }
     }
 
@@ -128,6 +138,29 @@ static status protocolservice_pwe_dnd_encode_protocol_artifact_first_txn_get(
         vcblockchain_protocol_encode_resp_artifact_first_txn_id_get(
             respbuf, &ctx->ctx->vpr_alloc, payload->offset,
             dresp->hdr.status, (const vpr_uuid*)dresp->record.txn_first);
+}
+
+/**
+ * \brief Encode an artifact get last transaction response.
+ *
+ * \param respbuf       The buffer in which the response is stored.
+ * \param ctx           The protocol service protocol fiber context.
+ * \param payload       The message payload.
+ * \param dresp         The decoded response from the data service.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status protocolservice_pwe_dnd_encode_protocol_artifact_last_txn_get(
+    vccrypt_buffer_t* respbuf, protocolservice_protocol_fiber_context* ctx,
+    protocolservice_protocol_write_endpoint_message* payload,
+    const dataservice_response_artifact_get_t* dresp)
+{
+    return
+        vcblockchain_protocol_encode_resp_artifact_last_txn_id_get(
+            respbuf, &ctx->ctx->vpr_alloc, payload->offset,
+            dresp->hdr.status, (const vpr_uuid*)dresp->record.txn_latest);
 }
 
 #endif /* defined(AGENTD_NEW_PROTOCOL) */
