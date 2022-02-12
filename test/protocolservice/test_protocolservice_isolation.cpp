@@ -2713,4 +2713,74 @@ TEST_F(protocolservice_isolation_test, ctrl_auth_entity_add)
     dispose((disposable_t*)&entity_signing_key);
 }
 
+/**
+ * It is possible to set the protocol service private key.
+ */
+TEST_F(protocolservice_isolation_test, ctrl_set_private_key)
+{
+    uint32_t offset, status;
+    const uint8_t entity_id[16] = {
+        0xa6, 0xeb, 0x8e, 0x98, 0x5a, 0x84, 0x45, 0x4e,
+        0xa2, 0x07, 0x9f, 0x11, 0xbd, 0x36, 0x80, 0x1e };
+    vccrypt_buffer_t entity_encryption_pubkey;
+    vccrypt_buffer_t entity_encryption_privkey;
+    vccrypt_buffer_t entity_signing_pubkey;
+    vccrypt_buffer_t entity_signing_privkey;
+
+    /* create dummy entity encryption pubkey. */
+    ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
+              vccrypt_buffer_init(&entity_encryption_pubkey, &alloc_opts, 32));
+    memset(entity_encryption_pubkey.data, 0xFF, 32);
+
+    /* create dummy entity encryption privkey. */
+    ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
+              vccrypt_buffer_init(&entity_encryption_privkey, &alloc_opts, 32));
+    memset(entity_encryption_privkey.data, 0xFF, 32);
+
+    /* create dummy entity signing pubkey. */
+    ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
+              vccrypt_buffer_init(&entity_signing_pubkey, &alloc_opts, 32));
+    memset(entity_signing_pubkey.data, 0xFF, 32);
+
+    /* create dummy entity signing privkey. */
+    ASSERT_EQ(VCCRYPT_STATUS_SUCCESS,
+              vccrypt_buffer_init(&entity_signing_privkey, &alloc_opts, 64));
+    memset(entity_signing_privkey.data, 0xFF, 64);
+
+    /* register dataservice helper mocks. */
+    ASSERT_EQ(0, dataservice_mock_register_helper());
+
+    /* start the mock. */
+    dataservice->start();
+
+    /* send the private key set request. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+              protocolservice_control_api_sendreq_private_key_set(
+                    controlsock, suite.alloc_opts, entity_id,
+                    &entity_encryption_pubkey, &entity_encryption_privkey,
+                    &entity_signing_pubkey, &entity_signing_privkey));
+
+    /* read the response. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+              protocolservice_control_api_recvresp_private_key_set(
+                    controlsock, &offset, &status));
+
+    /* the offset should be 0. */
+    EXPECT_EQ(0U, offset);
+    /* the status should be success. */
+    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+
+    /* close the protocol socket */
+    close(protosock);
+
+    /* stop the mock. */
+    dataservice->stop();
+
+    /* clean up. */
+    dispose((disposable_t*)&entity_encryption_pubkey);
+    dispose((disposable_t*)&entity_encryption_privkey);
+    dispose((disposable_t*)&entity_signing_pubkey);
+    dispose((disposable_t*)&entity_signing_privkey);
+}
+
 #endif /* defined(AGENTD_NEW_PROTOCOL) */
