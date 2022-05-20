@@ -105,6 +105,12 @@ static agent_config_t* fold_private_key(
 static config_private_key_entry_t* private_key_new(
     config_context_t* context, const char*);
 void private_key_dispose(void* disp);
+static agent_config_t* fold_endorser_key(
+    config_context_t* context, agent_config_t* cfg,
+    config_endorser_key_entry_t* private_key);
+static config_endorser_key_entry_t* endorser_key_new(
+    config_context_t* context, const char*);
+void endorser_key_dispose(void* disp);
 static agent_config_t* fold_public_key(
     config_context_t* context, agent_config_t* cfg,
     config_public_key_entry_t* public_key);
@@ -134,6 +140,7 @@ void public_key_dispose(void* disp);
 %token <string> CREATE
 %token <string> DATASTORE
 %token <string> DELETE
+%token <string> ENDORSER
 %token <string> ENTITIES
 %token <string> FIELD
 %token <string> IDENTIFIER
@@ -175,6 +182,7 @@ void public_key_dispose(void* disp);
 %type <string> logdir
 %type <number> loglevel
 %type <private_key> private_key
+%type <endorser_key> endorser_key
 %type <public_key> public_key
 %type <public_key> public_key_block
 %type <string> rootblock
@@ -234,6 +242,9 @@ conf : {
     | conf private_key {
             /* fold in a private key. */
             MAYBE_ASSIGN($$, fold_private_key(context, $1, $2)); }
+    | conf endorser_key {
+            /* fold in an endorser key. */
+            MAYBE_ASSIGN($$, fold_endorser_key(context, $1, $2)); }
     | conf public_key {
             /* fold in public key. */
             MAYBE_ASSIGN($$, fold_public_key(context, $1, $2)); }
@@ -436,6 +447,12 @@ private_key
         /* create a new private_key. */
         MAYBE_ASSIGN($$, private_key_new(context, $3)); }
     ;
+
+/* handle endorser key. */
+endorser_key
+    : ENDORSER KEY PATH {
+        /* create a new endorser key. */
+        MAYBE_ASSIGN($$, endorser_key_new(context, $3)); }
 
 /* handle public key. */
 public_key
@@ -713,6 +730,12 @@ void config_dispose(void* disp)
     {
         dispose((disposable_t*)cfg->private_key);
         free(cfg->private_key);
+    }
+
+    if (NULL != cfg->endorser_key)
+    {
+        dispose((disposable_t*)cfg->endorser_key);
+        free(cfg->endorser_key);
     }
 
     while (NULL != cfg->public_key_head)
@@ -1211,6 +1234,57 @@ void private_key_dispose(void* disp)
     config_private_key_entry_t* private_key = (config_private_key_entry_t*)disp;
 
     free((char*)private_key->filename);
+}
+
+/**
+ * \brief Fold endorser key into the config.
+ */
+static agent_config_t* fold_endorser_key(
+    config_context_t* context, agent_config_t* cfg,
+    config_endorser_key_entry_t* endorser_key)
+{
+    /* has an endorser key already been set? */
+    if (NULL != cfg->endorser_key)
+    {
+        CONFIG_ERROR("Duplicate endorser key entry in config.");
+    }
+
+    /* if this is the only endorser key, then add it. */
+    cfg->endorser_key = endorser_key;
+
+    return cfg;
+}
+
+/**
+ * \brief Create a new endorser key entry with the given path.
+ */
+static config_endorser_key_entry_t* endorser_key_new(
+    config_context_t* context, const char* path)
+{
+    config_endorser_key_entry_t* ret =
+        (config_endorser_key_entry_t*)malloc(
+            sizeof(config_endorser_key_entry_t));
+    if (NULL == ret)
+    {
+        CONFIG_ERROR("Out of memory in endorser_key_new().");
+    }
+
+    memset(ret, 0, sizeof(config_endorser_key_entry_t));
+    ret->hdr.dispose = &endorser_key_dispose;
+    ret->filename = strdup(path);
+
+    return ret;
+}
+
+/**
+ * \brief Dispose of an endorser key entry.
+ */
+void endorser_key_dispose(void* disp)
+{
+    config_endorser_key_entry_t* endorser_key =
+        (config_endorser_key_entry_t*)disp;
+
+    free((char*)endorser_key->filename);
 }
 
 /**

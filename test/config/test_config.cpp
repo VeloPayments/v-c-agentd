@@ -2863,6 +2863,53 @@ TEST(config_test, field_mix_crud_flags)
 }
 
 /**
+ * Test that, by default, the private key is NOT set.
+ */
+TEST(config_test, private_key_empty_config)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(nullptr, state = yy_scan_string("", scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are no errors. */
+    ASSERT_EQ(0U, user_context.errors.size());
+
+    /* verify user config. */
+    ASSERT_NE(nullptr, user_context.config);
+    ASSERT_EQ(nullptr, user_context.config->logdir);
+    ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
+    ASSERT_EQ(nullptr, user_context.config->secret);
+    ASSERT_EQ(nullptr, user_context.config->rootblock);
+    ASSERT_EQ(nullptr, user_context.config->datastore);
+    ASSERT_EQ(nullptr, user_context.config->listen_head);
+    ASSERT_EQ(nullptr, user_context.config->chroot);
+    ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+
+    /* the private key is NULL. */
+    ASSERT_EQ(nullptr, user_context.config->private_key);
+
+    dispose((disposable_t*)&user_context);
+}
+
+/**
  * Test that we can set a private key.
  */
 TEST(config_test, private_key_config)
@@ -3183,3 +3230,135 @@ TEST(config_test, max_database_size)
     dispose((disposable_t*)&user_context);
 }
 
+/**
+ * Test that, by default, the endorser key is NOT set.
+ */
+TEST(config_test, endorser_key_empty_config)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(nullptr, state = yy_scan_string("", scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are no errors. */
+    ASSERT_EQ(0U, user_context.errors.size());
+
+    /* verify user config. */
+    ASSERT_NE(nullptr, user_context.config);
+    ASSERT_EQ(nullptr, user_context.config->logdir);
+    ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
+    ASSERT_EQ(nullptr, user_context.config->secret);
+    ASSERT_EQ(nullptr, user_context.config->rootblock);
+    ASSERT_EQ(nullptr, user_context.config->datastore);
+    ASSERT_EQ(nullptr, user_context.config->listen_head);
+    ASSERT_EQ(nullptr, user_context.config->chroot);
+    ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+
+    /* the endorser key is NULL. */
+    ASSERT_EQ(nullptr, user_context.config->endorser_key);
+
+    dispose((disposable_t*)&user_context);
+}
+
+/**
+ * Test that we can set the endorser key.
+ */
+TEST(config_test, endorser_key_config)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(nullptr, state = yy_scan_string("endorser key public/123.pub", scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are no errors. */
+    ASSERT_EQ(0U, user_context.errors.size());
+
+    /* verify user config. */
+    ASSERT_NE(nullptr, user_context.config);
+    ASSERT_EQ(nullptr, user_context.config->logdir);
+    ASSERT_FALSE(user_context.config->loglevel_set);
+    ASSERT_EQ(0L, user_context.config->loglevel);
+    ASSERT_FALSE(user_context.config->database_max_size_set);
+    ASSERT_EQ(0L, user_context.config->database_max_size);
+    ASSERT_EQ(nullptr, user_context.config->secret);
+    ASSERT_EQ(nullptr, user_context.config->rootblock);
+    ASSERT_EQ(nullptr, user_context.config->datastore);
+    ASSERT_EQ(nullptr, user_context.config->listen_head);
+    ASSERT_EQ(nullptr, user_context.config->chroot);
+    ASSERT_EQ(nullptr, user_context.config->usergroup);
+    ASSERT_EQ(nullptr, user_context.config->view_head);
+    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+
+    /* the endorser key is NOT NULL. */
+    ASSERT_NE(nullptr, user_context.config->endorser_key);
+
+    /* the endorser key file is set. */
+    ASSERT_NE(nullptr, user_context.config->endorser_key->filename);
+    /* the filename is what we set above. */
+    EXPECT_EQ(
+        0,
+        strcmp("public/123.pub", user_context.config->endorser_key->filename));
+
+    dispose((disposable_t*)&user_context);
+}
+
+/**
+ * Test that duplicate endorser key entries fail.
+ */
+TEST(config_test, endorser_key_duplicates)
+{
+    YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    config_context_t context;
+    test_context user_context;
+
+    test_context_init(&user_context);
+
+    context.set_error = &set_error;
+    context.val_callback = &config_callback;
+    context.user_context = &user_context;
+
+    ASSERT_EQ(0, yylex_init(&scanner));
+    ASSERT_NE(nullptr,
+        state = yy_scan_string(
+            "endorser key public/123.pub "
+            "endorser key public/456.pub ",
+            scanner));
+    ASSERT_EQ(0, yyparse(scanner, &context));
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    /* there are errors. */
+    ASSERT_EQ(1U, user_context.errors.size());
+
+    dispose((disposable_t*)&user_context);
+}
