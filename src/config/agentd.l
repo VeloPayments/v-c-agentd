@@ -110,6 +110,12 @@ delete {
     return DELETE;
 }
 
+endorser {
+    /* endorser keyword. */
+    yylval->string = "endorser";
+    return ENDORSER;
+}
+
 entities {
     /* entities keyword */
     yylval->string = "entities";

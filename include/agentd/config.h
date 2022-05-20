@@ -140,6 +140,15 @@ typedef struct config_private_key_entry
 } config_private_key_entry_t;
 
 /**
+ * \brief Endorser key entry.
+ */
+typedef struct config_endorser_key_entry
+{
+    disposable_t hdr;
+    const char* filename;
+} config_endorser_key_entry_t;
+
+/**
  * \brief Public key entry.
  */
 typedef struct config_public_key_entry
@@ -214,6 +223,7 @@ typedef struct agent_config
     config_user_group_t* usergroup;
     config_materialized_view_t* view_head;
     config_private_key_entry_t* private_key;
+    config_endorser_key_entry_t* endorser_key;
     config_public_key_entry_t* public_key_head;
 } agent_config_t;
 
@@ -235,6 +245,7 @@ typedef union config_val
     config_materialized_transaction_type_t* view_transaction;
     config_materialized_field_type_t* view_field;
     config_private_key_entry_t* private_key;
+    config_endorser_key_entry_t* endorser_key;
     config_public_key_entry_t* public_key;
 } config_val_t;
 
