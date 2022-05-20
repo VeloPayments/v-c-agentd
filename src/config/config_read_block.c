@@ -27,8 +27,10 @@ static int config_read_chroot(int s, agent_config_t* conf);
 static int config_read_usergroup(int s, agent_config_t* conf);
 static int config_read_listen_addr(int s, agent_config_t* conf);
 static int config_read_private_key(int s, agent_config_t* conf);
+static int config_read_endorser_key(int s, agent_config_t* conf);
 static int config_read_public_key(int s, agent_config_t* conf);
 void private_key_dispose(void*);
+void endorser_key_dispose(void*);
 void public_key_dispose(void*);
 
 /**
@@ -163,6 +165,14 @@ int config_read_block(int s, agent_config_t* conf)
             case CONFIG_STREAM_TYPE_PRIVATE_KEY:
                 /* attempt to read the private key from the stream. */
                 retval = config_read_private_key(s, conf);
+                if (AGENTD_STATUS_SUCCESS != retval)
+                    return retval;
+                break;
+
+            /* endorser key */
+            case CONFIG_STREAM_TYPE_ENDORSER_KEY:
+                /* attempt to read the endorser key from the stream. */
+                retval = config_read_endorser_key(s, conf);
                 if (AGENTD_STATUS_SUCCESS != retval)
                     return retval;
                 break;
@@ -626,6 +636,55 @@ static int config_read_private_key(int s, agent_config_t* conf)
 
     /* set the private key. */
     conf->private_key = private_key;
+
+    /* success */
+    return AGENTD_STATUS_SUCCESS;
+}
+
+/**
+ * \brief Read the endorser key from the config stream.
+ *
+ * \param s             The socket from which the endorser key is read.
+ * \param conf          The config structure instance to write this value.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_GENERAL_OUT_OF_MEMORY if an out-of-memory condition was
+ *        encountered during this operation.
+ *      - AGENTD_ERROR_CONFIG_IPC_READ_DATA_FAILURE if there was a failure
+ *        reading from the config socket.
+ *      - AGENTD_ERROR_CONFIG_INVALID_STREAM the stream data was corrupted or
+ *        invalid.
+ */
+static int config_read_endorser_key(int s, agent_config_t* conf)
+{
+    /* it's an error to provide this value more than once. */
+    if (NULL != conf->endorser_key)
+        return AGENTD_ERROR_CONFIG_INVALID_STREAM;
+
+    /* allocate a endorser key structure. */
+    config_endorser_key_entry_t* endorser_key =
+        (config_endorser_key_entry_t*)malloc(
+            sizeof(config_endorser_key_entry_t));
+    if (NULL == endorser_key)
+        return AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+
+    /* clear this structure. */
+    memset(endorser_key, 0, sizeof(config_endorser_key_entry_t));
+
+    /* set the dispose method. */
+    endorser_key->hdr.dispose = &endorser_key_dispose;
+
+    /* attempt to read the endorser key filename. */
+    if (AGENTD_STATUS_SUCCESS !=
+        ipc_read_string_block(s, (char**)&endorser_key->filename))
+    {
+        free(endorser_key);
+        return AGENTD_ERROR_CONFIG_IPC_READ_DATA_FAILURE;
+    }
+
+    /* set the endorser key. */
+    conf->endorser_key = endorser_key;
 
     /* success */
     return AGENTD_STATUS_SUCCESS;

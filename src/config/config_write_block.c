@@ -25,6 +25,7 @@ static int config_write_listen_addr(int s, agent_config_t* conf);
 static int config_write_chroot(int s, agent_config_t* conf);
 static int config_write_usergroup(int s, agent_config_t* conf);
 static int config_write_private_key(int s, agent_config_t* conf);
+static int config_write_endorser_key(int s, agent_config_t* conf);
 static int config_write_public_key(int s, agent_config_t* conf);
 
 /**
@@ -102,6 +103,11 @@ int config_write_block(int s, agent_config_t* conf)
 
     /* private key */
     retval = config_write_private_key(s, conf);
+    if (AGENTD_STATUS_SUCCESS != retval)
+        return retval;
+
+    /* endorser key */
+    retval = config_write_endorser_key(s, conf);
     if (AGENTD_STATUS_SUCCESS != retval)
         return retval;
 
@@ -464,6 +470,37 @@ static int config_write_private_key(int s, agent_config_t* conf)
         /* write the private key filename to the stream. */
         if (AGENTD_STATUS_SUCCESS !=
                 ipc_write_string_block(s, conf->private_key->filename))
+            return AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE;
+    }
+
+    /* success. */
+    return AGENTD_STATUS_SUCCESS;
+}
+
+/**
+ * \brief Write the endorser key filename to the config output stream.
+ *
+ * \param s             The config output stream.
+ * \param conf          The config structure from which this value is obtained.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE if writing data to the
+ *        socket failed.
+ */
+static int config_write_endorser_key(int s, agent_config_t* conf)
+{
+    /* write the endorser key if set. */
+    if (NULL != conf->endorser_key)
+    {
+        /* write the endorser key type to the stream. */
+        uint8_t type = CONFIG_STREAM_TYPE_ENDORSER_KEY;
+        if (AGENTD_STATUS_SUCCESS != ipc_write_uint8_block(s, type))
+            return AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE;
+
+        /* write the endorser key filename to the stream. */
+        if (AGENTD_STATUS_SUCCESS !=
+                ipc_write_string_block(s, conf->endorser_key->filename))
             return AGENTD_ERROR_CONFIG_IPC_WRITE_DATA_FAILURE;
     }
 

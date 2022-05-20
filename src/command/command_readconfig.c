@@ -76,6 +76,8 @@ int command_readconfig(struct bootstrap_config* bconf)
             conf.usergroup->group);
     if (NULL != conf.private_key)
         printf("Private Key File: %s\n", conf.private_key->filename);
+    if (NULL != conf.endorser_key)
+        printf("Endorser Key File: %s\n", conf.endorser_key->filename);
 
     /* output listen addresses. */
     config_listen_address_t* ptr = conf.listen_head;
