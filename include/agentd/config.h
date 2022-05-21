@@ -401,6 +401,7 @@ int config_read_proc(
  *
  * \param bconf         The bootstrap configuration used to spawn the process.
  * \param conf          The config structure used to spawn the process.
+ * \param endorser      The \ref config_public_entity_node_t of the endorser.
  * \param entities      The \ref config_public_entity_node_t list to populate.
  *
  * \returns a status code indicating success or failure.
@@ -429,6 +430,7 @@ int config_read_proc(
  */
 int config_read_public_entities_proc(
     const struct bootstrap_config* bconf, agent_config_t* conf,
+    config_public_entity_node_t** endorser,
     config_public_entity_node_t** entities);
 
 /**

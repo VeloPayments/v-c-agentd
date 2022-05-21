@@ -18,7 +18,7 @@
 
 /* forward decls */
 static int config_public_file_send(
-    int clientsock, const config_public_key_entry_t* entry);
+    int clientsock, const char* filename);
 static int config_entity_read(
     int clientsock, config_public_entity_node_t** entry);
 static void public_entity_dispose(void* disp);
@@ -33,6 +33,7 @@ static void public_entity_dispose(void* disp);
  *
  * \param bconf         The bootstrap configuration used to spawn the process.
  * \param conf          The config structure used to spawn the process.
+ * \param endorser      The \ref config_public_entity_node_t of the endorser.
  * \param entities      The \ref config_public_entity_node_t list to populate.
  *
  * \returns a status code indicating success or failure.
@@ -61,6 +62,7 @@ static void public_entity_dispose(void* disp);
  */
 int config_read_public_entities_proc(
     const struct bootstrap_config* bconf, agent_config_t* conf,
+    config_public_entity_node_t** endorser,
     config_public_entity_node_t** entities)
 {
     int retval = 1;
@@ -193,12 +195,37 @@ int config_read_public_entities_proc(
         /* start with no entries. */
         *entities = NULL;
 
+        /* send the endorser public key entry if set. */
+        *endorser = NULL;
+        if (NULL != conf->endorser_key)
+        {
+            /* send the file to open / read. */
+            if (0 !=
+                config_public_file_send(clientsock,
+                    conf->endorser_key->filename))
+            {
+                retval = AGENTD_ERROR_READER_IPC_WRITE_DATA_FAILURE;
+                goto cleanup_entities;
+            }
+
+            /* read back the response. */
+            config_public_entity_node_t* entry = NULL;
+            if (0 != config_entity_read(clientsock, &entry))
+            {
+                retval = AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE;
+                goto cleanup_entities;
+            }
+
+            /* save as the endorser entity. */
+            *endorser = entry;
+        }
+
         /* for each file to read... */
         config_public_key_entry_t* tmp = conf->public_key_head;
         while (NULL != tmp)
         {
             /* send the file to open / read. */
-            if (0 != config_public_file_send(clientsock, tmp))
+            if (0 != config_public_file_send(clientsock, tmp->filename))
             {
                 retval = AGENTD_ERROR_READER_IPC_WRITE_DATA_FAILURE;
                 goto cleanup_entities;
@@ -250,6 +277,13 @@ int config_read_public_entities_proc(
     }
 
 cleanup_entities:
+    if (NULL != *endorser)
+    {
+        dispose((disposable_t*)*endorser);
+        free(*endorser);
+        *endorser = NULL;
+    }
+
     while (NULL != *entities)
     {
         config_public_entity_node_t* tmp =
@@ -275,16 +309,16 @@ done:
  * \brief Send a public entity file to the reader proc.
  *
  * \param clientsock        Socket connection to the reader proc.
- * \param entry             The public key entry to send.
+ * \param filename          The public key entry filename to send.
  *
  * \returns a status code indicating success or failure.
  *      - AGENTD_STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
 static int config_public_file_send(
-    int clientsock, const config_public_key_entry_t* entry)
+    int clientsock, const char* filename)
 {
-    return ipc_write_string_block(clientsock, entry->filename);
+    return ipc_write_string_block(clientsock, filename);
 }
 
 /**
