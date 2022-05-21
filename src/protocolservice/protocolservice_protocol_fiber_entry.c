@@ -13,8 +13,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
@@ -90,5 +88,3 @@ cleanup_context:
 
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

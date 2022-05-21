@@ -10,8 +10,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_uuid;
 
 /**
@@ -48,5 +46,3 @@ RCPR_SYM(rcpr_comparison_result) protocolservice_authorized_entity_uuid_compare(
         return RCPR_COMPARE_EQ;
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

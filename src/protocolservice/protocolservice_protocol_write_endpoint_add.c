@@ -13,8 +13,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_fiber;
 RCPR_IMPORT_resource;
 
@@ -89,5 +87,3 @@ cleanup_context:
 done:
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

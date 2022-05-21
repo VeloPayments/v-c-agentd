@@ -11,8 +11,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Decode and dispatch a block id by height get request.
  *
@@ -76,5 +74,3 @@ cleanup_req:
 done:
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

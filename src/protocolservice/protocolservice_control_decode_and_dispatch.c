@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Decode and dispatch a control packet from the supervisor.
  *
@@ -93,5 +91,3 @@ status protocolservice_control_decode_and_dispatch(
             return AGENTD_ERROR_PROTOCOLSERVICE_REQUEST_PACKET_BAD;
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

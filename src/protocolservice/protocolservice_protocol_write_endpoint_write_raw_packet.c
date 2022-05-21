@@ -11,8 +11,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_psock;
 
 /**
@@ -43,5 +41,3 @@ status protocolservice_protocol_write_endpoint_write_raw_packet(
     /* return the status from the write. */
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

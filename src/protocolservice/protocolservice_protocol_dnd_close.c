@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Decode and dispatch a close request.
  *
@@ -65,5 +63,3 @@ write_error_response:
 
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

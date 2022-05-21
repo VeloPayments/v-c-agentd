@@ -12,8 +12,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_allocator_as(rcpr);
 
 /**
@@ -51,5 +49,3 @@ status protocolservice_dataservice_mailbox_context_release(
     return
         rcpr_allocator_reclaim(alloc, entry);
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

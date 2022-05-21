@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /* forward decls. */
 static status protocolservice_pwe_dnd_encode_protocol_artifact_first_txn_get(
     vccrypt_buffer_t* respbuf, protocolservice_protocol_fiber_context* ctx,
@@ -162,5 +160,3 @@ static status protocolservice_pwe_dnd_encode_protocol_artifact_last_txn_get(
             respbuf, &ctx->ctx->vpr_alloc, payload->offset,
             dresp->hdr.status, (const vpr_uuid*)dresp->record.txn_latest);
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

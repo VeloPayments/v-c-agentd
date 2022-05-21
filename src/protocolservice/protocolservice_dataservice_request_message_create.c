@@ -12,8 +12,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_resource;
 
@@ -83,5 +81,3 @@ status protocolservice_dataservice_request_message_create(
     /* success. */
     return STATUS_SUCCESS;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

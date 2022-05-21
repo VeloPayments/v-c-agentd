@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Dispatch a finalize request
  *
@@ -40,5 +38,3 @@ status protocolservice_control_dispatch_finalize(
         protocolservice_control_write_response(
             ctx, UNAUTH_PROTOCOL_CONTROL_REQ_ID_FINALIZE, STATUS_SUCCESS);
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

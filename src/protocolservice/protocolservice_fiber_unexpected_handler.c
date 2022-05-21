@@ -12,8 +12,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Handle unexpected resume events in fibers relating to the protocol
  * service.
@@ -61,5 +59,3 @@ status protocolservice_fiber_unexpected_handler(
     /* for any other resume event, terminate the fiber. */
     return ERROR_FIBER_INVALID_STATE;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

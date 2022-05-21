@@ -13,8 +13,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /* TODO - the private key should be moved to the auth service. Instead, this
  * method should call the auth service to get the shared secret, so that the
  * private key does not leak beyond the supervisor and the auth service.
@@ -91,5 +89,3 @@ cleanup_agreement:
 
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

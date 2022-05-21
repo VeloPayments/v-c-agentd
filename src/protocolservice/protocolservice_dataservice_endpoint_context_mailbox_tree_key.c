@@ -11,8 +11,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Given an mailbox_context resource handle, return its context value.
  *
@@ -34,5 +32,3 @@ const void* protocolservice_dataservice_endpoint_context_mailbox_tree_key(
     /* return the mailbox address. */
     return &entry->context;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

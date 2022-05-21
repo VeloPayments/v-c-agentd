@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Write a packet to the peer.
  *
@@ -43,5 +41,3 @@ status protocolservice_protocol_write_endpoint_write_packet(
     /* return the result of the write to the caller. */
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

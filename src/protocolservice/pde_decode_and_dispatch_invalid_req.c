@@ -13,8 +13,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Report an error for an invalid dataservice endpoint request.
  *
@@ -49,5 +47,3 @@ status pde_decode_and_dispatch_invalid_req(
             PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_ERROR_MESSAGE,
             req_payload->offset, NULL, 0U);
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

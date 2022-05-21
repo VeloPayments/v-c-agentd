@@ -13,8 +13,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Decode and dispatch a dataservice endpoint request.
  *
@@ -67,5 +65,3 @@ status protocolservice_dataservice_endpoint_decode_and_dispatch(
                     ctx, req_payload, return_address, reply_payload);
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

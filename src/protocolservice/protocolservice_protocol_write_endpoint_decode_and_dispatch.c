@@ -14,8 +14,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_message;
 
 /**
@@ -73,5 +71,3 @@ status protocolservice_protocol_write_endpoint_decode_and_dispatch(
             return AGENTD_ERROR_PROTOCOLSERVICE_MALFORMED_RESPONSE;
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */
