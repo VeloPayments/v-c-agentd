@@ -110,6 +110,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     process_t* protocol_service;
     process_t* canonizationservice;
     process_t* attestationservice;
+    config_public_entity_node_t* endorser_entity;
     config_public_entity_node_t* public_entities;
     config_private_key_t private_key;
 
@@ -154,7 +155,8 @@ static int supervisor_run(const bootstrap_config_t* bconf)
 
     /* Spawn a process to read the public entities. */
     TRY_OR_FAIL(
-        config_read_public_entities_proc(bconf, &conf, &public_entities),
+        config_read_public_entities_proc(
+            bconf, &conf, &endorser_entity, &public_entities),
         cleanup_config);
 
     /* Spawn a process to read the private key. */
