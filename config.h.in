@@ -1,4 +1,3 @@
 #pragma once
 
 #define AGENTD_VERSION "@VERSION@"
-#mesondefine AGENTD_NEW_PROTOCOL
