@@ -13,8 +13,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Perform the handshake for the protocol.
  *
@@ -90,5 +88,3 @@ protocolservice_protocol_handle_handshake(
     /* success. */
     return STATUS_SUCCESS;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

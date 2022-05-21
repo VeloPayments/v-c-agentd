@@ -12,8 +12,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
@@ -61,5 +59,3 @@ status protocolservice_control_fiber_context_release(RCPR_SYM(resource)* r)
         return context_release_retval;
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

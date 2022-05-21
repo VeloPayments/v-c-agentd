@@ -11,8 +11,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Compare two opaque context values.
  *
@@ -45,5 +43,3 @@ protocolservice_dataservice_endpoint_context_mailbox_tree_compare(
         return RCPR_COMPARE_EQ;
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

@@ -14,8 +14,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Decode and dispatch a packet from the client.
  *
@@ -158,5 +156,3 @@ write_error_response:
 done:
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

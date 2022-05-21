@@ -11,8 +11,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_fiber;
 
 /**
@@ -30,5 +28,3 @@ status protocolservice_force_exit(protocolservice_context* ctx)
         disciplined_fiber_scheduler_send_terminate_request_to_fiber(
             ctx->sched, ctx->main_fiber);
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

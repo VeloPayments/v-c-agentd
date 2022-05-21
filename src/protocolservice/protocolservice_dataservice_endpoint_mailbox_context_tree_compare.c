@@ -11,8 +11,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_message;
 
 /**
@@ -47,5 +45,3 @@ protocolservice_dataservice_endpoint_mailbox_context_tree_compare(
         return RCPR_COMPARE_EQ;
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

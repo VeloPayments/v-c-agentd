@@ -13,8 +13,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_psock;
 
 /**
@@ -77,5 +75,3 @@ cleanup_dresp:
 done:
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

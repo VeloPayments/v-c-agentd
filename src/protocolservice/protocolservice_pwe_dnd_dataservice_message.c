@@ -11,8 +11,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Decode and dispatch a response message from the data service.
  *
@@ -69,5 +67,3 @@ status protocolservice_pwe_dnd_dataservice_message(
             return AGENTD_ERROR_PROTOCOLSERVICE_DATASERVICE_INVALID_RESPONSE_ID;
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

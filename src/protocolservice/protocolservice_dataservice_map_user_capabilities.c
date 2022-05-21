@@ -16,8 +16,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Map the user capabilities in a form that the data service open context
  * request can understand.
@@ -76,5 +74,3 @@ status protocolservice_dataservice_map_user_capabilities(
     /* success. */
     return STATUS_SUCCESS;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

@@ -12,8 +12,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 #define MAX_TRANSACTION_CERTIFICATE_SIZE 32767
 
 RCPR_IMPORT_uuid;
@@ -90,5 +88,3 @@ cleanup_req:
 done:
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

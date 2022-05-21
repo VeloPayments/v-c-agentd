@@ -13,8 +13,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_psock;
 
 /**
@@ -186,5 +184,3 @@ done:
 
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

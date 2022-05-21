@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /* forward decls. */
 static status protocolservice_pwe_dnd_encode_protocol_transaction_id_get_next(
     vccrypt_buffer_t* respbuf, protocolservice_protocol_fiber_context* ctx,
@@ -267,5 +265,3 @@ static status protocolservice_pwe_dnd_encode_protocol_transaction_get(
             ntohll(dresp->node.net_txn_cert_size),
             dresp->data, dresp->data_size, ntohl(dresp->node.net_txn_state));
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

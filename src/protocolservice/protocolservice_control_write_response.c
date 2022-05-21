@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_psock;
 
@@ -93,5 +91,3 @@ status protocolservice_control_write_response(
     /* return the status of the response write to the caller. */
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

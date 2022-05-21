@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Read a packet from the client socket, and decode / dispatch it.
  *
@@ -101,5 +99,3 @@ cleanup_req:
 
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

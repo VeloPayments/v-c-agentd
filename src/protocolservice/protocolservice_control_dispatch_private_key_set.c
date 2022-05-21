@@ -15,8 +15,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Dispatch a private key set request.
  *
@@ -166,5 +164,3 @@ status protocolservice_control_dispatch_private_key_set(
 done:
     return retval;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

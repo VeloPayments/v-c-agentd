@@ -12,8 +12,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_allocator_as(rcpr);
 
 /**
@@ -59,5 +57,3 @@ status protocolservice_random_response_message_release(RCPR_SYM(resource)* r)
         return payload_release_retval;
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

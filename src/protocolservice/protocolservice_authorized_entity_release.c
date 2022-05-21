@@ -10,8 +10,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_allocator_as(rcpr);
 
 /**
@@ -47,5 +45,3 @@ status protocolservice_authorized_entity_release(RCPR_SYM(resource)* r)
     return
         rcpr_allocator_reclaim(alloc, entity);
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

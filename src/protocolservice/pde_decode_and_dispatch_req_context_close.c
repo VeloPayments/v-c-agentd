@@ -14,8 +14,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
 
@@ -108,5 +106,3 @@ send_response:
             PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_CONTEXT_CREATE_MSG,
             0U, req_payload->offset, NULL, 0U);
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

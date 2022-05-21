@@ -10,8 +10,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 /**
  * \brief Given an authorized entity resource handle, return its \ref rcpr_uuid
  * value.
@@ -33,5 +31,3 @@ const void* protocolservice_authorized_entity_key(
     /* return the entity id. */
     return &entity->entity_uuid;
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */

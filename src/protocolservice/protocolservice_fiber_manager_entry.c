@@ -12,8 +12,6 @@
 
 #include "protocolservice_internal.h"
 
-#if defined(AGENTD_NEW_PROTOCOL)
-
 RCPR_IMPORT_fiber;
 RCPR_IMPORT_uuid;
 RCPR_IMPORT_resource;
@@ -109,5 +107,3 @@ status protocolservice_fiber_manager_entry(void* vsched)
         }
     }
 }
-
-#endif /* defined(AGENTD_NEW_PROTOCOL) */
