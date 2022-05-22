@@ -101,6 +101,14 @@ static void read_public_entities(
 {
     int retval;
     bool stream_okay = true;
+    uint8_t is_endorser = 0;
+
+    /* read a flag indicating whether the first entity is the endorser. */
+    retval = ipc_read_uint8_block(controlfd, &is_endorser);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        stream_okay = false;
+    }
 
     while (stream_okay)
     {

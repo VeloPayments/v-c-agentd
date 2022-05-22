@@ -17,6 +17,8 @@
 #include <vpr/allocator/malloc_allocator.h>
 
 /* forward decls */
+static int config_public_file_send_endorser_flag(
+    int clientsock, bool is_endorser);
 static int config_public_file_send(
     int clientsock, const char* filename);
 static int config_entity_read(
@@ -199,6 +201,13 @@ int config_read_public_entities_proc(
         *endorser = NULL;
         if (NULL != conf->endorser_key)
         {
+            /* send a flag indicating that the first entity is the endorser. */
+            if (0 != config_public_file_send_endorser_flag(clientsock, true))
+            {
+                retval = AGENTD_ERROR_READER_IPC_WRITE_DATA_FAILURE;
+                goto cleanup_entities;
+            }
+
             /* send the file to open / read. */
             if (0 !=
                 config_public_file_send(clientsock,
@@ -218,6 +227,15 @@ int config_read_public_entities_proc(
 
             /* save as the endorser entity. */
             *endorser = entry;
+        }
+        else
+        {
+            /* The first entity is NOT the endorser. */
+            if (0 != config_public_file_send_endorser_flag(clientsock, false))
+            {
+                retval = AGENTD_ERROR_READER_IPC_WRITE_DATA_FAILURE;
+                goto cleanup_entities;
+            }
         }
 
         /* for each file to read... */
@@ -303,6 +321,34 @@ done:
         close(serversock);
 
     return retval;
+}
+
+/**
+ * \brief Send a flag indicating whether the next entity is the endorser.
+ *
+ * \param clientsock        Socket connection to the reader proc.
+ * \param is_endorser       A flag to indicate whether the next entity is the
+ *                          endorser.
+ *
+ * \returns a status code indicating success or failure.
+ *      - AGENTD_STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static int config_public_file_send_endorser_flag(
+    int clientsock, bool is_endorser)
+{
+    uint8_t endorser_flag;
+
+    if (is_endorser)
+    {
+        endorser_flag = 1;
+    }
+    else
+    {
+        endorser_flag = 0;
+    }
+
+    return ipc_write_uint8_block(clientsock, endorser_flag);
 }
 
 /**
