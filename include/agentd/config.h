@@ -158,6 +158,17 @@ typedef struct config_public_key_entry
 } config_public_key_entry_t;
 
 /**
+ * \brief Public entity capability node.
+ */
+typedef struct config_public_entity_capability_node
+{
+    config_disposable_list_node_t hdr;
+    vpr_uuid subject;
+    vpr_uuid verb;
+    vpr_uuid object;
+} config_public_entity_capability_node_t;
+
+/**
  * \brief Public entity node.
  */
 typedef struct config_public_entity_node
@@ -166,6 +177,7 @@ typedef struct config_public_entity_node
     uint8_t id[16];
     vccrypt_buffer_t enc_pubkey;
     vccrypt_buffer_t sign_pubkey;
+    config_public_entity_capability_node_t* cap_head;
 } config_public_entity_node_t;
 
 /**
