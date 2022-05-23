@@ -3,7 +3,7 @@
  *
  * \brief Read public entity certificates.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/config.h>
@@ -11,6 +11,10 @@
 #include <agentd/ipc.h>
 #include <agentd/status_codes.h>
 #include <fcntl.h>
+#include <rcpr/allocator.h>
+#include <rcpr/resource.h>
+#include <rcpr/resource/protected.h>
+#include <rcpr/uuid.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <vccert/fields.h>
@@ -19,7 +23,12 @@
 #include <vpr/allocator/malloc_allocator.h>
 #include <vpr/parameters.h>
 
+RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_resource;
+RCPR_IMPORT_uuid;
+
 /* forward decls */
+typedef struct parser_callback_context parser_callback_context;
 static bool dummy_txn_resolver(
     void* options, void* parser, const uint8_t* artifact_id,
     const uint8_t* txn_id, vccrypt_buffer_t* output_buffer, bool* trusted);
@@ -34,19 +43,37 @@ static bool dummy_key_resolver(
     void* options, void* parser, uint64_t height, const uint8_t* entity_id,
     vccrypt_buffer_t* pubenckey_buffer, vccrypt_buffer_t* pubsignkey_buffer);
 static void read_public_entities(
-    int controlfd, vccert_parser_options_t* parser_opts);
+    int controlfd, vccert_parser_options_t* parser_opts,
+    parser_callback_context* ctx);
 static int read_public_entity(
-    int controlfd, vccert_parser_options_t* parser_opts, const char* filename);
+    int controlfd, vccert_parser_options_t* parser_opts, const char* filename,
+    parser_callback_context* ctx, bool is_endorser);
+static status parser_callback_context_create(
+    parser_callback_context** ctx, rcpr_allocator* alloc,
+    vccrypt_suite_options_t* suite);
+static status parser_callback_context_resource_release(resource* r);
+
+struct parser_callback_context
+{
+    resource hdr;
+    rcpr_allocator* alloc;
+    bool endorser_set;
+    rcpr_uuid endorser_id;
+    vccrypt_buffer_t endorser_cipher_key;
+    vccrypt_buffer_t endorser_signing_key;
+};
 
 /**
  * \brief Read public entities.
  */
 void private_command_read_public_entities(bootstrap_config_t* UNUSED(bconf))
 {
-    int retval;
+    int retval, release_retval;
     allocator_options_t alloc_opts;
     vccrypt_suite_options_t suite;
     vccert_parser_options_t parser_opts;
+    rcpr_allocator* alloc;
+    parser_callback_context* ctx;
 
     /* register the Velo V1 crypto suite. */
     vccrypt_suite_register_velo_v1();
@@ -54,12 +81,26 @@ void private_command_read_public_entities(bootstrap_config_t* UNUSED(bconf))
     /* create a malloc allocator. */
     malloc_allocator_options_init(&alloc_opts);
 
+    /* create an RCPR malloc allocator. */
+    retval = rcpr_malloc_allocator_create(&alloc);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_alloc_opts;
+    }
+
     /* initialize the crypto suite. */
     retval =
         vccrypt_suite_options_init(&suite, &alloc_opts, VCCRYPT_SUITE_VELO_V1);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
-        goto cleanup_alloc_opts;
+        goto cleanup_alloc;
+    }
+
+    /* create the parser context structure. */
+    retval = parser_callback_context_create(&ctx, alloc, &suite);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_suite;
     }
 
     /* initialize the parser options. */
@@ -67,14 +108,14 @@ void private_command_read_public_entities(bootstrap_config_t* UNUSED(bconf))
         vccert_parser_options_init(
             &parser_opts, &alloc_opts, &suite, &dummy_txn_resolver,
             &dummy_artifact_state_resolver, &dummy_contract_resolver,
-            &dummy_key_resolver, NULL);
+            &dummy_key_resolver, ctx);
     if (VCCERT_STATUS_SUCCESS != retval)
     {
-        goto cleanup_suite;
+        goto cleanup_ctx;
     }
 
     /* read the public entities. */
-    read_public_entities(AGENTD_FD_READER_CONTROL, &parser_opts);
+    read_public_entities(AGENTD_FD_READER_CONTROL, &parser_opts, ctx);
 
     /* success. */
     goto cleanup_parser_opts;
@@ -82,8 +123,22 @@ void private_command_read_public_entities(bootstrap_config_t* UNUSED(bconf))
 cleanup_parser_opts:
     dispose((disposable_t*)&parser_opts);
 
+cleanup_ctx:
+    release_retval = resource_release(&ctx->hdr);
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
+
 cleanup_suite:
     dispose((disposable_t*)&suite);
+
+cleanup_alloc:
+    release_retval = resource_release(rcpr_allocator_resource_handle(alloc));
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
 
 cleanup_alloc_opts:
     dispose((disposable_t*)&alloc_opts);
@@ -95,9 +150,11 @@ cleanup_alloc_opts:
  * \param controlfd         Descriptor for the control socket.
  * \param parser_opts       The parser options to use to parse a public entity
  *                          certificate.
+ * \param ctx               The parser callback context.
  */
 static void read_public_entities(
-    int controlfd, vccert_parser_options_t* parser_opts)
+    int controlfd, vccert_parser_options_t* parser_opts,
+    parser_callback_context* ctx)
 {
     int retval;
     bool stream_okay = true;
@@ -122,7 +179,9 @@ static void read_public_entities(
         }
 
         /* process this file. */
-        retval = read_public_entity(controlfd, parser_opts, filename);
+        retval =
+            read_public_entity(
+                controlfd, parser_opts, filename, ctx, is_endorser);
         if (AGENTD_STATUS_SUCCESS != retval)
         {
             stream_okay = false;
@@ -140,13 +199,17 @@ static void read_public_entities(
  * \param parser_opts       The parser options to use to parse a public entity
  *                          certificate.
  * \param filename          The name of the file to read.
+ * \param ctx               The parser callback context.
+ * \param is_endorser       Set to true if this is the endorser certificate
+ *                          file.
  *
  * \returns a status code indicating success or failure.
  *      - AGENTD_STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
 static int read_public_entity(
-    int controlfd, vccert_parser_options_t* parser_opts, const char* filename)
+    int controlfd, vccert_parser_options_t* parser_opts, const char* filename,
+    parser_callback_context* ctx, bool is_endorser)
 {
     int retval, fd;
     struct stat st;
@@ -194,6 +257,17 @@ static int read_public_entity(
         goto cleanup_cert_buffer;
     }
 
+    /* if the endorser is set, run attestation on the certificate. */
+    if (ctx->endorser_set)
+    {
+        retval =
+            vccert_parser_attest(&parser, 0, false);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto cleanup_parser;
+        }
+    }
+
     /* read the artifact uuid. */
     const uint8_t* artifact_id;
     size_t artifact_id_size;
@@ -203,6 +277,13 @@ static int read_public_entity(
             &artifact_id_size);
     if (VCCERT_STATUS_SUCCESS != retval)
     {
+        goto cleanup_parser;
+    }
+
+    /* verify the artifact id size. */
+    if (artifact_id_size != 16)
+    {
+        retval = VCCERT_ERROR_PARSER_FIELD_INVALID_FIELD_SIZE;
         goto cleanup_parser;
     }
 
@@ -218,6 +299,15 @@ static int read_public_entity(
         goto cleanup_parser;
     }
 
+    /* verify the encryption pubkey size. */
+    if (
+        enc_pubkey_size
+            != parser_opts->crypto_suite->key_cipher_opts.public_key_size)
+    {
+        retval = VCCERT_ERROR_PARSER_FIELD_INVALID_FIELD_SIZE;
+        goto cleanup_parser;
+    }
+
     /* read the public signing key. */
     const uint8_t* sign_pubkey;
     size_t sign_pubkey_size;
@@ -228,6 +318,37 @@ static int read_public_entity(
     if (VCCERT_STATUS_SUCCESS != retval)
     {
         goto cleanup_parser;
+    }
+
+    /* verify the signing pubkey size. */
+    if (enc_pubkey_size != parser_opts->crypto_suite->sign_opts.public_key_size)
+    {
+        retval = VCCERT_ERROR_PARSER_FIELD_INVALID_FIELD_SIZE;
+        goto cleanup_parser;
+    }
+
+    /* if this is the endorser, copy the keys. */
+    if (is_endorser)
+    {
+        /* copy the endorser cipher key. */
+        retval =
+            vccrypt_buffer_read_data(
+                &ctx->endorser_cipher_key, enc_pubkey, enc_pubkey_size);
+        {
+            goto cleanup_parser;
+        }
+
+        /* copy the endorser signing key. */
+        retval =
+            vccrypt_buffer_read_data(
+                &ctx->endorser_signing_key, sign_pubkey, sign_pubkey_size);
+        {
+            goto cleanup_parser;
+        }
+
+        /* the endorser is now valid. */
+        ctx->endorser_set = true;
+        memcpy(ctx->endorser_id.data, artifact_id, artifact_id_size);
     }
 
     /* write the BOM value. */
@@ -325,4 +446,108 @@ static bool dummy_key_resolver(
     vccrypt_buffer_t* UNUSED(pubsignkey_buffer))
 {
     return false;
+}
+
+/**
+ * \brief Create a parser callback context to be used by this utility.
+ *
+ * \param ctx           Pointer to receive the created context.
+ * \param alloc         The allocator to use for this operation.
+ * \param suite         The cryptographic suite to use for this operation.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status parser_callback_context_create(
+    parser_callback_context** ctx, rcpr_allocator* alloc,
+    vccrypt_suite_options_t* suite)
+{
+    status retval, release_retval;
+    parser_callback_context* tmp;
+
+    /* allocate a buffer for this callback structure. */
+    retval = rcpr_allocator_allocate(alloc, (void**)&tmp, sizeof(*tmp));
+    if (STATUS_SUCCESS != retval)
+    {
+        goto done;
+    }
+
+    /* clear memory. */
+    memset(tmp, 0, sizeof(*tmp));
+
+    /* initialize resource. */
+    resource_init(&tmp->hdr, &parser_callback_context_resource_release);
+
+    /* create the encryption public key buffer. */
+    retval =
+        vccrypt_suite_buffer_init_for_cipher_key_agreement_public_key(
+            suite, &tmp->endorser_cipher_key);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_tmp;
+    }
+
+    /* create the signing public key buffer. */
+    retval =
+        vccrypt_suite_buffer_init_for_signature_public_key(
+            suite, &tmp->endorser_signing_key);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_tmp;
+    }
+
+    /* currently, the endorser is NOT set. */
+    tmp->endorser_set = false;
+
+    /* success. */
+    *ctx = tmp;
+    retval = STATUS_SUCCESS;
+    goto done;
+
+cleanup_tmp:
+    release_retval = resource_release(&tmp->hdr);
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
+
+done:
+    return retval;
+}
+
+/**
+ * \brief Release a parser callback context resource.
+ *
+ * \param r             The resource to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status parser_callback_context_resource_release(resource* r)
+{
+    parser_callback_context* ctx = (parser_callback_context*)r;
+
+    /* cache the allocator. */
+    rcpr_allocator* alloc = ctx->alloc;
+
+    /* if the cipher key buffer has been created, dispose it. */
+    if (NULL != ctx->endorser_cipher_key.data)
+    {
+        dispose((disposable_t*)&ctx->endorser_cipher_key);
+    }
+
+    /* if the signing key buffer has been created, dispose it. */
+    if (NULL != ctx->endorser_signing_key.data)
+    {
+        dispose((disposable_t*)&ctx->endorser_signing_key);
+    }
+
+    /* clear the structure. */
+    memset(ctx, 0, sizeof(*ctx));
+
+    /* reclaim the buffer. */
+    return
+        rcpr_allocator_reclaim(alloc, ctx);
 }
