@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <vccert/fields.h>
 #include <vccert/parser.h>
+#include <vccrypt/compare.h>
 #include <vccrypt/suite.h>
 #include <vpr/allocator/malloc_allocator.h>
 #include <vpr/parameters.h>
@@ -35,11 +36,13 @@ static bool dummy_txn_resolver(
 static int32_t dummy_artifact_state_resolver(
     void* options, void* parser, const uint8_t* artifact_id,
     vccrypt_buffer_t* txn_id);
-static int dummy_contract_resolver(
+static int basic_contract_resolver(
     void* options, void* parser, const uint8_t* type_id,
     const uint8_t* artifact_id,
     vccert_contract_closure_t* closure);
-static bool dummy_key_resolver(
+static void basic_contract_disposer(void* disp);
+static bool always_pass_contract(vccert_parser_context_t* parser, void* ctx);
+static bool endorser_key_resolver(
     void* options, void* parser, uint64_t height, const uint8_t* entity_id,
     vccrypt_buffer_t* pubenckey_buffer, vccrypt_buffer_t* pubsignkey_buffer);
 static void read_public_entities(
@@ -107,8 +110,8 @@ void private_command_read_public_entities(bootstrap_config_t* UNUSED(bconf))
     retval =
         vccert_parser_options_init(
             &parser_opts, &alloc_opts, &suite, &dummy_txn_resolver,
-            &dummy_artifact_state_resolver, &dummy_contract_resolver,
-            &dummy_key_resolver, ctx);
+            &dummy_artifact_state_resolver, &basic_contract_resolver,
+            &endorser_key_resolver, ctx);
     if (VCCERT_STATUS_SUCCESS != retval)
     {
         goto cleanup_ctx;
@@ -426,26 +429,86 @@ static int32_t dummy_artifact_state_resolver(
 }
 
 /**
- * \brief Dummy contract resolver.
+ * \brief Basic contract resolver that does nothing.
  */
-static int dummy_contract_resolver(
+static int basic_contract_resolver(
     void* UNUSED(options), void* UNUSED(parser), const uint8_t* UNUSED(type_id),
     const uint8_t* UNUSED(artifact_id),
-    vccert_contract_closure_t* UNUSED(closure))
+    vccert_contract_closure_t* closure)
 {
-    return VCCERT_ERROR_PARSER_ATTEST_MISSING_CONTRACT;
+    dispose_init(&closure->hdr, &basic_contract_disposer);
+    closure->contract_fn = &always_pass_contract;
+    closure->context = NULL;
+    return STATUS_SUCCESS;
 }
 
 /**
- * \brief Dummy key resolver.
+ * \brief Basic contract disposer.
+ *
+ * \param disp The value to be disposed.
  */
-static bool dummy_key_resolver(
-    void* UNUSED(options), void* UNUSED(parser), uint64_t UNUSED(height),
-    const uint8_t* UNUSED(entity_id),
-    vccrypt_buffer_t* UNUSED(pubenckey_buffer),
-    vccrypt_buffer_t* UNUSED(pubsignkey_buffer))
+static void basic_contract_disposer(void* UNUSED(disp))
 {
-    return false;
+    /* do nothing. */
+}
+
+/**
+ * \brief This contract always passes.
+ */
+static bool always_pass_contract(
+    vccert_parser_context_t* UNUSED(parser), void* UNUSED(ctx))
+{
+    return true;
+}
+
+/**
+ * \brief Key resolver for the endorser.
+ */
+static bool endorser_key_resolver(
+    void* options, void* UNUSED(parser), uint64_t UNUSED(height),
+    const uint8_t* entity_id,
+    vccrypt_buffer_t* pubenckey_buffer,
+    vccrypt_buffer_t* pubsignkey_buffer)
+{
+    status retval;
+    vccert_parser_options_t* opts = (vccert_parser_options_t*)options;
+    parser_callback_context* ctx = (parser_callback_context*)opts->context;
+
+    /* verify that the endorser is set. */
+    if (!ctx->endorser_set)
+    {
+        return false;
+    }
+
+    /* verify that the endorser id matches. */
+    if (!crypto_memcmp(entity_id, ctx->endorser_id.data, 16))
+    {
+        return false;
+    }
+
+    /* verify that the buffer sizes match our buffer sizes. */
+    if (pubenckey_buffer->size != ctx->endorser_cipher_key.size
+     || pubsignkey_buffer->size != ctx->endorser_signing_key.size)
+    {
+        return false;
+    }
+
+    /* copy the endorser public encryption key. */
+    retval = vccrypt_buffer_copy(pubenckey_buffer, &ctx->endorser_cipher_key);
+    if (STATUS_SUCCESS != retval)
+    {
+        return false;
+    }
+
+    /* copy the endorser public signing key. */
+    retval = vccrypt_buffer_copy(pubsignkey_buffer, &ctx->endorser_signing_key);
+    if (STATUS_SUCCESS != retval)
+    {
+        return false;
+    }
+
+    /* success. */
+    return true;
 }
 
 /**
@@ -475,6 +538,9 @@ static status parser_callback_context_create(
 
     /* clear memory. */
     memset(tmp, 0, sizeof(*tmp));
+
+    /* set basics. */
+    tmp->alloc = alloc;
 
     /* initialize resource. */
     resource_init(&tmp->hdr, &parser_callback_context_resource_release);
