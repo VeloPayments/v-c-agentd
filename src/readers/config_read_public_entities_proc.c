@@ -460,6 +460,9 @@ static int config_entity_read(
         goto cleanup_sign_data;
     }
 
+    /* clear structure. */
+    memset(*entry, 0, sizeof(config_public_entity_node_t));
+
     /* set disposer and uuid. */
     (*entry)->hdr.hdr.dispose = &public_entity_dispose;
     memcpy((*entry)->id, uuid_data, uuid_size);
@@ -528,6 +531,16 @@ static void public_entity_dispose(void* disp)
     /* dispose of the public keys. */
     dispose((disposable_t*)&node->enc_pubkey);
     dispose((disposable_t*)&node->sign_pubkey);
+
+    /* clear out capabilities. */
+    while (NULL != node->cap_head)
+    {
+        config_public_entity_capability_node_t* tmp =
+            (config_public_entity_capability_node_t*)node->cap_head->hdr.next;
+        dispose((disposable_t*)node->cap_head);
+        free(node->cap_head);
+        node->cap_head = tmp;
+    }
 
     /* clear out the structure. */
     memset(node, 0, sizeof(config_public_entity_node_t));
