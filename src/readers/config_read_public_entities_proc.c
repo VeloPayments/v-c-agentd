@@ -4,7 +4,7 @@
  * \brief Spawn a process as the blockchain user/group to read public entity
  * files.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2020 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/config.h>
@@ -22,8 +22,11 @@ static int config_public_file_send_endorser_flag(
 static int config_public_file_send(
     int clientsock, const char* filename);
 static int config_entity_read(
-    int clientsock, config_public_entity_node_t** entry);
+    int clientsock, agent_config_t* conf, config_public_entity_node_t** entry);
 static void public_entity_dispose(void* disp);
+static void public_entity_caps_dispose(void* disp);
+static int config_entity_read_capabilities(
+    int clientsock, config_public_entity_capability_node_t** caps);
 
 /**
  * \brief Spawn a process to read the public entities, populating the provided
@@ -219,7 +222,7 @@ int config_read_public_entities_proc(
 
             /* read back the response. */
             config_public_entity_node_t* entry = NULL;
-            if (0 != config_entity_read(clientsock, &entry))
+            if (0 != config_entity_read(clientsock, conf, &entry))
             {
                 retval = AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE;
                 goto cleanup_entities;
@@ -251,7 +254,7 @@ int config_read_public_entities_proc(
 
             /* read back the response. */
             config_public_entity_node_t* entry = NULL;
-            if (0 != config_entity_read(clientsock, &entry))
+            if (0 != config_entity_read(clientsock, conf, &entry))
             {
                 retval = AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE;
                 goto cleanup_entities;
@@ -371,6 +374,7 @@ static int config_public_file_send(
  * \brief Read a public entity from the reader proc.
  *
  * \param clientsock        The reader process socket.
+ * \param conf              The agent config.
  * \param entry             The entry to read. On success, it is allocated and
  *                          populated. The caller is responsible for disposing
  *                          and freeing it.
@@ -380,11 +384,12 @@ static int config_public_file_send(
  *      - a non-zero error code on failure.
  */
 static int config_entity_read(
-    int clientsock, config_public_entity_node_t** entry)
+    int clientsock, agent_config_t* conf, config_public_entity_node_t** entry)
 {
     int retval;
     uint8_t type;
     allocator_options_t alloc_opts;
+    config_public_entity_capability_node_t* caps = NULL;
 
     /* create malloc allocator. */
     malloc_allocator_options_init(&alloc_opts);
@@ -430,25 +435,35 @@ static int config_entity_read(
         goto cleanup_enc_data;
     }
 
+    /* read the capabilities, if the endorser is set. */
+    if (NULL != conf->endorser_key)
+    {
+        retval = config_entity_read_capabilities(clientsock, &caps);
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_sign_data;
+        }
+    }
+
     /* finally, read the end of message marker. */
     retval = ipc_read_uint8_block(clientsock, &type);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
-        goto cleanup_sign_data;
+        goto cleanup_caps;
     }
 
     /* verify that this is the end of a message. */
     if (CONFIG_STREAM_TYPE_EOM != type)
     {
         retval = AGENTD_ERROR_READER_INVALID_STREAM;
-        goto cleanup_sign_data;
+        goto cleanup_caps;
     }
 
     /* verify data sizes. */
     if (16 != uuid_size)
     {
         retval = AGENTD_ERROR_CONFIG_INVALID_STREAM;
-        goto cleanup_sign_data;
+        goto cleanup_caps;
     }
 
     /* allocate memory for the entry. */
@@ -457,7 +472,7 @@ static int config_entity_read(
     if (NULL == *entry)
     {
         retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
-        goto cleanup_sign_data;
+        goto cleanup_caps;
     }
 
     /* clear structure. */
@@ -466,6 +481,10 @@ static int config_entity_read(
     /* set disposer and uuid. */
     (*entry)->hdr.hdr.dispose = &public_entity_dispose;
     memcpy((*entry)->id, uuid_data, uuid_size);
+
+    /* set the caps head. */
+    (*entry)->cap_head = caps;
+    caps = NULL;
 
     /* initialize buffer for the encryption public key. */
     retval = vccrypt_buffer_init(&(*entry)->enc_pubkey, &alloc_opts, enc_size);
@@ -500,6 +519,16 @@ free_entry:
     memset(*entry, 0, sizeof(config_public_entity_node_t));
     free(*entry);
     *entry = NULL;
+
+cleanup_caps:
+    while (NULL != caps)
+    {
+        config_public_entity_capability_node_t* tmp =
+            (config_public_entity_capability_node_t*)caps->hdr.next;
+        dispose((disposable_t*)caps);
+        free(caps);
+        caps = tmp;
+    }
 
 cleanup_sign_data:
     memset(sign_data, 0, sign_size);
@@ -544,4 +573,162 @@ static void public_entity_dispose(void* disp)
 
     /* clear out the structure. */
     memset(node, 0, sizeof(config_public_entity_node_t));
+}
+
+/**
+ * \brief Dispose of a public entity caps node.
+ *
+ * \param disp          The public entity caps node to dispose.
+ */
+static void public_entity_caps_dispose(void* disp)
+{
+    config_public_entity_capability_node_t* node =
+        (config_public_entity_capability_node_t*)disp;
+
+    /* clear out the structure. */
+    memset(node, 0, sizeof(config_public_entity_capability_node_t));
+}
+
+/**
+ * \brief Read capabilities from the config entity stream.
+ *
+ * \param clientsock        The client socket from which to read the caps.
+ * \param caps              Pointer to receive the capabilities from the stream.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - an non-zero error code indicating failure.
+ */
+static int config_entity_read_capabilities(
+    int clientsock, config_public_entity_capability_node_t** caps)
+{
+    int retval;
+    uint8_t* subject_id;
+    uint32_t subject_id_size;
+    uint8_t* verb_id;
+    uint32_t verb_id_size;
+    uint8_t* object_id;
+    uint32_t object_id_size;
+    config_public_entity_capability_node_t* tmp;
+
+    /* read the number of capabilities. */
+    uint64_t count;
+    retval = ipc_read_uint64_block(clientsock, &count);
+    if (AGENTD_STATUS_SUCCESS != retval)
+    {
+        goto done;
+    }
+
+    /* loop through the capabilities. */
+    while (count--)
+    {
+        /* read the begin of message marker. */
+        uint8_t type;
+        retval = ipc_read_uint8_block(clientsock, &type);
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto done;
+        }
+
+        /* verify that this is the beginning of a message. */
+        if (CONFIG_STREAM_TYPE_BOM != type)
+        {
+            retval = AGENTD_ERROR_READER_INVALID_STREAM;
+            goto done;
+        }
+
+        /* read the subject. */
+        retval =
+            ipc_read_data_block(
+                clientsock, (void**)&subject_id, &subject_id_size);
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto done;
+        }
+
+        /* verify that this field is the right size. */
+        if (16 != subject_id_size)
+        {
+            goto cleanup_subject_id;
+        }
+
+        /* read the verb. */
+        retval =
+            ipc_read_data_block(clientsock, (void**)&verb_id, &verb_id_size);
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_subject_id;
+        }
+
+        /* verify that this field is the right size. */
+        if (16 != verb_id_size)
+        {
+            goto cleanup_verb_id;
+        }
+
+        /* read the object. */
+        retval =
+            ipc_read_data_block(
+                clientsock, (void**)&object_id, &object_id_size);
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_verb_id;
+        }
+
+        /* verify that this field is the right size. */
+        if (16 != object_id_size)
+        {
+            goto cleanup_object_id;
+        }
+
+        /* read the end of message. */
+        retval = ipc_read_uint8_block(clientsock, &type);
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_object_id;
+        }
+
+        /* verify that this is the end of a message. */
+        if (CONFIG_STREAM_TYPE_BOM != type)
+        {
+            retval = AGENTD_ERROR_READER_INVALID_STREAM;
+            goto cleanup_object_id;;
+        }
+
+        /* allocate a new caps entry for holding this data. */
+        tmp = (config_public_entity_capability_node_t*)
+            malloc(sizeof(config_public_entity_capability_node_t));
+        if (NULL == tmp)
+        {
+            retval = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
+            goto cleanup_object_id;
+        }
+
+        /* clear the structure. */
+        memset(tmp, 0, sizeof(config_public_entity_capability_node_t));
+
+        /* set the disposer. */
+        dispose_init(&tmp->hdr.hdr, &public_entity_caps_dispose);
+
+        /* copy the fields. */
+        memcpy(tmp->subject.data, subject_id, 16);
+        memcpy(tmp->verb.data, verb_id, 16);
+        memcpy(tmp->object.data, object_id, 16);
+
+        /* add this entry to the list. */
+        tmp->hdr.next = (config_disposable_list_node_t*)*caps;
+        *caps = tmp;
+    }
+
+cleanup_object_id:
+    free(object_id);
+
+cleanup_verb_id:
+    free(verb_id);
+
+cleanup_subject_id:
+    free(subject_id);
+
+done:
+    return retval;
 }
