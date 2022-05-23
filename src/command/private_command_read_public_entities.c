@@ -55,6 +55,8 @@ static status parser_callback_context_create(
     parser_callback_context** ctx, rcpr_allocator* alloc,
     vccrypt_suite_options_t* suite);
 static status parser_callback_context_resource_release(resource* r);
+static status entity_get_capabilities_count(
+    uint64_t* count, vccert_parser_context_t* parser);
 
 struct parser_callback_context
 {
@@ -382,6 +384,116 @@ static int read_public_entity(
         goto cleanup_parser;
     }
 
+    /* if the endorser is set, retrieve and send the caps. */
+    if (ctx->endorser_set)
+    {
+        /* get the capabilities count. */
+        uint64_t count = 0;
+        retval = entity_get_capabilities_count(&count, &parser);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto cleanup_parser;
+        }
+
+        /* emit the number of capabilities. */
+        retval = ipc_write_uint64_block(controlfd, count);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto cleanup_parser;
+        }
+
+        /* get the first capability. */
+        const uint8_t* endorsebuf;
+        size_t endorsebuf_size;
+        retval =
+            vccert_parser_find_short(
+                &parser, VCCERT_FIELD_TYPE_VELO_ENDORSEMENT,
+                &endorsebuf, &endorsebuf_size);
+        if (STATUS_SUCCESS != retval)
+        {
+            /* were we expecting to find more fields? */
+            if (count)
+            {
+                goto cleanup_parser;
+            }
+            else
+            {
+                goto message_write_eom;
+            }
+        }
+
+        /* if the field size is incorrect, it's an error. */
+        if (endorsebuf_size < 48)
+        {
+            retval = VCCERT_ERROR_PARSER_FIELD_INVALID_FIELD_SIZE;
+            goto cleanup_parser;
+        }
+
+        /* iterate through all of the caps. */
+        while (count--)
+        {
+            /* write the BOM value. */
+            retval = ipc_write_uint8_block(controlfd, CONFIG_STREAM_TYPE_BOM);
+            if (AGENTD_STATUS_SUCCESS != retval)
+            {
+                goto cleanup_parser;
+            }
+ 
+            /* emit the subject. */
+            retval = ipc_write_data_block(controlfd, endorsebuf, 16);
+            if (STATUS_SUCCESS != retval)
+            {
+                goto cleanup_parser;
+            }
+
+            /* emit the verb. */
+            retval = ipc_write_data_block(controlfd, endorsebuf + 16, 16);
+            if (STATUS_SUCCESS != retval)
+            {
+                goto cleanup_parser;
+            }
+
+            /* emit the object. */
+            retval = ipc_write_data_block(controlfd, endorsebuf + 32, 16);
+            if (STATUS_SUCCESS != retval)
+            {
+                goto cleanup_parser;
+            }
+
+            /* write the EOM value. */
+            retval = ipc_write_uint8_block(controlfd, CONFIG_STREAM_TYPE_EOM);
+            if (AGENTD_STATUS_SUCCESS != retval)
+            {
+                goto cleanup_parser;
+            }
+
+            /* get the next field. */
+            retval =
+                vccert_parser_find_next(
+                    &parser, &endorsebuf, &endorsebuf_size);
+            if (STATUS_SUCCESS != retval)
+            {
+                /* were we expecting to find more fields? */
+                if (count)
+                {
+                    goto cleanup_parser;
+                }
+                else
+                {
+                    goto message_write_eom;
+                }
+            }
+
+            /* if the field size is incorrect, it's an error. */
+            if (endorsebuf_size < 48)
+            {
+                retval = VCCERT_ERROR_PARSER_FIELD_INVALID_FIELD_SIZE;
+                goto cleanup_parser;
+            }
+        }
+    }
+
+message_write_eom:
     /* write the EOM value. */
     retval = ipc_write_uint8_block(controlfd, CONFIG_STREAM_TYPE_EOM);
     if (AGENTD_STATUS_SUCCESS != retval)
@@ -616,4 +728,56 @@ static status parser_callback_context_resource_release(resource* r)
     /* reclaim the buffer. */
     return
         rcpr_allocator_reclaim(alloc, ctx);
+}
+
+/**
+ * \brief Get the count of capabilities in the current parser instance.
+ *
+ * \param count             Pointer to receive this count.
+ * \param parser            The parser instance.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status entity_get_capabilities_count(
+    uint64_t* count, vccert_parser_context_t* parser)
+{
+    status retval;
+
+    /* the count starts at 0. */
+    *count = 0;
+
+    /* get the first capability. */
+    const uint8_t* endorsebuf;
+    size_t endorsebuf_size;
+    retval =
+        vccert_parser_find_short(
+            parser, VCCERT_FIELD_TYPE_VELO_ENDORSEMENT, &endorsebuf,
+            &endorsebuf_size);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto done;
+    }
+
+    /* increment count. */
+    ++(*count);
+
+    /* loop until we reach the end. */
+    for (;;)
+    {
+        /* get the next field. */
+        retval =
+            vccert_parser_find_next(parser, &endorsebuf, &endorsebuf_size);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto done;
+        }
+
+        /* increment count. */
+        ++(*count);
+    }
+
+done:
+    return STATUS_SUCCESS;
 }
