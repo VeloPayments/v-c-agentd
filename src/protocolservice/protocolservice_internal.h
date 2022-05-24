@@ -1120,6 +1120,36 @@ const void* protocolservice_authorized_entity_capabilities_key(
     void* context, const RCPR_SYM(resource)* r);
 
 /**
+ * \brief Create a protocolservice_authorized_entity_capability instance.
+ *
+ * \param cap           Pointer to receive this instance.
+ * \param alloc         The allocator to use for this operation.
+ * \param subject_id    The subject UUID.
+ * \param verb_id       The verb UUID.
+ * \param object_id     The object UUID.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_authorized_entity_capability_create(
+    protocolservice_authorized_entity_capability** cap,
+    RCPR_SYM(allocator)* alloc, const RCPR_SYM(rcpr_uuid)* subject_id,
+    const RCPR_SYM(rcpr_uuid)* verb_id, const RCPR_SYM(rcpr_uuid)* object_id);
+
+/**
+ * \brief Release a protocolserice authorized entity capability resource.
+ *
+ * \param r             The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_authorized_entity_capability_resource_release(
+    RCPR_SYM(resource)* r);
+
+/**
  * \brief Add an authorized entity to the protocol service context.
  *
  * \param ctx                   The context to which the entity should be added.
