@@ -56,6 +56,33 @@ struct protocolservice_authorized_entity
     RCPR_SYM(rcpr_uuid) entity_uuid;
     vccrypt_buffer_t encryption_pubkey;
     vccrypt_buffer_t signing_pubkey;
+    RCPR_SYM(rbtree)* capabilities;
+};
+
+/**
+ * \brief An authorized entity capability key.
+ */
+typedef struct protocolservice_authorized_entity_capability_key
+protocolservice_authorized_entity_capability_key;
+
+struct protocolservice_authorized_entity_capability_key
+{
+    RCPR_SYM(rcpr_uuid) subject_id;
+    RCPR_SYM(rcpr_uuid) verb_id;
+    RCPR_SYM(rcpr_uuid) object_id;
+};
+
+/**
+ * \brief An authorized entity capability.
+ */
+typedef struct protocolservice_authorized_entity_capability
+protocolservice_authorized_entity_capability;
+
+struct protocolservice_authorized_entity_capability
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    protocolservice_authorized_entity_capability_key key;
 };
 
 /**
@@ -978,6 +1005,21 @@ status protocolservice_control_dispatch_auth_entity_add(
     size_t size);
 
 /**
+ * \brief Dispatch an auth entity capability add control request.
+ *
+ * \param ctx           The protocol service control fiber context.
+ * \param payload       Pointer to the payload for this request.
+ * \param size          Size of the request payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_control_dispatch_auth_entity_capability_add(
+    protocolservice_control_fiber_context* ctx, const void* payload,
+    size_t size);
+
+/**
  * \brief Dispatch a private key set request.
  *
  * \param ctx           The protocol service control fiber context.
@@ -1046,6 +1088,35 @@ RCPR_SYM(rcpr_comparison_result) protocolservice_authorized_entity_uuid_compare(
  * \returns the key for the authorized entity resource.
  */
 const void* protocolservice_authorized_entity_key(
+    void* context, const RCPR_SYM(resource)* r);
+
+/**
+ * \brief Compare two opaque \ref authorized_entity_capability_key values.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs.
+ */
+RCPR_SYM(rcpr_comparison_result)
+protocolservice_authorized_entity_capabilities_compare(
+    void* context, const void* lhs, const void* rhs);
+
+/**
+ * \brief Given an authorized entity capability resource handle, return its
+ * \ref authorized_entity_capability_key.
+ * value.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of an authorized entity.
+ *
+ * \returns the key for the authorized entity resource.
+ */
+const void* protocolservice_authorized_entity_capabilities_key(
     void* context, const RCPR_SYM(resource)* r);
 
 /**

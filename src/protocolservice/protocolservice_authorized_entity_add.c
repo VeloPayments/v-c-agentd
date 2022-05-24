@@ -62,6 +62,17 @@ status protocolservice_authorized_entity_add(
     vccrypt_buffer_move(&tmp->encryption_pubkey, encryption_pubkey);
     vccrypt_buffer_move(&tmp->signing_pubkey, signing_pubkey);
 
+    /* create the capabilities tree. */
+    retval =
+        rbtree_create(
+            &tmp->capabilities, ctx->alloc,
+            &protocolservice_authorized_entity_capabilities_compare,
+            &protocolservice_authorized_entity_capabilities_key, NULL);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_entity;
+    }
+
     /* insert this entity into the authorized entity dictionary. */
     retval = rbtree_insert(ctx->authorized_entity_dict, &tmp->hdr);
     if (STATUS_SUCCESS != retval)
