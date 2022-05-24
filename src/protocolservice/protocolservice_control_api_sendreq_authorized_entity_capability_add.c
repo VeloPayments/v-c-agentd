@@ -1,9 +1,9 @@
 /**
  * \file
- * protocolservice/protocolservice_control_api_sendreq_authorized_entity_add.c
+ * protocolservice/protocolservice_control_api_sendreq_authorized_entity_capability_add.c
  *
- * \brief Send the authorized entity add request to the protocol service control
- * socket.
+ * \brief Send the authorized entity capability add request to the protocol
+ * service control socket.
  *
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
