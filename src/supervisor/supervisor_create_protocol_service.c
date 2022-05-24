@@ -186,6 +186,32 @@ static int supervisor_start_protocol_service(process_t* proc)
         /* verify the status. */
         TRY_OR_FAIL(status, done);
 
+        /* get the first capability. */
+        config_public_entity_capability_node_t* cap = tmp->cap_head;
+
+        /* send the caps to the protocol service control. */
+        while (NULL != cap)
+        {
+            /* send the capability add request. */
+            TRY_OR_FAIL(
+                protocolservice_control_api_sendreq_authorized_entity_capability_add(
+                    protocol_proc->control, &alloc_opts, tmp->id,
+                    cap->subject.data, cap->verb.data, cap->object.data),
+                done);
+
+            /* receive the response. */
+            TRY_OR_FAIL(
+                protocolservice_control_api_recvresp_authorized_entity_capability_add(
+                    protocol_proc->control, &offset, &status),
+                done);
+
+            /* verify the status. */
+            TRY_OR_FAIL(status, done);
+
+            /* move on to the next capability. */
+            cap = (config_public_entity_capability_node_t*)cap->hdr.next;
+        }
+
         /* move on to the next public entity. */
         tmp = (config_public_entity_node_t*)tmp->hdr.next;
     }
