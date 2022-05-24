@@ -11,6 +11,8 @@
 #include "protocolservice_internal.h"
 
 RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_rbtree;
+RCPR_IMPORT_resource;
 
 /**
  * \brief Release an authorized entity resource.
@@ -23,6 +25,8 @@ RCPR_IMPORT_allocator_as(rcpr);
  */
 status protocolservice_authorized_entity_release(RCPR_SYM(resource)* r)
 {
+    status reclaim_retval = STATUS_SUCCESS;
+    status capabilities_release_retval = STATUS_SUCCESS;
     protocolservice_authorized_entity* entity =
         (protocolservice_authorized_entity*)r;
 
@@ -38,10 +42,26 @@ status protocolservice_authorized_entity_release(RCPR_SYM(resource)* r)
     /* dispose the signing pubkey. */
     dispose((disposable_t*)&entity->signing_pubkey);
 
+    /* if the capabilities tree is initialized, release it. */
+    if (NULL != entity->capabilities)
+    {
+        capabilities_release_retval =
+            resource_release(rbtree_resource_handle(entity->capabilities));
+    }
+
     /* clear the entity struct. */
     memset(entity, 0, sizeof(*entity));
 
     /* reclaim the struct. */
-    return
-        rcpr_allocator_reclaim(alloc, entity);
+    reclaim_retval = rcpr_allocator_reclaim(alloc, entity);
+
+    /* decode response code. */
+    if (STATUS_SUCCESS != capabilities_release_retval)
+    {
+        return capabilities_release_retval;
+    }
+    else
+    {
+        return reclaim_retval;
+    }
 }

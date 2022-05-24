@@ -65,6 +65,14 @@ status protocolservice_control_decode_and_dispatch(
                 protocolservice_control_dispatch_auth_entity_add(
                     ctx, breq, payload_size);
 
+        #if 0
+        /* add a capability to an authorized entity. */
+        case UNAUTH_PROTOCOL_CONTROL_REQ_ID_AUTH_ENTITY_CAP_ADD:
+            return
+                protocolservice_control_dispatch_auth_entity_capability_add(
+                    ctx, breq, payload_size);
+        #endif
+
         /* set the private key for the service. */
         case UNAUTH_PROTOCOL_CONTROL_REQ_ID_PRIVATE_KEY_SET:
             return
