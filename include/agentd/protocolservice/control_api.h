@@ -3,7 +3,7 @@
  *
  * \brief Control API for the protocol service.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_CONTROL_PROTOCOLSERVICE_API_HEADER_GUARD
