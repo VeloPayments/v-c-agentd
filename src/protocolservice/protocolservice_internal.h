@@ -1120,6 +1120,21 @@ const void* protocolservice_authorized_entity_capabilities_key(
     void* context, const RCPR_SYM(resource)* r);
 
 /**
+ * \brief Check to see if the given capabilities are set.
+ *
+ * \param entity        The entity to check.
+ * \param subject_id    The subject id.
+ * \param verb_id       The verb id.
+ * \param object_id     The object id.
+ *
+ * \returns true if the capability is set and false otherwise.
+ */
+bool protocolservice_authorized_entity_capability_check(
+    protocolservice_authorized_entity* entity,
+    const RCPR_SYM(rcpr_uuid)* subject_id, const RCPR_SYM(rcpr_uuid)* verb_id,
+    const RCPR_SYM(rcpr_uuid)* object_id);
+
+/**
  * \brief Create a protocolservice_authorized_entity_capability instance.
  *
  * \param cap           Pointer to receive this instance.

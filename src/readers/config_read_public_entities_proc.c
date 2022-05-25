@@ -689,7 +689,7 @@ static int config_entity_read_capabilities(
         }
 
         /* verify that this is the end of a message. */
-        if (CONFIG_STREAM_TYPE_BOM != type)
+        if (CONFIG_STREAM_TYPE_EOM != type)
         {
             retval = AGENTD_ERROR_READER_INVALID_STREAM;
             goto cleanup_object_id;;
