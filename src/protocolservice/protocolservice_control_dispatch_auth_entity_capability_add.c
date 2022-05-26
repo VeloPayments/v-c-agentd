@@ -110,7 +110,10 @@ status protocolservice_control_dispatch_auth_entity_capability_add(
     }
 
     /* success. */
-    retval = STATUS_SUCCESS;
+    retval =
+        protocolservice_control_write_response(
+            ctx, UNAUTH_PROTOCOL_CONTROL_REQ_ID_AUTH_ENTITY_CAP_ADD,
+            STATUS_SUCCESS);
     goto done;
 
 cleanup_cap:
