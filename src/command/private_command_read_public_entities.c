@@ -194,6 +194,9 @@ static void read_public_entities(
 
         /* clean up the filename. */
         free(filename);
+
+        /* reset the endorser flag. */
+        is_endorser = 0;
     }
 }
 
@@ -326,7 +329,8 @@ static int read_public_entity(
     }
 
     /* verify the signing pubkey size. */
-    if (enc_pubkey_size != parser_opts->crypto_suite->sign_opts.public_key_size)
+    if (sign_pubkey_size
+            != parser_opts->crypto_suite->sign_opts.public_key_size)
     {
         retval = VCCERT_ERROR_PARSER_FIELD_INVALID_FIELD_SIZE;
         goto cleanup_parser;
@@ -339,6 +343,7 @@ static int read_public_entity(
         retval =
             vccrypt_buffer_read_data(
                 &ctx->endorser_cipher_key, enc_pubkey, enc_pubkey_size);
+        if (STATUS_SUCCESS != retval)
         {
             goto cleanup_parser;
         }
@@ -347,6 +352,7 @@ static int read_public_entity(
         retval =
             vccrypt_buffer_read_data(
                 &ctx->endorser_signing_key, sign_pubkey, sign_pubkey_size);
+        if (STATUS_SUCCESS != retval)
         {
             goto cleanup_parser;
         }
@@ -385,7 +391,7 @@ static int read_public_entity(
     }
 
     /* if the endorser is set, retrieve and send the caps. */
-    if (ctx->endorser_set)
+    if (ctx->endorser_set && !is_endorser)
     {
         /* get the capabilities count. */
         uint64_t count = 0;
@@ -418,6 +424,7 @@ static int read_public_entity(
             }
             else
             {
+                retval = STATUS_SUCCESS;
                 goto message_write_eom;
             }
         }
@@ -480,6 +487,7 @@ static int read_public_entity(
                 }
                 else
                 {
+                    retval = STATUS_SUCCESS;
                     goto message_write_eom;
                 }
             }
@@ -593,7 +601,7 @@ static bool endorser_key_resolver(
     }
 
     /* verify that the endorser id matches. */
-    if (!crypto_memcmp(entity_id, ctx->endorser_id.data, 16))
+    if (crypto_memcmp(entity_id, ctx->endorser_id.data, 16))
     {
         return false;
     }

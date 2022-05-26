@@ -22,7 +22,8 @@ static int config_public_file_send_endorser_flag(
 static int config_public_file_send(
     int clientsock, const char* filename);
 static int config_entity_read(
-    int clientsock, agent_config_t* conf, config_public_entity_node_t** entry);
+    int clientsock, agent_config_t* conf, config_public_entity_node_t** entry,
+    bool is_endorser);
 static void public_entity_dispose(void* disp);
 static void public_entity_caps_dispose(void* disp);
 static int config_entity_read_capabilities(
@@ -222,7 +223,7 @@ int config_read_public_entities_proc(
 
             /* read back the response. */
             config_public_entity_node_t* entry = NULL;
-            if (0 != config_entity_read(clientsock, conf, &entry))
+            if (0 != config_entity_read(clientsock, conf, &entry, true))
             {
                 retval = AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE;
                 goto cleanup_entities;
@@ -254,7 +255,7 @@ int config_read_public_entities_proc(
 
             /* read back the response. */
             config_public_entity_node_t* entry = NULL;
-            if (0 != config_entity_read(clientsock, conf, &entry))
+            if (0 != config_entity_read(clientsock, conf, &entry, false))
             {
                 retval = AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE;
                 goto cleanup_entities;
@@ -292,9 +293,13 @@ int config_read_public_entities_proc(
 
         /* make sure to clean up the entities if we fail. */
         if (0 != retval)
+        {
             goto cleanup_entities;
+        }
         else
+        {
             goto done;
+        }
     }
 
 cleanup_entities:
@@ -317,11 +322,15 @@ cleanup_entities:
 done:
     /* clean up clientsock. */
     if (clientsock >= 0)
+    {
         close(clientsock);
+    }
 
     /* clean up serversock. */
     if (serversock >= 0)
+    {
         close(serversock);
+    }
 
     return retval;
 }
@@ -378,15 +387,17 @@ static int config_public_file_send(
  * \param entry             The entry to read. On success, it is allocated and
  *                          populated. The caller is responsible for disposing
  *                          and freeing it.
+ * \param is_endorser       Flag set to true if this is the endorser key file.
  *
  * \returns a status code indicating success or failure.
  *      - AGENTD_STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
 static int config_entity_read(
-    int clientsock, agent_config_t* conf, config_public_entity_node_t** entry)
+    int clientsock, agent_config_t* conf, config_public_entity_node_t** entry,
+    bool is_endorser)
 {
-    int retval;
+    int retval = AGENTD_STATUS_SUCCESS;
     uint8_t type;
     allocator_options_t alloc_opts;
     config_public_entity_capability_node_t* caps = NULL;
@@ -436,7 +447,7 @@ static int config_entity_read(
     }
 
     /* read the capabilities, if the endorser is set. */
-    if (NULL != conf->endorser_key)
+    if (NULL != conf->endorser_key && !is_endorser)
     {
         retval = config_entity_read_capabilities(clientsock, &caps);
         if (AGENTD_STATUS_SUCCESS != retval)
@@ -602,7 +613,7 @@ static void public_entity_caps_dispose(void* disp)
 static int config_entity_read_capabilities(
     int clientsock, config_public_entity_capability_node_t** caps)
 {
-    int retval;
+    int retval = AGENTD_STATUS_SUCCESS;
     uint8_t* subject_id;
     uint32_t subject_id_size;
     uint8_t* verb_id;
