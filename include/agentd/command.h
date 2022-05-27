@@ -88,6 +88,11 @@ void private_command_randomservice(bootstrap_config_t* bconf);
 void private_command_supervisor(bootstrap_config_t* bconf);
 
 /**
+ * \brief Run the notification service instance.
+ */
+void private_command_notificationservice(bootstrap_config_t* bconf);
+
+/**
  * \brief Start the blockchain agent.
  *
  * \param bconf         The bootstrap configuration for this command.
