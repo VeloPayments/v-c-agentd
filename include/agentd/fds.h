@@ -216,6 +216,28 @@ extern "C" {
  */
 #define AGENTD_FD_ATTESTATION_SVC_CONTROL ((int)2)
 
+/******************************************************************************/
+/* Notification Service                                                       */
+/******************************************************************************/
+
+/**
+ * \brief File descriptor for the notification service log socket.
+ * Used by the notification service private command.
+ */
+#define AGENTD_FD_NOTIFICATION_SVC_LOG ((int)0)
+
+/**
+ * \brief File descriptor for the first notification service client socket.
+ * Used by the canonization service.
+ */
+#define AGENTD_FD_NOTIFICATION_SVC_CLIENT1 ((int)1)
+
+/**
+ * \brief File descriptor for the second notification service client socket.
+ * Used by the protocol service.
+ */
+#define AGENTD_FD_NOTIFICATION_SVC_CLIENT2 ((int)2)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
