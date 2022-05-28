@@ -10,6 +10,7 @@
 #include <agentd/command.h>
 #include <agentd/fds.h>
 #include <cbmc/model_assert.h>
+#include <signal.h>
 #include <unistd.h>
 #include <vccrypt/suite.h>
 #include <vpr/parameters.h>
@@ -21,6 +22,11 @@ void private_command_notificationservice(bootstrap_config_t* UNUSED(bconf))
 {
     /* register the Velo V1 crypto suite. */
     vccrypt_suite_register_velo_v1();
+
+    /* don't block any signals. */
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigprocmask(SIG_SETMASK, &mask, NULL);
 
     /* TODO - implement service here. */
     for (;;)
