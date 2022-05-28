@@ -93,6 +93,11 @@ enum agentd_services
      * \brief Attestation Service.
      */
     AGENTD_SERVICE_ATTESTATION = 0x0EU,
+
+    /**
+     * \brief Notification Service.
+     */
+    AGENTD_SERVICE_NOTIFICATION = 0x0FU,
 };
 
 /* make this header C++ friendly. */

@@ -3,7 +3,7 @@
  *
  * \brief Internal supervisor functions for setting up services.
  *
- * \copyright 2019-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_SUPERVISOR_SUPERVISOR_INTERNAL_HEADER_GUARD
@@ -223,6 +223,30 @@ int supervisor_create_attestationservice(
     process_t** svc, const bootstrap_config_t* bconf,
     const agent_config_t* conf, config_private_key_t* private_key,
     int* data_socket, int* log_socket, int* control_socket);
+
+/**
+ * \brief Create the notification service as a process that can be started.
+ *
+ * \param svc                   Pointer to the pointer to receive the process
+ *                              descriptor for the notification service.
+ * \param bconf                 Agentd bootstrap config for this service.
+ * \param conf                  Agentd configuration to be used to build the
+ *                              protocol service.  This configuration must be
+ *                              valid for the lifetime of the service.
+ * \param log_socket            The log socket descriptor.
+ * \param consensus_socket      The socket pointer to receive the socket for the
+ *                              consensus service.
+ * \param protocol_socket       The socket pointer to receive the socket for the
+ *                              protocol service.
+ *
+ * \returns a status indicating success or failure.
+ *          - AGENTD_STATUS_SUCCESS on success.
+ *          - a non-zero error code on failure.
+ */
+int supervisor_create_notification_service(
+    process_t** svc, const bootstrap_config_t* bconf,
+    const agent_config_t* conf, int* log_socket, int* consensus_socket,
+    int* protocol_socket);
 
 /**
  * \brief Install the signal handler for the supervisor.

@@ -3,7 +3,7 @@
  *
  * \brief Create, spawn, and introduce all services.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/command.h>
@@ -107,6 +107,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     process_t* data_for_auth_protocol_service;
     process_t* data_for_canonizationservice;
     process_t* data_for_attestationservice;
+    process_t* notification_service;
     process_t* protocol_service;
     process_t* canonizationservice;
     process_t* attestationservice;
@@ -141,6 +142,10 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     int attestation_svc_log_sock = -1;
     int attestation_svc_log_dummy_sock = -1;
     int attestation_svc_control_sock = -1;
+    int notification_svc_log_sock = -1;
+    int notification_svc_log_dummy_sock = -1;
+    int notification_svc_consensus_sock = -1;
+    int notification_svc_protocol_sock = -1;
 
 #if AUTHSERVICE
     process_t* auth_service;
@@ -217,6 +222,12 @@ static int supervisor_run(const bootstrap_config_t* bconf)
             &attestation_svc_log_sock,
             &attestation_svc_log_dummy_sock),
         cleanup_private_key);
+    TRY_OR_FAIL(
+        ipc_socketpair(
+            AF_UNIX, SOCK_STREAM, 0,
+            &notification_svc_log_sock,
+            &notification_svc_log_dummy_sock),
+        cleanup_private_key);
 #if AUTHSERVICE
     TRY_OR_FAIL(
         ipc_socketpair(
@@ -255,6 +266,13 @@ static int supervisor_run(const bootstrap_config_t* bconf)
             &auth_protocol_svc_data_sock, &data_for_auth_protocol_svc_log_sock),
         cleanup_listener_service);
 
+    /* create the notification service. */
+    TRY_OR_FAIL(
+        supervisor_create_notification_service(
+            &notification_service, bconf, &conf, &notification_svc_log_sock,
+            &notification_svc_consensus_sock, &notification_svc_protocol_sock),
+        cleanup_data_for_auth_protocol_service);
+
     /* create protocol service. */
     TRY_OR_FAIL(
         supervisor_create_protocol_service(
@@ -262,7 +280,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
             &unauth_protocol_svc_random_sock, &unauth_protocol_svc_accept_sock,
             &unauth_protocol_svc_control_sock, &auth_protocol_svc_data_sock,
             &unauth_protocol_svc_log_sock),
-        cleanup_data_for_auth_protocol_service);
+        cleanup_notification_service);
 
 #if AUTHSERVICE
     /* create auth service */
@@ -317,6 +335,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     START_PROCESS(data_for_attestationservice, quiesce_data_processes);
     START_PROCESS(data_for_auth_protocol_service, quiesce_data_processes);
     START_PROCESS(listener_service, quiesce_data_processes);
+    START_PROCESS(notification_service, quiesce_data_processes);
 
 #if AUTHSERVICE
     START_PROCESS(auth_service, quiesce_data_processes);
@@ -339,6 +358,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     process_stop(protocol_service);
     process_stop(canonizationservice);
     process_stop(attestationservice);
+    process_stop(notification_service);
 
     /* wait an additional 2 seconds. */
     sleep(2);
@@ -354,6 +374,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     process_kill(protocol_service);
     process_kill(canonizationservice);
     process_kill(attestationservice);
+    process_kill(notification_service);
 
 quiesce_data_processes:
     process_stop_ex(data_for_canonizationservice, 0);
@@ -379,6 +400,9 @@ cleanup_auth_service:
 
 cleanup_protocol_service:
     CLEANUP_PROCESS(protocol_service);
+
+cleanup_notification_service:
+    CLEANUP_PROCESS(notification_service);
 
 cleanup_data_for_auth_protocol_service:
     CLEANUP_PROCESS(data_for_auth_protocol_service);
@@ -433,6 +457,10 @@ done:
     CLOSE_IF_VALID(canonization_svc_log_dummy_sock);
     CLOSE_IF_VALID(canonization_svc_control_sock);
     CLOSE_IF_VALID(attestation_svc_log_dummy_sock);
+    CLOSE_IF_VALID(notification_svc_log_sock);
+    CLOSE_IF_VALID(notification_svc_log_dummy_sock);
+    CLOSE_IF_VALID(notification_svc_consensus_sock);
+    CLOSE_IF_VALID(notification_svc_protocol_sock);
     CLOSE_IF_VALID(attestation_svc_control_sock);
 
 #if AUTHSERVICE

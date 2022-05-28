@@ -3,7 +3,7 @@
  *
  * \brief Status code definitions for agentd.
  *
- * \copyright 2018-2021 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2018-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_STATUS_CODES_HEADER_GUARD
@@ -18,6 +18,7 @@
 #include <agentd/status_codes/general.h>
 #include <agentd/status_codes/ipc.h>
 #include <agentd/status_codes/listenservice.h>
+#include <agentd/status_codes/notificationservice.h>
 #include <agentd/status_codes/process.h>
 #include <agentd/status_codes/protocolservice.h>
 #include <agentd/status_codes/randomservice.h>
