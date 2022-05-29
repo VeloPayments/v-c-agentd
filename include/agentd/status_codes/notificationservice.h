@@ -70,6 +70,12 @@ extern "C" {
 #define AGENTD_ERROR_NOTIFICATIONSERVICE_PRIVSEP_CLOSE_OTHER_FDS \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_NOTIFICATION, 0x0009U)
 
+/**
+ * \brief A bad argument was given to an API method.
+ */
+#define AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_NOTIFICATION, 0x000AU)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
