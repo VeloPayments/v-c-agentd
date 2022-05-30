@@ -33,7 +33,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 status notificationservice_api_encode_response(
     uint8_t** buf, size_t* size, RCPR_SYM(allocator)* alloc,
     uint32_t method_id, uint32_t status_code, uint64_t offset,
-    const uint8_t* payload, const size_t payload_size)
+    const uint8_t* payload, size_t payload_size)
 {
     status retval;
     uint8_t* tmp;

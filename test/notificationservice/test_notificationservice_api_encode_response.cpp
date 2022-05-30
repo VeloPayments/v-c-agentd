@@ -2,7 +2,7 @@
  * \file
  * test/notificatonservice/test_notificationservice_api_encode_response.cpp
  *
- * \brief Test notificationservice_api_recvresp.
+ * \brief Test notificationservice_api_encode_response.
  *
  * \copyright 2022 Velo-Payments, Inc.  All rights reserved.
  */
