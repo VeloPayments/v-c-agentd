@@ -1,8 +1,8 @@
 /**
  * \file
- * test/notificatonservice/test_notificationservice_api_sendreq_block_update.cpp
+ * test/notificatonservice/test_notificationservice_api_sendreq_block_assertion.cpp
  *
- * \brief Test notificationservice_api_sendreq_block_update.
+ * \brief Test notificationservice_api_sendreq_block_assertion.
  *
  * \copyright 2022 Velo-Payments, Inc.  All rights reserved.
  */
@@ -21,7 +21,7 @@ RCPR_IMPORT_uuid;
 /**
  * \brief Test that the parameters are null checked.
  */
-TEST(notificationservice_api_sendreq_block_update_test, argument_nullchecks)
+TEST(notificationservice_api_sendreq_block_assertion_test, argument_nullchecks)
 {
     rcpr_allocator* alloc;
     psock* sock;
@@ -41,19 +41,19 @@ TEST(notificationservice_api_sendreq_block_update_test, argument_nullchecks)
     /* if the socket is null, an error is returned. */
     EXPECT_EQ(
         AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_sendreq_block_update(
+        notificationservice_api_sendreq_block_assertion(
             nullptr, alloc, offset, &block_id));
 
     /* if the allocator is null, an error is returned. */
     EXPECT_EQ(
         AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_sendreq_block_update(
+        notificationservice_api_sendreq_block_assertion(
             sock, nullptr, offset, &block_id));
 
     /* if the block id is null, an error is returned. */
     EXPECT_EQ(
         AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_sendreq_block_update(
+        notificationservice_api_sendreq_block_assertion(
             sock, alloc, offset, nullptr));
 
     /* clean up. */
@@ -66,7 +66,7 @@ TEST(notificationservice_api_sendreq_block_update_test, argument_nullchecks)
 /**
  * \brief Test that the request is sent.
  */
-TEST(notificationservice_api_sendreq_block_update_test, basics)
+TEST(notificationservice_api_sendreq_block_assertion_test, basics)
 {
     rcpr_allocator* alloc;
     psock* sock;
@@ -86,7 +86,7 @@ TEST(notificationservice_api_sendreq_block_update_test, basics)
     /* The request should succeed. */
     EXPECT_EQ(
         STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_update(
+        notificationservice_api_sendreq_block_assertion(
             sock, alloc, offset, &block_id));
 
     /* clean up. */
