@@ -18,12 +18,46 @@
 extern "C" {
 #endif  /*__cplusplus*/
 
+/**
+ * \brief API Methods for the notification service.
+ */
 enum notificationservice_api_methods
 {
     AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS                = 0x00,
     AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE               = 0x01,
     AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION            = 0x02,
     AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL     = 0x03,
+};
+
+/**
+ * \brief Capabilities for the notification service.
+ */
+enum notificationservice_api_capabilities
+{
+    /**
+     * \brief Capability to reduce capabilities.
+     */
+    NOTIFICATIONSERVICE_API_CAP_REDUCE_CAPS,
+
+    /**
+     * \brief Capability to send a block update.
+     */
+    NOTIFICATIONSERVICE_API_CAP_BLOCK_UPDATE,
+
+    /**
+     * \brief Capability to subscribe to a block assertion.
+     */
+    NOTIFICATIONSERVICE_API_CAP_BLOCK_ASSERTION,
+
+    /**
+     * \brief Capability to cancel a block assertion.
+     */
+    NOTIFICATIONSERVICE_API_CAP_BLOCK_ASSERTION_CANCEL,
+
+    /**
+     * \brief The number of capabilities bits needed for this API.
+     */
+    NOTIFICATIONSERVICE_API_CAP_BITS_MAX
 };
 
 /**
