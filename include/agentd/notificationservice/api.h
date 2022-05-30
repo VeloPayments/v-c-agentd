@@ -43,6 +43,46 @@ status notificationservice_api_recvresp(
     size_t* size);
 
 /**
+ * \brief Encode a request to the notification service connection, encoding
+ * the method_id, the offset, and the payload into an allocated buffer.
+ *
+ * \param buf           Pointer to receive the allocated buffer.
+ * \param size          Pointer to receive the buffer size.
+ * \param alloc         The allocator to use for this operation.
+ * \param method_id     The method id for this response.
+ * \param offset        The offset for this response.
+ * \param payload       Additional payload for this response.
+ * \param payload_size  The size of this additional payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_api_encode_request(
+    uint8_t** buf, size_t* size, RCPR_SYM(allocator)* alloc,
+    uint32_t method_id, uint64_t offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
+ * \brief Decode a request from the client, decoding the method_id, the offset,
+ * and the payload.
+ *
+ * \param buf           The buffer to decode.
+ * \param size          The size of this buffer.
+ * \param method_id     Pointer to receive the method id.
+ * \param offset        Pointer to receive the offset.
+ * \param payload       Pointer to be updated to the start of the payload.
+ * \param payload_size  Pointer to receive the size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_api_decode_request(
+    const uint8_t* buf, size_t size, uint32_t* method_id, uint64_t* offset,
+    const uint8_t** payload, size_t* payload_size);
+
+/**
  * \brief Encode a response from the notification service connection, encoding
  * the method_id, the status, and the offset into an allocated buffer.
  *
