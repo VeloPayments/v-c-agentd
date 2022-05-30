@@ -1,7 +1,7 @@
 /**
- * \file notificationservice/notificationservice_api_encode_response.c
+ * \file notificationservice/notificationservice_api_encode_request.c
  *
- * \brief Encode a response from the notification service connection.
+ * \brief Encode a request to the notification service connection.
  *
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
@@ -14,14 +14,13 @@
 RCPR_IMPORT_allocator_as(rcpr);
 
 /**
- * \brief Encode a response from the notification service connection, encoding
- * the method_id, the status, and the offset into an allocated buffer.
+ * \brief Encode a request to the notification service connection, encoding
+ * the method_id, the offset, and the payload into an allocated buffer.
  *
  * \param buf           Pointer to receive the allocated buffer.
  * \param size          Pointer to receive the buffer size.
  * \param alloc         The allocator to use for this operation.
  * \param method_id     The method id for this response.
- * \param status_code   The status for this response.
  * \param offset        The offset for this response.
  * \param payload       Additional payload for this response.
  * \param payload_size  The size of this additional payload.
@@ -30,9 +29,9 @@ RCPR_IMPORT_allocator_as(rcpr);
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status notificationservice_api_encode_response(
+status notificationservice_api_encode_request(
     uint8_t** buf, size_t* size, RCPR_SYM(allocator)* alloc,
-    uint32_t method_id, uint32_t status_code, uint64_t offset,
+    uint32_t method_id, uint64_t offset,
     const uint8_t* payload, size_t payload_size)
 {
     status retval;
@@ -51,7 +50,7 @@ status notificationservice_api_encode_response(
 
     /* compute the buffer size. */
     size_t buffer_size =
-        sizeof(method_id) + sizeof(offset) + sizeof(status_code) + payload_size;
+        sizeof(method_id) + sizeof(offset) + payload_size;
 
     /* allocate the buffer. */
     retval = rcpr_allocator_allocate(alloc, (void**)&tmp, buffer_size);
@@ -72,11 +71,6 @@ status notificationservice_api_encode_response(
     uint64_t net_offset = htonll(offset);
     memcpy(tptr, &net_offset, sizeof(net_offset));
     tptr += sizeof(net_offset);
-
-    /* set the status. */
-    uint32_t net_status = htonl(status_code);
-    memcpy(tptr, &net_status, sizeof(net_status));
-    tptr += sizeof(net_status);
 
     /* copy the payload. */
     if (NULL != payload)
