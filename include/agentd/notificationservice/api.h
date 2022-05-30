@@ -62,7 +62,7 @@ status notificationservice_api_recvresp(
 status notificationservice_api_encode_response(
     uint8_t** buf, size_t* size, RCPR_SYM(allocator)* alloc,
     uint32_t method_id, uint32_t status_code, uint64_t offset,
-    const uint8_t* payload, const size_t payload_size);
+    const uint8_t* payload, size_t payload_size);
 
 /**
  * \brief Decode a response from the notification service connection, decoding
@@ -82,7 +82,7 @@ status notificationservice_api_encode_response(
  */
 status notificationservice_api_decode_response(
     const uint8_t* buf, size_t size, uint32_t* method_id, uint32_t* status_code,
-    uint64_t* offset, const uint8_t** payload, const size_t* payload_size);
+    uint64_t* offset, const uint8_t** payload, size_t* payload_size);
 
 /**
  * \brief Request that the capabilities of the notification service connection
