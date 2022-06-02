@@ -13,6 +13,7 @@
 #include <agentd/config.h>
 #include <agentd/protocolservice/api.h>
 #include <config.h>
+#include <rcpr/status.h>
 #include <vpr/disposable.h>
 
 /* make this header C++ friendly. */
@@ -32,7 +33,8 @@ extern "C" {
  *          - AGENTD_STATUS_SUCCESS on normal exit.
  *          - a non-zero error code on failure.
  */
-int notificationservice_run(int logsock, int consensussock, int protocolsock);
+status notificationservice_run(
+    int logsock, int consensussock, int protocolsock);
 
 /**
  * \brief Spawn a notification service process using the provided config

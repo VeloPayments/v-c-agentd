@@ -8,6 +8,7 @@
 
 #include <config.h>
 #include <agentd/command.h>
+#include <agentd/notificationservice.h>
 #include <agentd/fds.h>
 #include <cbmc/model_assert.h>
 #include <signal.h>
@@ -20,19 +21,17 @@
  */
 void private_command_notificationservice(bootstrap_config_t* UNUSED(bconf))
 {
+    status retval;
+
     /* register the Velo V1 crypto suite. */
     vccrypt_suite_register_velo_v1();
 
-    /* don't block any signals. */
-    sigset_t mask;
-    sigemptyset(&mask);
-    sigprocmask(SIG_SETMASK, &mask, NULL);
+    /* run the notification service. */
+    retval =
+        notificationservice_run(
+            AGENTD_FD_NOTIFICATION_SVC_LOG, AGENTD_FD_NOTIFICATION_SVC_CLIENT1,
+            AGENTD_FD_NOTIFICATION_SVC_CLIENT2);
 
-    /* TODO - implement service here. */
-    for (;;)
-    {
-        sleep(10);
-    }
-
-    exit(0);
+    /* exit with the return code from the notification service. */
+    exit(retval);
 }
