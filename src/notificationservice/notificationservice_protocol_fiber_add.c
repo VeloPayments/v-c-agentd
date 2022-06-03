@@ -97,13 +97,13 @@ status notificationservice_protocol_fiber_add(
 
     /* wrap this as an async psock. */
     retval =
-        psock_create_wrap_async(&tmp->protosock, alloc, protocol_fiber, inner);
+        psock_create_wrap_async(&inst->protosock, alloc, protocol_fiber, inner);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_inner_psock;
     }
 
-    /* the inner psock is now owned by the protocol fiber context. */
+    /* the inner psock is now owned by the protocol instance. */
     inner = NULL;
 
     /* add the protocol fiber to the scheduler. */

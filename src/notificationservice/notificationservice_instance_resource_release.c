@@ -9,6 +9,7 @@
 #include "notificationservice_internal.h"
 
 RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
 /**
@@ -22,15 +23,33 @@ RCPR_IMPORT_resource;
  */
 status notificationservice_instance_resource_release(RCPR_SYM(resource)* r)
 {
+    status reclaim_retval = STATUS_SUCCESS;
+    status protosock_release_retval = STATUS_SUCCESS;
     notificationservice_instance* inst = (notificationservice_instance*)r;
 
     /* cache the allocator. */
     rcpr_allocator* alloc = inst->alloc;
 
+    /* if the protosock is set, release it. */
+    if (NULL != inst->protosock)
+    {
+        protosock_release_retval =
+            resource_release(psock_resource_handle(inst->protosock));
+    }
+
     /* clear the structure. */
     memset(inst, 0, sizeof(*inst));
 
     /* reclaim memory. */
-    return
-        rcpr_allocator_reclaim(alloc, inst);
+    reclaim_retval = rcpr_allocator_reclaim(alloc, inst);
+
+    /* decode return value. */
+    if (STATUS_SUCCESS != protosock_release_retval)
+    {
+        return protosock_release_retval;
+    }
+    else
+    {
+        return reclaim_retval;
+    }
 }

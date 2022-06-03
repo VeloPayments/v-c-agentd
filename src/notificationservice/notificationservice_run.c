@@ -52,9 +52,6 @@ status notificationservice_run(
     MODEL_ASSERT(consensussock >= 0);
     MODEL_ASSERT(protocolsock >= 0);
 
-    /* TODO - instead of passing consensussock and protocolsock, pass async
-     * psock. */
-
     /* create the allocator instance. */
     retval = rcpr_malloc_allocator_create(&alloc);
     if (STATUS_SUCCESS != retval)
