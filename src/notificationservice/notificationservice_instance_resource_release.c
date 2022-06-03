@@ -9,6 +9,7 @@
 #include "notificationservice_internal.h"
 
 RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
@@ -25,6 +26,7 @@ status notificationservice_instance_resource_release(RCPR_SYM(resource)* r)
 {
     status reclaim_retval = STATUS_SUCCESS;
     status protosock_release_retval = STATUS_SUCCESS;
+    status outbound_addr_release_retval = STATUS_SUCCESS;
     notificationservice_instance* inst = (notificationservice_instance*)r;
 
     /* cache the allocator. */
@@ -37,6 +39,13 @@ status notificationservice_instance_resource_release(RCPR_SYM(resource)* r)
             resource_release(psock_resource_handle(inst->protosock));
     }
 
+    /* if the outbound address is set, close it. */
+    if (0 != inst->outbound_addr)
+    {
+        outbound_addr_release_retval =
+            mailbox_close(inst->outbound_addr, inst->ctx->msgdisc);
+    }
+
     /* clear the structure. */
     memset(inst, 0, sizeof(*inst));
 
@@ -47,6 +56,10 @@ status notificationservice_instance_resource_release(RCPR_SYM(resource)* r)
     if (STATUS_SUCCESS != protosock_release_retval)
     {
         return protosock_release_retval;
+    }
+    else if (STATUS_SUCCESS != outbound_addr_release_retval)
+    {
+        return outbound_addr_release_retval;
     }
     else
     {
