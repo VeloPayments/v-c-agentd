@@ -28,7 +28,6 @@ status notificationservice_protocol_fiber_context_release(
 {
     status reclaim_retval = STATUS_SUCCESS;
     status mailbox_close_retval = STATUS_SUCCESS;
-    status psock_release_retval = STATUS_SUCCESS;
     notificationservice_protocol_fiber_context* ctx =
         (notificationservice_protocol_fiber_context*)r;
 
@@ -42,13 +41,6 @@ status notificationservice_protocol_fiber_context_release(
             mailbox_close(ctx->return_addr, ctx->inst->ctx->msgdisc);
     }
 
-    /* if the psock has been created, release it. */
-    if (ctx->protosock != NULL)
-    {
-        psock_release_retval =
-            resource_release(psock_resource_handle(ctx->protosock));
-    }
-
     /* clear memory. */
     memset(ctx, 0, sizeof(*ctx));
 
@@ -59,10 +51,6 @@ status notificationservice_protocol_fiber_context_release(
     if (STATUS_SUCCESS != mailbox_close_retval)
     {
         return mailbox_close_retval;
-    }
-    else if (STATUS_SUCCESS != psock_release_retval)
-    {
-        return psock_release_retval;
     }
     else
     {

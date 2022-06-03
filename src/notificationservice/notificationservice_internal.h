@@ -48,6 +48,7 @@ struct notificationservice_instance
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
+    RCPR_SYM(psock)* protosock;
     notificationservice_context* ctx;
 };
 
@@ -64,7 +65,6 @@ struct notificationservice_protocol_fiber_context
     notificationservice_instance* inst;
     RCPR_SYM(mailbox_address) return_addr;
     RCPR_SYM(fiber)* fib;
-    RCPR_SYM(psock)* protosock;
 };
 
 /**
