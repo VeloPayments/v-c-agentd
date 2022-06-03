@@ -122,12 +122,9 @@ status notificationservice_run(
         goto cleanup_pinst;
     }
 
-    /* TODO - refactor to use async psock before enabling. */
-    #if 0
     /* add an outbound endpoint fiber for the consensus socket. */
     retval =
-        notificationservice_protocol_outbound_endpoint_add(
-            alloc, cinst, consensussock);
+        notificationservice_protocol_outbound_endpoint_add(alloc, cinst);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_pinst;
@@ -135,13 +132,11 @@ status notificationservice_run(
 
     /* add an outbound endpoint fiber for the protocol socket. */
     retval =
-        notificationservice_protocol_outbound_endpoint_add(
-            alloc, pinst, protocolsock);
+        notificationservice_protocol_outbound_endpoint_add(alloc, pinst);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_pinst;
     }
-    #endif
 
     /* create the signal thread. */
     retval =

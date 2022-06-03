@@ -22,6 +22,9 @@
 /** \brief The notificationservice protocol fiber stack size. */
 #define NOTIFICATIONSERVICE_PROTOCOL_FIBER_STACK_SIZE (1024*1024)
 
+/** \brief The notificationservice protocol endpoint fiber stack size. */
+#define NOTIFICATIONSERVICE_PROTOCOL_ENDPOINT_FIBER_STACK_SIZE 16384
+
 /**
  * \brief The notificationservice context is the main context for the service.
  */
@@ -49,6 +52,7 @@ struct notificationservice_instance
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
     RCPR_SYM(psock)* protosock;
+    RCPR_SYM(mailbox_address) outbound_addr;
     notificationservice_context* ctx;
 };
 
@@ -64,6 +68,20 @@ struct notificationservice_protocol_fiber_context
     RCPR_SYM(allocator)* alloc;
     notificationservice_instance* inst;
     RCPR_SYM(mailbox_address) return_addr;
+    RCPR_SYM(fiber)* fib;
+};
+
+/**
+ * \brief The notificationservice protocol outbound endpoint fiber context.
+ */
+typedef struct notificationservice_protocol_outbound_endpoint_fiber_context
+notificationservice_protocol_outbound_endpoint_fiber_context;
+
+struct notificationservice_protocol_outbound_endpoint_fiber_context
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    notificationservice_instance* inst;
     RCPR_SYM(fiber)* fib;
 };
 
@@ -136,14 +154,13 @@ status notificationservice_protocol_fiber_add(
  *
  * \param alloc     The allocator to use for this operation.
  * \param inst      The instance for this fiber.
- * \param sock      The socket for this fiber.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
 status notificationservice_protocol_outbound_endpoint_add(
-    RCPR_SYM(allocator)* alloc, notificationservice_instance* inst, int sock);
+    RCPR_SYM(allocator)* alloc, notificationservice_instance* inst);
 
 /**
  * \brief Release a notificationservice protocol fiber context resource.
@@ -169,6 +186,33 @@ status notificationservice_protocol_fiber_context_release(
  *      - a non-zero error code on failure.
  */
 status notificationservice_protocol_fiber_entry(void* vctx);
+
+/**
+ * \brief Release a notificationservice protocol outbound endpoint fiber context
+ * resource.
+ *
+ * \param r         The resource to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_protocol_outbound_endpoint_fiber_context_release(
+    RCPR_SYM(resource)* r);
+
+/**
+ * \brief Entry point for a notificationservice protocol outbound endpoint
+ * fiber.
+ *
+ * This fiber manages a notificationservice protocol outbound endpoint instance.
+ *
+ * \param vctx          The type erased protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_protocol_outbound_endpoint_fiber_entry(void* vctx);
 
 /**
  * \brief Handle unexpected resume events in fibers relating to the notification
