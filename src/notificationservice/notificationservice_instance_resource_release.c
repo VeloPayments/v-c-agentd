@@ -12,6 +12,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
+RCPR_IMPORT_slist;
 
 /**
  * \brief Release a notificationservice instance resource.
@@ -27,6 +28,7 @@ status notificationservice_instance_resource_release(RCPR_SYM(resource)* r)
     status reclaim_retval = STATUS_SUCCESS;
     status protosock_release_retval = STATUS_SUCCESS;
     status outbound_addr_release_retval = STATUS_SUCCESS;
+    status assertions_release_retval = STATUS_SUCCESS;
     notificationservice_instance* inst = (notificationservice_instance*)r;
 
     /* cache the allocator. */
@@ -46,6 +48,13 @@ status notificationservice_instance_resource_release(RCPR_SYM(resource)* r)
             mailbox_close(inst->outbound_addr, inst->ctx->msgdisc);
     }
 
+    /* if the assertions list is set, release it. */
+    if (NULL != inst->assertions)
+    {
+        assertions_release_retval =
+            resource_release(slist_resource_handle(inst->assertions));
+    }
+
     /* clear the structure. */
     memset(inst, 0, sizeof(*inst));
 
@@ -60,6 +69,10 @@ status notificationservice_instance_resource_release(RCPR_SYM(resource)* r)
     else if (STATUS_SUCCESS != outbound_addr_release_retval)
     {
         return outbound_addr_release_retval;
+    }
+    else if (STATUS_SUCCESS != assertions_release_retval)
+    {
+        return assertions_release_retval;
     }
     else
     {

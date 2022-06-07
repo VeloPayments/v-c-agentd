@@ -11,6 +11,7 @@
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_fiber;
 RCPR_IMPORT_resource;
+RCPR_IMPORT_slist;
 
 /**
  * \brief Create a notificationservice instance.
@@ -25,7 +26,7 @@ RCPR_IMPORT_resource;
 status notificationservice_instance_create(
     notificationservice_instance** inst, notificationservice_context* ctx)
 {
-    status retval;
+    status retval, release_retval;
     notificationservice_instance* tmp;
 
     /* parameter sanity checks. */
@@ -52,10 +53,24 @@ status notificationservice_instance_create(
     /* set the bitcaps to max permissible. */
     BITCAP_INIT_TRUE(tmp->caps);
 
+    /* create the assertions list. */
+    retval = slist_create(&tmp->assertions, tmp->alloc);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_tmp;
+    }
+
     /* success. */
     retval = STATUS_SUCCESS;
     *inst = tmp;
     goto done;
+
+cleanup_tmp:
+    release_retval = resource_release(&tmp->hdr);
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
 
 done:
     return retval;

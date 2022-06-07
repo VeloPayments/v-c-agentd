@@ -59,6 +59,7 @@ struct notificationservice_instance
     RCPR_SYM(mailbox_address) outbound_addr;
     notificationservice_context* ctx;
     BITCAP(caps, NOTIFICATIONSERVICE_API_CAP_BITS_MAX);
+    RCPR_SYM(slist)* assertions;
 };
 
 /**
@@ -102,6 +103,19 @@ struct notificationservice_protocol_outbound_endpoint_message_payload
     RCPR_SYM(allocator)* alloc;
     uint8_t* payload_data;
     size_t payload_data_size;
+};
+
+/**
+ * \brief Entry in the per-instance assertion list.
+ */
+typedef struct notificationservice_assertion_entry
+notificationservice_assertion_entry;
+
+struct notificationservice_assertion_entry
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    uint64_t offset;
 };
 
 /**
