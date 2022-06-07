@@ -9,6 +9,7 @@
 #pragma once
 
 #include <config.h>
+#include <agentd/bitcap.h>
 #include <agentd/notificationservice/api.h>
 #include <rcpr/allocator.h>
 #include <rcpr/fiber.h>
@@ -54,6 +55,7 @@ struct notificationservice_instance
     RCPR_SYM(psock)* protosock;
     RCPR_SYM(mailbox_address) outbound_addr;
     notificationservice_context* ctx;
+    BITCAP(caps, NOTIFICATIONSERVICE_API_CAP_BITS_MAX);
 };
 
 /**
@@ -83,6 +85,20 @@ struct notificationservice_protocol_outbound_endpoint_fiber_context
     RCPR_SYM(allocator)* alloc;
     notificationservice_instance* inst;
     RCPR_SYM(fiber)* fib;
+};
+
+/**
+ * \brief The notificationservice protocol outbound endpoint message payload.
+ */
+typedef struct notificationservice_protocol_outbound_endpoint_message_payload
+notificationservice_protocol_outbound_endpoint_message_payload;
+
+struct notificationservice_protocol_outbound_endpoint_message_payload
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    uint8_t* payload_data;
+    size_t payload_data_size;
 };
 
 /**
@@ -228,11 +244,88 @@ status notificationservice_protocol_outbound_endpoint_fiber_entry(void* vctx);
  * \param expected_resume_event     The expected resume event.
  *
  * \returns a status code indicating success or failure.
- *      - STATUS_SUCCESS if the fiber should retry the yield.
- *      - a non-zero error code if the fiber should exit.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
  */
 status notificationservice_fiber_unexpected_handler(
     void* context, RCPR_SYM(fiber)* fib,
     const RCPR_SYM(rcpr_uuid)* resume_disc_id, int resume_event,
     void* resume_param, const RCPR_SYM(rcpr_uuid)* expected_resume_disc_id,
     int expected_resume_event);
+
+/**
+ * \brief Read, decode, and dispatch a request from the client socket.
+ *
+ * \param context                   Notificationservice protocol fiber context.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_protocol_read_decode_and_dispatch_packet(
+    notificationservice_protocol_fiber_context* context);
+
+/**
+ * \brief Dispatch a reduce caps request.
+ *
+ * \param context                   Notificationservice protocol fiber context.
+ * \param offset                    The client-supplied request offset.
+ * \param payload                   Payload data for this request.
+ * \param payload_size              The size of the payload data.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_protocol_dispatch_reduce_caps(
+    notificationservice_protocol_fiber_context* context, uint64_t offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
+ * \brief Create a message payload, taking ownership of the payload data.
+ *
+ * \note On success, the data passed to this function is owned by the created
+ * resource and will be freed using the provided allocator when that resource is
+ * released.
+ *
+ * \param payload       Pointer to receive the created payload.
+ * \param alloc         The allocator to use for this operation.
+ * \param data          Allocated payload data to be passed to this resource.
+ * \param size          The allocated payload size.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_protocol_outbound_endpoint_message_payload_create(
+    notificationservice_protocol_outbound_endpoint_message_payload** payload,
+    RCPR_SYM(allocator)* alloc, uint8_t* data, size_t size);
+
+/**
+ * \brief Release a message payload resource.
+ *
+ * \param r             The resource to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status
+notificationservice_protocol_outbound_endpoint_message_payload_resource_release(
+    RCPR_SYM(resource)* r);
+
+/**
+ * \brief Send a response payload to the outbound endpoint.
+ *
+ * \param ctx           The context for this operation.
+ * \param method_id     The method id for the request.
+ * \param offset        The offset for the response.
+ * \param status_code   The status for the response.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_protocol_send_response(
+    notificationservice_protocol_fiber_context* ctx, uint32_t method_id,
+    uint64_t offset, uint32_t status_code);

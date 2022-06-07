@@ -16,8 +16,14 @@
 
 using namespace std;
 
+RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_psock;
+RCPR_IMPORT_resource;
+
 void notificationservice_isolation_test::SetUp()
 {
+    status retval;
+
     vccrypt_suite_register_velo_v1();
 
     /* initialize allocator. */
@@ -71,10 +77,22 @@ void notificationservice_isolation_test::SetUp()
     memset(&conf, 0, sizeof(conf));
     conf.hdr.dispose = &config_dispose;
 
+    /* create the allocator. */
+    retval = rcpr_malloc_allocator_create(&alloc);
+    (void)retval;
+
+    /* create the client 1 psock instance. */
+    retval = psock_create_from_descriptor(&client1, alloc, client1sock);
+    (void)retval;
+
+    /* create the client 2 psock instance. */
+    retval = psock_create_from_descriptor(&client2, alloc, client2sock);
+    (void)retval;
+
     /* spawn the notificationservice process. */
     notify_proc_status =
         notificationservice_proc(
-            &bconf, &conf, logsock, client1sock, client2sock, &notifypid,
+            &bconf, &conf, logsock, rclient1sock, rclient2sock, &notifypid,
             false);
 }
 
@@ -84,8 +102,6 @@ void notificationservice_isolation_test::TearDown()
     if (0 == notify_proc_status)
     {
         int status = 0;
-        close(client1sock);
-        close(client2sock);
         kill(notifypid, SIGTERM);
         waitpid(notifypid, &status, 0);
     }
@@ -107,4 +123,8 @@ void notificationservice_isolation_test::TearDown()
         dispose((disposable_t*)&suite);
     }
     dispose((disposable_t*)&alloc_opts);
+
+    resource_release(psock_resource_handle(client1));
+    resource_release(psock_resource_handle(client2));
+    resource_release(rcpr_allocator_resource_handle(alloc));
 }

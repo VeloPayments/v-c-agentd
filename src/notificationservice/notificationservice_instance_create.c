@@ -49,6 +49,9 @@ status notificationservice_instance_create(
     tmp->alloc = ctx->alloc;
     tmp->ctx = ctx;
 
+    /* set the bitcaps to max permissible. */
+    BITCAP_INIT_TRUE(tmp->caps);
+
     /* success. */
     retval = STATUS_SUCCESS;
     *inst = tmp;
