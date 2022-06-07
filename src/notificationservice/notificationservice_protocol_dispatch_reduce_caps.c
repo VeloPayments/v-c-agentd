@@ -33,6 +33,7 @@ status notificationservice_protocol_dispatch_reduce_caps(
     if (!BITCAP_ISSET(
             context->inst->caps, NOTIFICATIONSERVICE_API_CAP_REDUCE_CAPS))
     {
+        /* this is a fatal error. */
         retval = AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED;
         goto report_status;
     }
@@ -40,6 +41,7 @@ status notificationservice_protocol_dispatch_reduce_caps(
     /* verify that the payload is set and the payload size is valid. */
     if (NULL == payload || sizeof(intersect) != payload_size)
     {
+        /* this is a fatal error. */
         retval = AGENTD_ERROR_NOTIFICATIONSERVICE_MALFORMED_REQUEST;
         goto report_status;
     }
