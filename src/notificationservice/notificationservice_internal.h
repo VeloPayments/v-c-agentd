@@ -17,6 +17,7 @@
 #include <rcpr/psock.h>
 #include <rcpr/rbtree.h>
 #include <rcpr/resource/protected.h>
+#include <rcpr/slist.h>
 #include <rcpr/uuid.h>
 #include <stdbool.h>
 
@@ -38,6 +39,8 @@ struct notificationservice_context
     RCPR_SYM(fiber_scheduler)* sched;
     RCPR_SYM(fiber)* main_fiber;
     RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
+    RCPR_SYM(rcpr_uuid) latest_block_id;
+    RCPR_SYM(slist)* instances;
     bool quiesce;
     bool terminate;
 };
@@ -139,6 +142,21 @@ status notificationservice_context_resource_release(RCPR_SYM(resource)* r);
  */
 status notificationservice_instance_create(
     notificationservice_instance** inst, notificationservice_context* ctx);
+
+/**
+ * \brief Create a notificationservice instance to the context.
+ *
+ * \note On success, the context takes ownership of this instance.
+ *
+ * \param ctx       The root context.
+ * \param inst      The instance to add.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_context_add_instance(
+    notificationservice_context* ctx, notificationservice_instance* inst);
 
 /**
  * \brief Release a notificationservice instance resource.

@@ -46,6 +46,8 @@ status notificationservice_run(
     notificationservice_context* ctx;
     notificationservice_instance* cinst;
     notificationservice_instance* pinst;
+    bool release_cinst = true;
+    bool release_pinst = true;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(logsock >= 0);
@@ -97,12 +99,32 @@ status notificationservice_run(
         goto cleanup_ctx;
     }
 
+    /* add the consensus socket instance to the context. */
+    retval = notificationservice_context_add_instance(ctx, cinst);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_cinst;
+    }
+
+    /* cinst is now owned by the context. */
+    release_cinst = false;
+
     /* create an instance for the protocol socket. */
     retval = notificationservice_instance_create(&pinst, ctx);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_cinst;
     }
+
+    /* add the protocol socket instance to the context. */
+    retval = notificationservice_context_add_instance(ctx, pinst);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_pinst;
+    }
+
+    /* pinst is now owned by the context. */
+    release_pinst = false;
 
     /* add a protocol fiber for the consensus socket. */
     retval =
@@ -202,17 +224,23 @@ join_signal_thread:
     }
 
 cleanup_pinst:
-    release_retval = resource_release(&pinst->hdr);
-    if (STATUS_SUCCESS != release_retval)
+    if (release_pinst)
     {
-        retval = release_retval;
+        release_retval = resource_release(&pinst->hdr);
+        if (STATUS_SUCCESS != release_retval)
+        {
+            retval = release_retval;
+        }
     }
 
 cleanup_cinst:
-    release_retval = resource_release(&cinst->hdr);
-    if (STATUS_SUCCESS != release_retval)
+    if (release_cinst)
     {
-        retval = release_retval;
+        release_retval = resource_release(&cinst->hdr);
+        if (STATUS_SUCCESS != release_retval)
+        {
+            retval = release_retval;
+        }
     }
 
 cleanup_ctx:
