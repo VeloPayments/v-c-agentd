@@ -6,8 +6,12 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <signal.h>
+#include <unistd.h>
+
 #include "notificationservice_internal.h"
 
+RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
 /**
@@ -30,12 +34,22 @@ status notificationservice_protocol_fiber_entry(void* vctx)
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_notificationservice_protocol_fiber_context_valid(ctx));
 
-    /* TODO - fill out. */
-    /* TODO - shut down outbound fiber on shutdown. */
-    retval = -1;
-    goto cleanup_context;
+    /* decode-and-dispatch loop. */
+    while (!ctx->inst->ctx->quiesce && !ctx->inst->ctx->terminate)
+    {
+        retval =
+            notificationservice_protocol_read_decode_and_dispatch_packet(ctx);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto signal_shutdown;
+        }
+    }
 
-cleanup_context:
+signal_shutdown:
+    /* notify the signal thread that we are terminating. */
+    kill(getpid(), SIGTERM);
+
+    /* clean up our context. */
     release_retval = resource_release(&ctx->hdr);
     if (STATUS_SUCCESS != release_retval)
     {

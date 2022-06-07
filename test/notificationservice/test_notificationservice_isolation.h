@@ -59,4 +59,7 @@ protected:
     const char* oldpath;
 
     bool suite_instance_initialized;
+    RCPR_SYM(psock)* client1;
+    RCPR_SYM(psock)* client2;
+    RCPR_SYM(allocator)* alloc;
 };
