@@ -115,6 +115,7 @@ struct notificationservice_assertion_entry
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
+    notificationservice_protocol_fiber_context* context;
     uint64_t offset;
 };
 
@@ -310,6 +311,22 @@ status notificationservice_protocol_read_decode_and_dispatch_packet(
  *      - a non-zero error code on failure.
  */
 status notificationservice_protocol_dispatch_reduce_caps(
+    notificationservice_protocol_fiber_context* context, uint64_t offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
+ * \brief Dispatch a block update request.
+ *
+ * \param context                   Notificationservice protocol fiber context.
+ * \param offset                    The client-supplied request offset.
+ * \param payload                   Payload data for this request.
+ * \param payload_size              The size of the payload data.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_protocol_dispatch_block_update(
     notificationservice_protocol_fiber_context* context, uint64_t offset,
     const uint8_t* payload, size_t payload_size);
 
