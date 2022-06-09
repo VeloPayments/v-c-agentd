@@ -61,8 +61,23 @@ status notificationservice_protocol_read_decode_and_dispatch_packet(
                     context, offset, payload, payload_size);
             break;
 
+        case AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE:
+            retval =
+                notificationservice_protocol_dispatch_block_update(
+                    context, offset, payload, payload_size);
+            break;
+
         default:
-            retval = AGENTD_ERROR_NOTIFICATIONSERVICE_INVALID_REQUEST_ID;
+            retval =
+                notificationservice_protocol_send_response(
+                    context, method_id,
+                    offset,
+                    AGENTD_ERROR_NOTIFICATIONSERVICE_INVALID_REQUEST_ID);
+            if (STATUS_SUCCESS == retval)
+            {
+                retval = AGENTD_ERROR_NOTIFICATIONSERVICE_INVALID_REQUEST_ID;
+            }
+            break;
     }
 
     /* Any error returned above means that we should terminate the process. */
