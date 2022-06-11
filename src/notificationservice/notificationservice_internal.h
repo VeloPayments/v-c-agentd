@@ -378,3 +378,44 @@ notificationservice_protocol_outbound_endpoint_message_payload_resource_release(
 status notificationservice_protocol_send_response(
     notificationservice_protocol_fiber_context* ctx, uint32_t method_id,
     uint64_t offset, uint32_t status_code);
+
+/**
+ * \brief Create an assertion rbtree instance.
+ *
+ * \param tree          Pointer to receive the new rbtree instance on success.
+ * \param alloc         The allocator to use for this operation.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_assertion_rbtree_create(
+    RCPR_SYM(rbtree)** tree, RCPR_SYM(allocator)* alloc);
+
+/**
+ * \brief Compare two opaque notificationservice_assertion_entry offset
+ * pointers.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs;
+ */
+RCPR_SYM(rcpr_comparison_result) notificationservice_assertion_entry_compare(
+    void* /*context*/, const void* lhs, const void* rhs);
+
+/**
+ * \brief Given a notificationservice_assertion_entry, return the offset.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of the
+ *                      notificationservice_assertion_entry.
+ *
+ * \returns the offset key for the entry.
+ */
+const void* notificationservice_assertion_entry_key(
+    void* /*context*/, const RCPR_SYM(resource)* r);
