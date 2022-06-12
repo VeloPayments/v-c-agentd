@@ -33,6 +33,7 @@ status notificationservice_protocol_dispatch_block_assertion(
 {
     status retval, status_retval;
     rcpr_uuid block_id;
+    bool should_report_status = true;
 
     /* check to see if this call is permissible. */
     if (!BITCAP_ISSET(
@@ -63,21 +64,34 @@ status notificationservice_protocol_dispatch_block_assertion(
         goto clear_block_id;
     }
 
-    /* TODO - if it does match, then register the assertion for later. */
-    retval = -1;
+    /* if it does not match, then add this to our assertion tree. */
+    /* when a new block id is registered, all assertions will be invalidated. */
+    retval = notificationservice_assertion_entry_add(context, offset);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto clear_block_id;
+    }
+
+    /* success. */
+    retval = STATUS_SUCCESS;
+    should_report_status = false;
     goto clear_block_id;
 
 clear_block_id:
     memset(&block_id, 0, sizeof(block_id));
 
 report_status:
-    status_retval =
-        notificationservice_protocol_send_response(
-            context, AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION,
-            offset, retval);
-    if (STATUS_SUCCESS != status_retval)
+    if (should_report_status)
     {
-        retval = status_retval;
+        status_retval =
+            notificationservice_protocol_send_response(
+                context,
+                AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION,
+                offset, retval);
+        if (STATUS_SUCCESS != status_retval)
+        {
+            retval = status_retval;
+        }
     }
 
     return retval;

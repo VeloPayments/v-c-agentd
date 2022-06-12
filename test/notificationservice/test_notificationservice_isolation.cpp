@@ -379,3 +379,101 @@ TEST_F(notificationservice_isolation_test, block_assertion_different_block)
     /* clean up. */
     ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
 }
+
+/**
+ * Test that a block assertion for the latest block does not return an
+ * invalidation until the block is updated.
+ */
+TEST_F(notificationservice_isolation_test, block_assertion_same_block)
+{
+    uint8_t* buf = nullptr;
+    size_t size = 0U;
+    const uint64_t EXPECTED_OFFSET = 7177;
+    const uint64_t EXPECTED_BLOCK_UPDATE_OFFSET = 17;
+    uint32_t method_id;
+    uint32_t status_code;
+    uint64_t offset;
+    const uint8_t* payload = nullptr;
+    size_t payload_size = 0U;
+    rcpr_uuid latest_block_id = { .data = {
+        0xa4, 0xcf, 0x44, 0x00, 0x80, 0x0f, 0x48, 0x27,
+        0xba, 0xc3, 0x54, 0x2c, 0xfc, 0x56, 0xdf, 0x9d } };
+    rcpr_uuid next_block_id = { .data = {
+        0xdd, 0x4c, 0x97, 0x97, 0xcb, 0x8d, 0x4e, 0xaa,
+        0xaa, 0x1f, 0x4e, 0xf9, 0x8c, 0x1e, 0x3a, 0xac } };
+
+    /* send block update request. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_sendreq_block_update(
+            client1, alloc, EXPECTED_BLOCK_UPDATE_OFFSET, &latest_block_id));
+
+    /* get response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_recvresp(
+            client1, alloc, &buf, &size));
+
+    /* reclaim buffer. */
+    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+
+    /* send the block assertion request. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_sendreq_block_assertion(
+            client1, alloc, EXPECTED_OFFSET, &latest_block_id));
+
+    /* send the next block update request. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_sendreq_block_update(
+            client1, alloc, EXPECTED_BLOCK_UPDATE_OFFSET, &next_block_id));
+
+    /* get a response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_recvresp(
+            client1, alloc, &buf, &size));
+
+    /* decode the response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_decode_response(
+            buf, size, &method_id, &status_code, &offset, &payload,
+            &payload_size));
+
+    /* it should be the invalidation for the assertion. */
+    EXPECT_EQ(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION,
+        method_id);
+    EXPECT_EQ(0, status_code);
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+    EXPECT_EQ(nullptr, payload);
+
+    /* reclaim buffer. */
+    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+
+    /* get the next response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_recvresp(
+            client1, alloc, &buf, &size));
+
+    /* decode this response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_decode_response(
+            buf, size, &method_id, &status_code, &offset, &payload,
+            &payload_size));
+
+    /* it should be the block update response. */
+    EXPECT_EQ(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE,
+        method_id);
+    EXPECT_EQ(0, status_code);
+    EXPECT_EQ(EXPECTED_BLOCK_UPDATE_OFFSET, offset);
+    EXPECT_EQ(nullptr, payload);
+
+    /* clean up. */
+    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+}

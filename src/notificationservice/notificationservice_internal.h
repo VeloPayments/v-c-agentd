@@ -435,3 +435,27 @@ RCPR_SYM(rcpr_comparison_result) notificationservice_assertion_entry_compare(
  */
 const void* notificationservice_assertion_entry_key(
     void* /*context*/, const RCPR_SYM(resource)* r);
+
+/**
+ * \brief Add an assertion entry to this context's assertion tree.
+ *
+ * \param context       The context for this assertion tree.
+ * \param offset        The offset for the assertion.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_assertion_entry_add(
+    notificationservice_protocol_fiber_context* context, uint64_t offset);
+
+/**
+ * \brief Release a notificationservice assertion entry.
+ *
+ * \param r         The resource to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_assertion_entry_release(RCPR_SYM(resource)* r);
