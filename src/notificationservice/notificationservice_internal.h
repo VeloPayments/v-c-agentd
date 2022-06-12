@@ -347,6 +347,22 @@ status notificationservice_protocol_dispatch_block_assertion(
     const uint8_t* payload, size_t payload_size);
 
 /**
+ * \brief Dispatch a block assertion cancellation request.
+ *
+ * \param context                   Notificationservice protocol fiber context.
+ * \param offset                    The client-supplied request offset.
+ * \param payload                   Payload data for this request.
+ * \param payload_size              The size of the payload data.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status notificationservice_protocol_dispatch_block_assertion_cancel(
+    notificationservice_protocol_fiber_context* context, uint64_t offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
  * \brief Create a message payload, taking ownership of the payload data.
  *
  * \note On success, the data passed to this function is owned by the created

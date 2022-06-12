@@ -73,6 +73,12 @@ status notificationservice_protocol_read_decode_and_dispatch_packet(
                     context, offset, payload, payload_size);
             break;
 
+        case AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL:
+            retval =
+                notificationservice_protocol_dispatch_block_assertion_cancel(
+                    context, offset, payload, payload_size);
+            break;
+
         default:
             retval =
                 notificationservice_protocol_send_response(
