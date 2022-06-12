@@ -49,8 +49,8 @@ status notificationservice_api_sendreq_assertion_cancel(
     retval =
         notificationservice_api_encode_request(
             &buf, &bufsize, alloc,
-            AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE, offset,
-            NULL, 0U);
+            AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL,
+            offset, NULL, 0U);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
