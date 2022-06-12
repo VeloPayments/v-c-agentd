@@ -54,7 +54,7 @@ status notificationservice_api_sendreq_block_assertion(
     retval =
         notificationservice_api_encode_request(
             &buf, &bufsize, alloc,
-            AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE, offset,
+            AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION, offset,
             (const uint8_t*)block_id, sizeof(*block_id));
     if (STATUS_SUCCESS != retval)
     {
