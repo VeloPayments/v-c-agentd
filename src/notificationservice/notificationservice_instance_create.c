@@ -53,8 +53,10 @@ status notificationservice_instance_create(
     /* set the bitcaps to max permissible. */
     BITCAP_INIT_TRUE(tmp->caps);
 
-    /* create the assertions list. */
-    retval = slist_create(&tmp->assertions, tmp->alloc);
+    /* create the assertions tree. */
+    retval =
+        notificationservice_assertion_rbtree_create(
+            &tmp->assertions, tmp->alloc);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_tmp;

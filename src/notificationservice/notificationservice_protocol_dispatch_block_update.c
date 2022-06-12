@@ -12,6 +12,7 @@
 #include "notificationservice_internal.h"
 
 RCPR_IMPORT_resource;
+RCPR_IMPORT_rbtree;
 RCPR_IMPORT_slist;
 
 /**
@@ -32,10 +33,11 @@ status notificationservice_protocol_dispatch_block_update(
 {
     status retval, status_retval, release_retval;
     slist* instance_lists;
-    slist* notifylist;
-    slist* assertionlist = NULL;
+    rbtree* notifytree;
+    rbtree* assertiontree = NULL;
     slist_node* instance_node;
-    slist_node* assertion_node;
+    rbtree_node* assertion_node;
+    rbtree_node* nil;
     notificationservice_instance* inst;
     notificationservice_assertion_entry* assertion_entry;
 
@@ -87,29 +89,31 @@ status notificationservice_protocol_dispatch_block_update(
             goto cleanup_instance_lists;
         }
 
-        /* create an slist instance for holding all assertions. */
-        retval = slist_create(&assertionlist, context->alloc);
+        /* create an assertion rbtree instance for holding all assertions. */
+        retval =
+            notificationservice_assertion_rbtree_create(
+                &assertiontree, context->alloc);
         if (STATUS_SUCCESS != retval)
         {
             /* this is a fatal error. */
             goto cleanup_instance_lists;
         }
 
-        /* swap this list and the assertions for this instance. */
-        slist_swap(assertionlist, inst->assertions);
+        /* swap this tree and the assertions for this instance. */
+        rbtree_swap(assertiontree, inst->assertions);
 
         /* add the assertions to the end of our list. */
         retval =
             slist_append_tail(
-                instance_lists, slist_resource_handle(assertionlist));
+                instance_lists, rbtree_resource_handle(assertiontree));
         if (STATUS_SUCCESS != retval)
         {
             /* this is a fatal error. */
             goto cleanup_assertionlist;
         }
 
-        /* the assertion list is now owned by the instance work list. */
-        assertionlist = NULL;
+        /* the assertion tree is now owned by the instance work list. */
+        assertiontree = NULL;
 
         /* get the next node in the instance list. */
         retval = slist_node_next(&instance_node, instance_node);
@@ -134,33 +138,33 @@ status notificationservice_protocol_dispatch_block_update(
     /* outer loop. */
     while (NULL != instance_node)
     {
-        /* get the assertion list. */
-        retval = slist_node_child((resource**)&notifylist, instance_node);
+        /* get the assertion tree. */
+        retval = slist_node_child((resource**)&notifytree, instance_node);
         if (STATUS_SUCCESS != retval)
         {
             /* this is a fatal error. */
             goto cleanup_instance_lists;
         }
 
-        /* get the head of the assertion list. */
-        retval = slist_head(&assertion_node, notifylist);
-        if (STATUS_SUCCESS != retval)
+        /* get the nil node of the notify tree. */
+        nil = rbtree_nil_node(notifytree);
+
+        /* get the root of the notify tree. */
+        assertion_node = rbtree_root_node(notifytree);
+
+        /* if the root node is not null, get the minimum of this subtree. */
+        if (nil != assertion_node)
         {
-            /* this is a fatal error. */
-            goto cleanup_instance_lists;
+            assertion_node = rbtree_minimum_node(notifytree, assertion_node);
         }
 
         /* inner loop: iterate through all assertions. */
-        while (NULL != assertion_node)
+        while (nil != assertion_node)
         {
             /* get the assertion entry. */
-            retval =
-                slist_node_child((resource**)&assertion_entry, assertion_node);
-            if (STATUS_SUCCESS != retval)
-            {
-                /* this is a fatal error. */
-                goto cleanup_instance_lists;
-            }
+            assertion_entry =
+                (notificationservice_assertion_entry*)rbtree_node_value(
+                    notifytree, assertion_node);
 
             /* notify this offset that the assertion has been invalidated. */
             retval =
@@ -174,13 +178,8 @@ status notificationservice_protocol_dispatch_block_update(
                 goto cleanup_instance_lists;
             }
 
-            /* get the next node in the assertion list. */
-            retval = slist_node_next(&assertion_node, assertion_node);
-            if (STATUS_SUCCESS != retval)
-            {
-                /* this is a fatal error. */
-                goto cleanup_instance_lists;
-            }
+            /* get the next node in the notify tree. */
+            assertion_node = rbtree_successor_node(notifytree, assertion_node);
         }
 
         /* get the next node in the instance list. */
@@ -197,10 +196,10 @@ status notificationservice_protocol_dispatch_block_update(
     goto cleanup_instance_lists;
 
 cleanup_assertionlist:
-    if (NULL != assertionlist)
+    if (NULL != assertiontree)
     {
         release_retval =
-            resource_release(slist_resource_handle(assertionlist));
+            resource_release(rbtree_resource_handle(assertiontree));
         if (STATUS_SUCCESS != release_retval)
         {
             retval = release_retval;

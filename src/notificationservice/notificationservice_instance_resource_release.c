@@ -12,7 +12,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
-RCPR_IMPORT_slist;
+RCPR_IMPORT_rbtree;
 
 /**
  * \brief Release a notificationservice instance resource.
@@ -52,7 +52,7 @@ status notificationservice_instance_resource_release(RCPR_SYM(resource)* r)
     if (NULL != inst->assertions)
     {
         assertions_release_retval =
-            resource_release(slist_resource_handle(inst->assertions));
+            resource_release(rbtree_resource_handle(inst->assertions));
     }
 
     /* clear the structure. */

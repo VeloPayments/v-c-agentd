@@ -59,7 +59,7 @@ struct notificationservice_instance
     RCPR_SYM(mailbox_address) outbound_addr;
     notificationservice_context* ctx;
     BITCAP(caps, NOTIFICATIONSERVICE_API_CAP_BITS_MAX);
-    RCPR_SYM(slist)* assertions;
+    RCPR_SYM(rbtree)* assertions;
 };
 
 /**
