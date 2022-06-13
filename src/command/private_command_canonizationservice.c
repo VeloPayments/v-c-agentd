@@ -27,7 +27,8 @@ void private_command_canonizationservice(bootstrap_config_t* UNUSED(bconf))
             AGENTD_FD_CANONIZATION_SVC_DATA,
             AGENTD_FD_CANONIZATION_SVC_RANDOM,
             AGENTD_FD_CANONIZATION_SVC_LOG,
-            AGENTD_FD_CANONIZATION_SVC_CONTROL);
+            AGENTD_FD_CANONIZATION_SVC_CONTROL,
+            AGENTD_FD_CANONIZATION_SVC_NOTIFICATION);
 
     /* exit with the return code from the event loop. */
     exit(retval);
