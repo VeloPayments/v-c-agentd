@@ -30,6 +30,9 @@ extern "C" {
  * \param logsock       The logging service socket.  The canonization service
  *                      logs on this socket.
  * \param controlsock   The socket used to control the canonization service.
+ * \param notifysock    The notification service socket. The canonization
+ *                      service communicates with the notification service using
+ *                      this socket.
  *
  * \returns a status code on service exit indicating a normal or abnormal exit.
  *          - AGENTD_STATUS_SUCCESS on normal exit.
@@ -43,7 +46,7 @@ extern "C" {
  *            running the protocol service event loop failed.
  */
 int canonizationservice_event_loop(
-    int datasock, int randomsock, int logsock, int controlsock);
+    int datasock, int randomsock, int logsock, int controlsock, int notifysock);
 
 /**
  * \brief Spawn a canonization service process using the provided config
