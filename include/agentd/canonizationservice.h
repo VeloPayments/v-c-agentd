@@ -62,6 +62,7 @@ int canonizationservice_event_loop(
  *                          random service.
  * \param controlsock       Pointer to the socket used to control the
  *                          canonization service.
+ * \param notifysock        The notification service socket.
  * \param canonizationpid   Pointer to the canonization service pid, to be
  *                          updated on the successful completion of this
  *                          function.
@@ -92,8 +93,8 @@ int canonizationservice_event_loop(
  */
 int start_canonization_proc(
     const bootstrap_config_t* bconf, const agent_config_t* conf, int* logsock,
-    int* datasock, int* randomsock, int* controlsock, pid_t* canonizationpid,
-    bool runsecure);
+    int* datasock, int* randomsock, int* controlsock, int notifysock,
+    pid_t* canonizationpid, bool runsecure);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

@@ -190,6 +190,7 @@ int supervisor_create_auth_service(
  * \param random_socket         The random socket descriptor.
  * \param log_socket            The log socket descriptor.
  * \param control_socket        The control socket descriptor.
+ * \param notification_socket   The notification service socket descriptor.
  *
  * \returns a status indicating success or failure.
  *          - AGENTD_STATUS_SUCCESS on success.
@@ -199,7 +200,7 @@ int supervisor_create_canonizationservice(
     process_t** svc, const bootstrap_config_t* bconf,
     const agent_config_t* conf, config_private_key_t* private_key,
     int* data_socket, int* random_socket, int* log_socket,
-    int* control_socket);
+    int* control_socket, int notification_socket);
 
 /**
  * \brief Create the attestation service as a process that can be started.

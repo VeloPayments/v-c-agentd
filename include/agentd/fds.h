@@ -194,6 +194,12 @@ extern "C" {
  */
 #define AGENTD_FD_CANONIZATION_SVC_CONTROL ((int)3)
 
+/**
+ * \brief File descriptor for the canonization service socket connection to the
+ * notification service.
+ */
+#define AGENTD_FD_CANONIZATION_SVC_NOTIFICATION ((int)4)
+
 /******************************************************************************/
 /* Attestation Service                                                        */
 /******************************************************************************/

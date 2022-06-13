@@ -37,6 +37,7 @@
  *                          random service.
  * \param controlsock       Pointer to the socket used to control the
  *                          canonization service.
+ * \param notifysock        The notification service socket.
  * \param canonizationpid   Pointer to the canonization service pid, to be
  *                          updated on the successful completion of this
  *                          function.
@@ -67,8 +68,8 @@
  */
 int start_canonization_proc(
     const bootstrap_config_t* bconf, const agent_config_t* conf, int* logsock,
-    int* datasock, int* randomsock, int* controlsock, pid_t* canonizationpid,
-    bool runsecure)
+    int* datasock, int* randomsock, int* controlsock, int notifysock,
+    pid_t* canonizationpid, bool runsecure)
 {
     int retval = 1;
     uid_t uid;
@@ -139,7 +140,7 @@ int start_canonization_proc(
         /* move the fds out of the way. */
         if (AGENTD_STATUS_SUCCESS !=
             privsep_protect_descriptors(
-                logsock, datasock, randomsock, controlsock, NULL))
+                logsock, datasock, randomsock, controlsock, &notifysock, NULL))
         {
             retval = AGENTD_ERROR_CONFIG_PRIVSEP_SETFDS_FAILURE;
             goto done;
@@ -161,6 +162,7 @@ int start_canonization_proc(
                 *datasock, /* ==> */ AGENTD_FD_CANONIZATION_SVC_DATA,
                 *randomsock, /* ==> */ AGENTD_FD_CANONIZATION_SVC_RANDOM,
                 *controlsock, /* ==> */ AGENTD_FD_CANONIZATION_SVC_CONTROL,
+                notifysock, /* ==> */ AGENTD_FD_CANONIZATION_SVC_NOTIFICATION,
                 -1);
         if (0 != retval)
         {
@@ -171,7 +173,7 @@ int start_canonization_proc(
 
         /* close any socket above the given value. */
         retval =
-            privsep_close_other_fds(AGENTD_FD_CANONIZATION_SVC_CONTROL);
+            privsep_close_other_fds(AGENTD_FD_CANONIZATION_SVC_NOTIFICATION);
         if (0 != retval)
         {
             perror("privsep_close_other_fds");
@@ -219,6 +221,7 @@ int start_canonization_proc(
         *randomsock = -1;
         close(*controlsock);
         *controlsock = -1;
+        close(notifysock);
 
         /* success. */
         retval = AGENTD_STATUS_SUCCESS;

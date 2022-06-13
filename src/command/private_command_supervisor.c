@@ -144,7 +144,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     int attestation_svc_control_sock = -1;
     int notification_svc_log_sock = -1;
     int notification_svc_log_dummy_sock = -1;
-    int notification_svc_consensus_sock = -1;
+    int notification_svc_canonization_sock = -1;
     int notification_svc_protocol_sock = -1;
 
 #if AUTHSERVICE
@@ -270,7 +270,8 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     TRY_OR_FAIL(
         supervisor_create_notification_service(
             &notification_service, bconf, &conf, &notification_svc_log_sock,
-            &notification_svc_consensus_sock, &notification_svc_protocol_sock),
+            &notification_svc_canonization_sock,
+            &notification_svc_protocol_sock),
         cleanup_data_for_auth_protocol_service);
 
     /* create protocol service. */
@@ -310,7 +311,8 @@ static int supervisor_run(const bootstrap_config_t* bconf)
         supervisor_create_canonizationservice(
             &canonizationservice, bconf, &conf, &private_key,
             &canonization_svc_data_sock, &canonization_svc_random_sock,
-            &canonization_svc_log_sock, &canonization_svc_control_sock),
+            &canonization_svc_log_sock, &canonization_svc_control_sock,
+            notification_svc_canonization_sock),
         cleanup_data_service_for_canonizationservice);
 
     /* create data service for attestation service. */
@@ -459,7 +461,7 @@ done:
     CLOSE_IF_VALID(attestation_svc_log_dummy_sock);
     CLOSE_IF_VALID(notification_svc_log_sock);
     CLOSE_IF_VALID(notification_svc_log_dummy_sock);
-    CLOSE_IF_VALID(notification_svc_consensus_sock);
+    CLOSE_IF_VALID(notification_svc_canonization_sock);
     CLOSE_IF_VALID(notification_svc_protocol_sock);
     CLOSE_IF_VALID(attestation_svc_control_sock);
 
