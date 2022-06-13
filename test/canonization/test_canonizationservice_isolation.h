@@ -46,6 +46,7 @@ protected:
     agent_config_t conf;
     int datasock;
     int controlsock;
+    int notifysock;
     int logsock;
     int rlogsock;
     int rprotosock;

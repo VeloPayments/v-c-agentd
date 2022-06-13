@@ -28,6 +28,7 @@ typedef struct canonization_process
     int* random_socket;
     int* log_socket;
     int control_socket;
+    int notification_socket;
     /* do not close the srv socket. */
     int control_srv_socket;
 } canonization_process_t;
@@ -50,6 +51,7 @@ static int supervisor_start_canonizationservice(process_t* proc);
  * \param random_socket         The random socket descriptor.
  * \param log_socket            The log socket descriptor.
  * \param control_socket        The control socket descriptor.
+ * \param notification_socket   The notification service socket descriptor.
  *
  * \returns a status indicating success or failure.
  *          - AGENTD_STATUS_SUCCESS on success.
@@ -59,7 +61,7 @@ int supervisor_create_canonizationservice(
     process_t** svc, const bootstrap_config_t* bconf,
     const agent_config_t* conf, config_private_key_t* private_key,
     int* data_socket, int* random_socket, int* log_socket,
-    int* control_socket)
+    int* control_socket, int notification_socket)
 {
     int retval;
 
@@ -83,6 +85,7 @@ int supervisor_create_canonizationservice(
     canonization_proc->data_socket = data_socket;
     canonization_proc->random_socket = random_socket;
     canonization_proc->log_socket = log_socket;
+    canonization_proc->notification_socket = notification_socket;
 
     /* create the socketpair for the control socket. */
     retval =
@@ -133,6 +136,7 @@ static int supervisor_start_canonizationservice(process_t* proc)
             canonization_proc->log_socket, canonization_proc->data_socket,
             canonization_proc->random_socket,
             &canonization_proc->control_socket,
+            canonization_proc->notification_socket,
             &canonization_proc->hdr.process_id,
             true),
         done);

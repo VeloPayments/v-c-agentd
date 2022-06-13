@@ -103,6 +103,10 @@ void canonizationservice_isolation_test::SetUp()
     int controlsock_srv;
     ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &controlsock, &controlsock_srv);
 
+    /* create the notificationservice socket pair. */
+    int notifysock_srv;
+    ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &notifysock, &notifysock_srv);
+
     /* create the bootstrap config. */
     bootstrap_config_init(&bconf);
 
@@ -119,7 +123,7 @@ void canonizationservice_isolation_test::SetUp()
     canonization_proc_status =
         start_canonization_proc(
             &bconf, &conf, &logsock, &datasock_srv, &rprotosock,
-            &controlsock_srv, &canonizationpid, false);
+            &controlsock_srv, notifysock_srv, &canonizationpid, false);
 
     /* create the mock dataservice. */
     dataservice = make_unique<mock_dataservice::mock_dataservice>(datasock);
@@ -140,6 +144,7 @@ void canonizationservice_isolation_test::TearDown()
     {
         int status = 0;
         close(controlsock);
+        close(notifysock);
         kill(canonizationpid, SIGTERM);
         waitpid(canonizationpid, &status, 0);
     }
