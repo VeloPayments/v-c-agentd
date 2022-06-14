@@ -127,6 +127,11 @@ void canonizationservice_isolation_test::SetUp()
 
     /* create the mock dataservice. */
     dataservice = make_unique<mock_dataservice::mock_dataservice>(datasock);
+
+    /* create the mock notificationservice. */
+    notificationservice =
+        make_unique<mock_notificationservice::mock_notificationservice>(
+            notifysock);
 }
 
 void canonizationservice_isolation_test::TearDown()

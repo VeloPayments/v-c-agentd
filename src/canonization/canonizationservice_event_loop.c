@@ -3,7 +3,7 @@
  *
  * \brief The event loop for the canonization service.
  *
- * \copyright 2019-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
@@ -126,6 +126,7 @@ int canonizationservice_event_loop(
     ipc_set_readcb_noblock(&control, &canonizationservice_control_read, NULL);
     ipc_set_readcb_noblock(&data, &canonizationservice_data_read, NULL);
     ipc_set_readcb_noblock(&random, &canonizationservice_random_read, NULL);
+    ipc_set_readcb_noblock(&notify, &canonizationservice_notify_read, NULL);
 
     /* on these signals, leave the event loop and shut down gracefully. */
     ipc_exit_loop_on_signal(&loop, SIGHUP);
@@ -148,6 +149,13 @@ int canonizationservice_event_loop(
 
     /* add the random socket to the event loop. */
     if (AGENTD_STATUS_SUCCESS != ipc_event_loop_add(&loop, &random))
+    {
+        retval = AGENTD_ERROR_CANONIZATIONSERVICE_IPC_EVENT_LOOP_ADD_FAILURE;
+        goto cleanup_loop;
+    }
+
+    /* add the notify socket to the event loop. */
+    if (AGENTD_STATUS_SUCCESS != ipc_event_loop_add(&loop, &notify))
     {
         retval = AGENTD_ERROR_CANONIZATIONSERVICE_IPC_EVENT_LOOP_ADD_FAILURE;
         goto cleanup_loop;

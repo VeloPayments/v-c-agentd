@@ -10,6 +10,7 @@
 #define TEST_CANONIZATIONSERVICE_ISOLATION_HEADER_GUARD
 
 #include "../mocks/dataservice.h"
+#include "../mocks/notificationservice.h"
 #include <agentd/config.h>
 #include <agentd/inet.h>
 #include <agentd/ipc.h>
@@ -62,6 +63,8 @@ protected:
     bool suite_instance_initialized;
     bool suite_initialized;
     std::unique_ptr<mock_dataservice::mock_dataservice> dataservice;
+    std::unique_ptr<mock_notificationservice::mock_notificationservice>
+        notificationservice;
 
     static const uint8_t dir_key[32];
 

@@ -304,8 +304,9 @@ TEST_F(canonizationservice_isolation_test, no_txn_retry)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -437,8 +438,9 @@ TEST_F(canonizationservice_isolation_test, no_txn_retry_with_block)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -578,8 +580,9 @@ TEST_F(canonizationservice_isolation_test, no_attested_retry)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -728,8 +731,9 @@ TEST_F(canonizationservice_isolation_test, one_attested_block)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -936,8 +940,9 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_txns_one_block)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -1173,8 +1178,9 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_multiple_blocks)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,

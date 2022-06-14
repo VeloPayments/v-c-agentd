@@ -3,7 +3,7 @@
  *
  * \brief Internal header for the canonization service.
  *
- * \copyright 2019-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #ifndef AGENTD_CANONIZATIONSERVICE_INTERNAL_HEADER_GUARD
@@ -11,6 +11,7 @@
 
 #include <agentd/dataservice/data.h>
 #include <agentd/ipc.h>
+#include <rcpr/allocator.h>
 #include <vccert/builder.h>
 #include <vccrypt/suite.h>
 #include <vpr/allocator.h>
@@ -51,6 +52,7 @@ typedef struct canonizationservice_instance
     ipc_timer_context_t timer;
     int state;
     allocator_options_t alloc_opts;
+    RCPR_SYM(allocator)* rcpr_alloc;
     vccrypt_suite_options_t crypto_suite;
     vccert_builder_options_t builder_opts;
     linked_list_options_t transaction_list_opts;
@@ -79,6 +81,7 @@ enum canonizationservice_state
     CANONIZATIONSERVICE_STATE_WAITRESP_PQ_TXN_FIRST_GET,
     CANONIZATIONSERVICE_STATE_WAITRESP_PQ_TXN_GET,
     CANONIZATIONSERVICE_STATE_WAITRESP_BLOCK_MAKE,
+    CANONIZATIONSERVICE_STATE_WAITRESP_NOTIFY_BLOCK_UPDATE,
     CANONIZATIONSERVICE_STATE_WAITRESP_CHILD_CONTEXT_CLOSE
 };
 
@@ -336,6 +339,27 @@ void canonizationservice_random_read(
     ipc_socket_context_t* ctx, int event_flags, void* user_context);
 
 /**
+ * \brief Callback for writing data to the notification service socket from the
+ * canonization service.
+ *
+ * \param ctx           The socket context on which this write request occurred.
+ * \param event_flags   The event flags that triggered this callback.
+ * \param user_context  Opaque pointer to the canonization service instance.
+ */
+void canonizationservice_notify_write(
+    ipc_socket_context_t* ctx, int event_flags, void* user_context);
+
+/**
+ * \brief Handle read events on the notification service socket.
+ *
+ * \param ctx               The non-blocking socket context.
+ * \param event_flags       The event that triggered this callback.
+ * \param user_context      The user context for this control socket.
+ */
+void canonizationservice_notify_read(
+    ipc_socket_context_t* ctx, int event_flags, void* user_context);
+
+/**
  * \brief Handle the response from the data service child context create call.
  *
  * \param instance      The canonization service instance.
@@ -452,6 +476,14 @@ int canonizationservice_dataservice_sendreq_block_get(
  * \param instance      The canonization service instance.
  */
 int canonizationservice_block_make(
+    canonizationservice_instance_t* instance);
+
+/**
+ * \brief Send a block update request to the notification service.
+ *
+ * \param instance      The canonization service instance.
+ */
+void canonizationservice_notify_block_update(
     canonizationservice_instance_t* instance);
 
 /**
