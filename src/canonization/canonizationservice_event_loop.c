@@ -47,13 +47,14 @@
  */
 int canonizationservice_event_loop(
     int datasock, int randomsock, int UNUSED(logsock), int controlsock,
-    int UNUSED(notifysock))
+    int notifysock)
 {
     int retval = AGENTD_STATUS_SUCCESS;
     canonizationservice_instance_t* instance = NULL;
     ipc_socket_context_t data;
     ipc_socket_context_t random;
     ipc_socket_context_t control;
+    ipc_socket_context_t notify;
     ipc_event_loop_context_t loop;
 
     /* parameter sanity checking. */
@@ -100,11 +101,22 @@ int canonizationservice_event_loop(
     /* save the random socket context for use by instance methods. */
     instance->random = &random;
 
+    /* set the notify socket to non-blocking. */
+    if (AGENTD_STATUS_SUCCESS !=
+        ipc_make_noblock(notifysock, &notify, instance))
+    {
+        retval = AGENTD_ERROR_CANONIZATIONSERVICE_IPC_MAKE_NOBLOCK_FAILURE;
+        goto cleanup_random_socket;
+    }
+
+    /* save the notify socket context for use by instance methods. */
+    instance->notify = &notify;
+
     /* initialize the IPC event loop instance. */
     if (AGENTD_STATUS_SUCCESS != ipc_event_loop_init(&loop))
     {
         retval = AGENTD_ERROR_CANONIZATIONSERVICE_IPC_EVENT_LOOP_INIT;
-        goto cleanup_random_socket;
+        goto cleanup_notify_socket;
     }
 
     /* set a reference to the event loop in the instance. */
@@ -153,6 +165,9 @@ int canonizationservice_event_loop(
 
 cleanup_loop:
     dispose((disposable_t*)&loop);
+
+cleanup_notify_socket:
+    dispose((disposable_t*)&notify);
 
 cleanup_random_socket:
     dispose((disposable_t*)&random);

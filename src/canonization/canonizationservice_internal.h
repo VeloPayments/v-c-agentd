@@ -46,6 +46,7 @@ typedef struct canonizationservice_instance
     ipc_event_loop_context_t* loop_context;
     ipc_socket_context_t* data;
     ipc_socket_context_t* random;
+    ipc_socket_context_t* notify;
     uint32_t data_child_context;
     ipc_timer_context_t timer;
     int state;
