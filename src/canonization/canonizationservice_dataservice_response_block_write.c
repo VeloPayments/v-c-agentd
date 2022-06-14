@@ -3,7 +3,7 @@
  *
  * \brief Handle the response from the data service block write call.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2022 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/canonizationservice.h>
@@ -27,6 +27,6 @@ void canonizationservice_dataservice_response_block_write(
     canonizationservice_instance_t* instance, const uint32_t* UNUSED(resp),
     const size_t UNUSED(resp_size))
 {
-    /* close the child context. */
-    canonizationservice_child_context_close(instance);
+    /* send a block update. */
+    canonizationservice_notify_block_update(instance);
 }

@@ -8,12 +8,16 @@
 
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
-#include <unistd.h>
 #include <string.h>
+#include <rcpr/status.h>
 #include <vpr/allocator/malloc_allocator.h>
 #include <vpr/parameters.h>
+#include <unistd.h>
 
 #include "canonizationservice_internal.h"
+
+RCPR_IMPORT_allocator_as(rcpr);
+RCPR_IMPORT_resource;
 
 /* forward decls */
 static void canonizationservice_instance_dispose(void* disposable);
@@ -25,7 +29,7 @@ static void canonizationservice_instance_dispose(void* disposable);
  */
 canonizationservice_instance_t* canonizationservice_instance_create()
 {
-    int retval;
+    int retval, release_retval;
 
     /* allocate memory for the instance. */
     canonizationservice_instance_t* instance =
@@ -43,6 +47,13 @@ canonizationservice_instance_t* canonizationservice_instance_create()
     /* initialize the malloc allocator. */
     malloc_allocator_options_init(&instance->alloc_opts);
 
+    /* create the rcpr allocator for this instance. */
+    retval = rcpr_malloc_allocator_create(&instance->rcpr_alloc);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_allocator;
+    }
+
     /* initialize the crypto suite for this instance. */
     retval =
         vccrypt_suite_options_init(
@@ -50,7 +61,7 @@ canonizationservice_instance_t* canonizationservice_instance_create()
             VCCRYPT_SUITE_VELO_V1);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
-        goto cleanup_allocator;
+        goto cleanup_rcpr_allocator;
     }
 
     /* initialize the certificate builder options for this instance. */
@@ -85,6 +96,14 @@ cleanup_builder_opts:
 cleanup_suite:
     dispose((disposable_t*)&instance->crypto_suite);
 
+cleanup_rcpr_allocator:
+    release_retval =
+        resource_release(rcpr_allocator_resource_handle(instance->rcpr_alloc));
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
+
 cleanup_allocator:
     dispose((disposable_t*)&instance->alloc_opts);
 
@@ -102,6 +121,7 @@ cleanup_allocator:
  */
 static void canonizationservice_instance_dispose(void* disposable)
 {
+    status retval;
     canonizationservice_instance_t* instance =
         (canonizationservice_instance_t*)disposable;
 
@@ -134,6 +154,11 @@ static void canonizationservice_instance_dispose(void* disposable)
 
     /* clean up the crypto suite. */
     dispose((disposable_t*)&instance->crypto_suite);
+
+    /* clean up the rcpr allocator. */
+    retval =
+        resource_release(rcpr_allocator_resource_handle(instance->rcpr_alloc));
+    (void)retval;
 
     /* clean up the allocator options. */
     dispose((disposable_t*)&instance->alloc_opts);

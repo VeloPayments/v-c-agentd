@@ -1,5 +1,5 @@
 /**
- * \file canonization/canonizationservice_timer_cb.c
+ * \file canonization/canonizationservice_child_context_close.c
  *
  * \brief Close the child context, leading to reset of the canonization service.
  *
