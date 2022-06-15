@@ -36,7 +36,7 @@ int canonizationservice_block_make(
     /* Do we have transactions to put in a block? */
     if (0 == instance->transaction_list->elements)
     {
-        canonizationservice_child_context_close(instance);
+        canonizationservice_complete_update(instance);
         retval = AGENTD_STATUS_SUCCESS;
         goto done;
     }
