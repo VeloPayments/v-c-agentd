@@ -41,6 +41,7 @@ typedef struct canonizationservice_instance
     bool configured;
     bool running;
     bool force_exit;
+    bool first_time;
     int64_t block_max_milliseconds;
     size_t block_max_transactions;
     canonizationservice_private_key_t* private_key;

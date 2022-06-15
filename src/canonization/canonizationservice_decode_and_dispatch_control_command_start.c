@@ -82,11 +82,14 @@ int canonizationservice_decode_and_dispatch_control_command_start(
     /* otherwise, start the service. */
     instance->running = true;
 
+    /* this is the first time running. */
+    instance->first_time = true;
+
     /* create a timer event for running the canonization action. */
+    /* on the first time through, run after 10 milliseconds. */
     retval =
         ipc_timer_init(
-            &instance->timer, instance->block_max_milliseconds,
-            &canonizationservice_timer_cb, instance);
+            &instance->timer, 10, &canonizationservice_timer_cb, instance);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         /* TODO - write error status. */
