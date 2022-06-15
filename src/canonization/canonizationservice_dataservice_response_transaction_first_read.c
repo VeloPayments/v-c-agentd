@@ -42,7 +42,7 @@ void canonizationservice_dataservice_response_transaction_first_read(
     }
     else if (AGENTD_STATUS_SUCCESS == retval && AGENTD_ERROR_DATASERVICE_NOT_FOUND == dresp.hdr.status)
     {
-        canonizationservice_child_context_close(instance);
+        canonizationservice_complete_update(instance);
         goto done;
     }
 
@@ -50,7 +50,7 @@ void canonizationservice_dataservice_response_transaction_first_read(
     if (DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED !=
         ntohl(dresp.node.net_txn_state))
     {
-        canonizationservice_child_context_close(instance);
+        canonizationservice_complete_update(instance);
         goto done;
     }
 

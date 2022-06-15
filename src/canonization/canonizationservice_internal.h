@@ -487,6 +487,14 @@ void canonizationservice_notify_block_update(
     canonizationservice_instance_t* instance);
 
 /**
+ * \brief Finish the canonizationservice update.
+ *
+ * \param instance      The canonization service instance.
+ */
+void canonizationservice_complete_update(
+    canonizationservice_instance_t* instance);
+
+/**
  * \brief Close the child context, leading to reset of the canonization service.
  *
  * \param instance      The canonization service instance.
