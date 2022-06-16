@@ -29,7 +29,8 @@ void private_command_protocolservice(bootstrap_config_t* UNUSED(bconf))
             AGENTD_FD_UNAUTHORIZED_PROTOSVC_ACCEPT,
             AGENTD_FD_UNAUTHORIZED_PROTOSVC_CONTROL,
             AGENTD_FD_UNAUTHORIZED_PROTOSVC_DATA,
-            AGENTD_FD_UNAUTHORIZED_PROTOSVC_LOG);
+            AGENTD_FD_UNAUTHORIZED_PROTOSVC_LOG,
+            AGENTD_FD_UNAUTHORIZED_PROTOSVC_NOTIFY);
 
     /* exit with the return code from the event loop. */
     exit(retval);

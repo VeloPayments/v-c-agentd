@@ -280,7 +280,7 @@ static int supervisor_run(const bootstrap_config_t* bconf)
             &protocol_service, bconf, &conf, &private_key, public_entities,
             &unauth_protocol_svc_random_sock, &unauth_protocol_svc_accept_sock,
             &unauth_protocol_svc_control_sock, &auth_protocol_svc_data_sock,
-            &unauth_protocol_svc_log_sock),
+            &unauth_protocol_svc_log_sock, &notification_svc_protocol_sock),
         cleanup_notification_service);
 
 #if AUTHSERVICE

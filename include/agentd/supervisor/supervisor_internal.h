@@ -145,6 +145,7 @@ int supervisor_create_data_service_for_attestationservice(
  * \param control_socket        The control socket descriptor.
  * \param data_socket           The data socket descriptor.
  * \param log_socket            The log socket descriptor.
+ * \param notify_socket         The notificationservice socket descriptor.
  *
  * \returns a status indicating success or failure.
  *          - AGENTD_STATUS_SUCCESS on success.
@@ -154,7 +155,8 @@ int supervisor_create_protocol_service(
     process_t** svc, const bootstrap_config_t* bconf,
     const agent_config_t* conf, config_private_key_t* private_key,
     config_public_entity_node_t* public_entities, int* random_socket,
-    int* accept_socket, int* control_socket, int* data_socket, int* log_socket);
+    int* accept_socket, int* control_socket, int* data_socket, int* log_socket,
+    int* notify_socket);
 
 /**
  * \brief Create the auth service as a process that can be started.

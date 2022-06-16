@@ -38,6 +38,8 @@
  * \param acceptsock    Socket used to receive accepted peers.
  * \param controlsock   Socket used to send commands to this service.
  * \param datasock      Socket used to communicate with the data service.
+ * \param notifysock    Socket used to communicate with the notification
+ *                      service.
  * \param protopid      Pointer to the protocol service pid, to be updated on
  *                      the successful completion of this function.
  * \param runsecure     Set to false if we are not being run in secure mode.
@@ -67,8 +69,8 @@
  */
 int protocolservice_proc(
     const bootstrap_config_t* bconf, const agent_config_t* conf, int randomsock,
-    int logsock, int acceptsock, int controlsock, int datasock, pid_t* protopid,
-    bool runsecure)
+    int logsock, int acceptsock, int controlsock, int datasock, int notifysock,
+    pid_t* protopid, bool runsecure)
 {
     int retval = 1;
     uid_t uid;
@@ -138,7 +140,7 @@ int protocolservice_proc(
         if (AGENTD_STATUS_SUCCESS !=
             privsep_protect_descriptors(
                 &randomsock, &acceptsock, &controlsock, &logsock, &datasock,
-                NULL))
+                &notifysock, NULL))
         {
             retval = AGENTD_ERROR_CONFIG_PRIVSEP_SETFDS_FAILURE;
             goto done;
@@ -161,6 +163,7 @@ int protocolservice_proc(
                 controlsock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_CONTROL,
                 logsock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_LOG,
                 datasock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_DATA,
+                notifysock, /* ==> */ AGENTD_FD_UNAUTHORIZED_PROTOSVC_NOTIFY,
                 -1);
         if (0 != retval)
         {
@@ -171,7 +174,7 @@ int protocolservice_proc(
 
         /* close any socket above the given value. */
         retval =
-            privsep_close_other_fds(AGENTD_FD_UNAUTHORIZED_PROTOSVC_CONTROL);
+            privsep_close_other_fds(AGENTD_FD_UNAUTHORIZED_PROTOSVC_NOTIFY);
         if (0 != retval)
         {
             perror("privsep_close_other_fds");
