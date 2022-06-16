@@ -143,6 +143,12 @@ extern "C" {
  */
 #define AGENTD_FD_UNAUTHORIZED_PROTOSVC_CONTROL ((int)4)
 
+/**
+ * \brief File descriptor for the notification service socket. Used by the
+ * protocol service private command.
+ */
+#define AGENTD_FD_UNAUTHORIZED_PROTOSVC_NOTIFY ((int)5)
+
 /******************************************************************************/
 /* Random Service                                                             */
 /******************************************************************************/
