@@ -39,6 +39,7 @@ RCPR_IMPORT_thread;
  *                      communicates with the dataservice using this socket.
  * \param logsock       The logging service socket.  The protocol service logs
  *                      on this socket.
+ * \param notifysock    The notification service socket.
  *
  * \returns a status code on service exit indicating a normal or abnormal exit.
  *          - AGENTD_STATUS_SUCCESS on normal exit.
@@ -53,7 +54,7 @@ RCPR_IMPORT_thread;
  */
 int protocolservice_run(
     int randomsock, int protosock, int controlsock, int datasock,
-    int UNUSED(logsock))
+    int UNUSED(logsock), int UNUSED(notifysock))
 {
     status retval, release_retval;
     rcpr_allocator* alloc;

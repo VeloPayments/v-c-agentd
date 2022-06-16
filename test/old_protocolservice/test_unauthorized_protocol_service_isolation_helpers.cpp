@@ -16,6 +16,7 @@
 
 #include "test_unauthorized_protocol_service_isolation.h"
 
+#if 0
 using namespace std;
 
 const uint8_t unauthorized_protocol_service_isolation_test::dir_key[32] = {
@@ -591,3 +592,4 @@ cleanup_agent_enc_pubkey:
 done:
     return retval;
 }
+#endif

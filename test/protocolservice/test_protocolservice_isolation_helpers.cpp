@@ -179,6 +179,10 @@ void protocolservice_isolation_test::SetUp()
     int controlsock_srv;
     ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &controlsock, &controlsock_srv);
 
+    /* create the socket pair for the notifysock. */
+    int notifysock_srv;
+    ipc_socketpair(AF_UNIX, SOCK_STREAM, 0, &notifysock, &notifysock_srv);
+
     /* create the bootstrap config. */
     bootstrap_config_init(&bconf);
 
@@ -195,7 +199,7 @@ void protocolservice_isolation_test::SetUp()
     proto_proc_status =
         protocolservice_proc(
             &bconf, &conf, rprotosock, logsock, acceptsock_srv, controlsock_srv,
-            datasock_srv, &protopid, false);
+            datasock_srv, notifysock_srv, &protopid, false);
 
     /* create the mock dataservice. */
     dataservice = make_unique<mock_dataservice::mock_dataservice>(datasock);

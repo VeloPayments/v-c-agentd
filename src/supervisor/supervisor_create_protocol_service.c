@@ -28,6 +28,7 @@ typedef struct protocol_process
     int control_socket;
     int* data_socket;
     int* log_socket;
+    int* notify_socket;
     int control;
 } protocol_process_t;
 
@@ -52,6 +53,7 @@ static int supervisor_start_protocol_service(process_t* proc);
  * \param control_socket        The control socket descriptor.
  * \param data_socket           The data socket descriptor.
  * \param log_socket            The log socket descriptor.
+ * \param notify_socket         The notificationservice socket descriptor.
  *
  * \returns a status indicating success or failure.
  *          - AGENTD_STATUS_SUCCESS on success.
@@ -61,7 +63,8 @@ int supervisor_create_protocol_service(
     process_t** svc, const bootstrap_config_t* bconf,
     const agent_config_t* conf, config_private_key_t* private_key,
     config_public_entity_node_t* public_entities, int* random_socket,
-    int* accept_socket, int* control_socket, int* data_socket, int* log_socket)
+    int* accept_socket, int* control_socket, int* data_socket, int* log_socket,
+    int* notify_socket)
 {
     int retval;
 
@@ -86,6 +89,7 @@ int supervisor_create_protocol_service(
     protocol_proc->accept_socket = accept_socket;
     protocol_proc->data_socket = data_socket;
     protocol_proc->log_socket = log_socket;
+    protocol_proc->notify_socket = notify_socket;
 
     /* create the socketpair for the control socket. */
     retval =
@@ -137,7 +141,8 @@ static int supervisor_start_protocol_service(process_t* proc)
             protocol_proc->bconf, protocol_proc->conf,
             *protocol_proc->random_socket, *protocol_proc->log_socket,
             *protocol_proc->accept_socket, protocol_proc->control_socket,
-            *protocol_proc->data_socket, &protocol_proc->hdr.process_id, true),
+            *protocol_proc->data_socket, *protocol_proc->notify_socket,
+            &protocol_proc->hdr.process_id, true),
         done);
 
     /* if successful, the child process owns the sockets. */
@@ -146,6 +151,7 @@ static int supervisor_start_protocol_service(process_t* proc)
     *protocol_proc->accept_socket = -1;
     protocol_proc->control_socket = -1;
     *protocol_proc->data_socket = -1;
+    *protocol_proc->notify_socket = -1;
 
     /* write the private key request to the protocol service control socket. */
     TRY_OR_FAIL(
@@ -268,6 +274,13 @@ static void supervisor_dispose_protocol_service(void* disposable)
     {
         close(*protocol_proc->data_socket);
         *protocol_proc->data_socket = -1;
+    }
+
+    /* clean up the notify socket if valid. */
+    if (*protocol_proc->notify_socket > 0)
+    {
+        close(*protocol_proc->notify_socket);
+        *protocol_proc->notify_socket = -1;
     }
 
     if (protocol_proc->hdr.running)

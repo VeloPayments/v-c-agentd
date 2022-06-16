@@ -57,6 +57,7 @@ enum protocolservice_api_method_enum
  *                      communicates with the dataservice using this socket.
  * \param logsock       The logging service socket.  The protocol service logs
  *                      on this socket.
+ * \param notifysock    The notification service socket.
  *
  * \returns a status code on service exit indicating a normal or abnormal exit.
  *          - AGENTD_STATUS_SUCCESS on normal exit.
@@ -70,7 +71,8 @@ enum protocolservice_api_method_enum
  *            the protocol service event loop failed.
  */
 int protocolservice_run(
-    int randomsock, int protosock, int controlsock, int datasock, int logsock);
+    int randomsock, int protosock, int controlsock, int datasock, int logsock,
+    int notifysock);
 
 /**
  * \brief Spawn an unauthorized protocol service process using the provided
@@ -89,6 +91,8 @@ int protocolservice_run(
  * \param acceptsock    Socket used to receive accepted peers.
  * \param controlsock   Socket used to send commands to this service.
  * \param datasock      Socket used to communicate with the data service.
+ * \param notifysock    Socket used to communicate with the notification
+ *                      service.
  * \param protopid      Pointer to the protocol service pid, to be updated on
  *                      the successful completion of this function.
  * \param runsecure     Set to false if we are not being run in secure mode.
@@ -118,8 +122,8 @@ int protocolservice_run(
  */
 int protocolservice_proc(
     const bootstrap_config_t* bconf, const agent_config_t* conf, int randomsock,
-    int logsock, int acceptsock, int controlsock, int datasock, pid_t* protopid,
-    bool runsecure);
+    int logsock, int acceptsock, int controlsock, int datasock, int notifysock,
+    pid_t* protopid, bool runsecure);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
