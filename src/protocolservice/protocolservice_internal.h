@@ -43,6 +43,9 @@ extern "C" {
 /** \brief The control fiber stack size. */
 #define CONTROL_FIBER_STACK_SIZE 16384
 
+/** \brief The size of the notificationservice endpoint fiber. */
+#define NOTIFICATION_ENDPOINT_FIBER_STACK_SIZE 16384
+
 /**
  * \brief An authorized entity.
  */
@@ -185,6 +188,24 @@ struct protocolservice_random_response_message
     RCPR_SYM(allocator)* alloc;
     void* data;
     size_t size;
+};
+
+/**
+ * \brief Context structure for the protocol service notification service
+ * endpoint.
+ */
+typedef struct protocolservice_notificationservice_fiber_context
+protocolservice_notificationservice_fiber_context;
+
+struct protocolservice_notificationservice_fiber_context
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    RCPR_SYM(fiber)* fib;
+    RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
+    RCPR_SYM(mailbox_address) notify_addr;
+    RCPR_SYM(psock)* notifysock;
+    int reference_count;
 };
 
 /**
@@ -630,6 +651,22 @@ const void* protocolservice_dataservice_endpoint_context_mailbox_tree_key(
 status protocolservice_randomservice_endpoint_add(
     RCPR_SYM(mailbox_address)* addr, RCPR_SYM(allocator)* alloc,
     RCPR_SYM(fiber_scheduler)* sched, int randomsock);
+
+/**
+ * \brief Create and add the protocol service notification endpoint fiber.
+ *
+ * \param addr          Pointer to receive the mailbox address for this
+ *                      endpoint on success.
+ * \param ctx           The protocol service context for this operation.
+ * \param notifysock    The socket connection to the notification service.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_endpoint_add(
+    RCPR_SYM(mailbox_address)* addr, protocolservice_context* ctx,
+    int notifysock);
 
 /**
  * \brief Create the protocol service context.
@@ -1752,6 +1789,43 @@ status protocolservice_protocol_dnd_status_get(
 status protocolservice_protocol_dnd_close(
     protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
     const uint8_t* payload, size_t payload_size);
+
+/**
+ * \brief Release the protocol service notification service fiber context.
+ *
+ * \param r             The context to be released.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_fiber_context_release(
+    RCPR_SYM(resource)* r);
+
+/**
+ * \brief Entry point for the protocol service notificationservice endpoint
+ * fiber.
+ *
+ * \param vctx          The type erased context for this endpoint fiber.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_endpoint_fiber_entry(void* vctx);
+
+/**
+ * \brief Entry point for the protocol service notificationservice write
+ * endpoint fiber.
+ *
+ * \param vctx          The type erased context for this endpoint fiber.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_write_endpoint_fiber_entry(
+    void* vctx);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

@@ -54,7 +54,7 @@ RCPR_IMPORT_thread;
  */
 int protocolservice_run(
     int randomsock, int protosock, int controlsock, int datasock,
-    int UNUSED(logsock), int UNUSED(notifysock))
+    int UNUSED(logsock), int notifysock)
 {
     status retval, release_retval;
     rcpr_allocator* alloc;
@@ -64,6 +64,7 @@ int protocolservice_run(
     fiber* main_fiber;
     mailbox_address data_endpoint_addr;
     mailbox_address random_endpoint_addr;
+    mailbox_address notify_endpoint_addr;
     protocolservice_context* ctx;
 
     /* parameter sanity checking. */
@@ -112,6 +113,15 @@ int protocolservice_run(
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_scheduler;
+    }
+
+    /* add the notification service endpoint fiber. */
+    retval =
+        protocolservice_notificationservice_endpoint_add(
+            &notify_endpoint_addr, ctx, notifysock);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
     }
 
     /* add the management fiber. */
