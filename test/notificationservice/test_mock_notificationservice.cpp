@@ -363,3 +363,115 @@ TEST_F(mock_notificationservice_test, block_assertion_override)
     /* clean up the buffer. */
     ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
 }
+
+/**
+ * If the block assertion cancel mock is not set, then sending a block assertion
+ * cancel request always ends with success.
+ */
+TEST_F(mock_notificationservice_test, default_block_assertion_cancel)
+{
+    uint64_t EXPECTED_OFFSET = 7177;
+    uint8_t* buf = nullptr;
+    size_t size = 0U;
+    uint32_t method_id = 0U;
+    uint32_t status_code = 0xFF;
+    uint64_t offset = 0U;
+    const uint8_t* payload = nullptr;
+    size_t payload_size = 0U;
+
+    /* start the mock notificationservice. */
+    mock->start();
+
+    /* we should be able to send a block update request. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_sendreq_assertion_cancel(
+            sock, alloc, EXPECTED_OFFSET));
+
+    /* we should be able to receive a block update response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_recvresp(sock, alloc, &buf, &size));
+
+    /* the response buffer should not be NULL. */
+    ASSERT_NE(nullptr, buf);
+
+    /* we should be able to decode this block update response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_decode_response(
+            buf, size, &method_id, &status_code, &offset, &payload,
+            &payload_size));
+
+    /* the method id should match. */
+    EXPECT_EQ(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL,
+        method_id);
+    /* the status code should be success. */
+    EXPECT_EQ(STATUS_SUCCESS, status_code);
+    /* the offset should match. */
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+
+    /* clean up the buffer. */
+    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+}
+
+/**
+ * We can override the block assertion cancel method to return a different
+ * status.
+ */
+TEST_F(mock_notificationservice_test, block_assertion_cancel_override)
+{
+    uint64_t EXPECTED_OFFSET = 7177;
+    uint8_t* buf = nullptr;
+    size_t size = 0U;
+    uint32_t method_id = 0U;
+    uint32_t status_code = 0xFF;
+    uint64_t offset = 0U;
+    const uint8_t* payload = nullptr;
+    size_t payload_size = 0U;
+    uint32_t EXPECTED_STATUS_CODE =
+        AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED;
+
+    /* override the mock. */
+    mock->register_callback_block_assertion_cancel(
+        [=](uint64_t) -> int {
+            return EXPECTED_STATUS_CODE;
+        });
+
+    /* start the mock notificationservice. */
+    mock->start();
+
+    /* we should be able to send a block update request. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_sendreq_assertion_cancel(
+            sock, alloc, EXPECTED_OFFSET));
+
+    /* we should be able to receive a block update response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_recvresp(sock, alloc, &buf, &size));
+
+    /* the response buffer should not be NULL. */
+    ASSERT_NE(nullptr, buf);
+
+    /* we should be able to decode this block update response. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        notificationservice_api_decode_response(
+            buf, size, &method_id, &status_code, &offset, &payload,
+            &payload_size));
+
+    /* the method id should match. */
+    EXPECT_EQ(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL,
+        method_id);
+    /* the status code should be success. */
+    EXPECT_EQ(EXPECTED_STATUS_CODE, status_code);
+    /* the offset should match. */
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+
+    /* clean up the buffer. */
+    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+}
