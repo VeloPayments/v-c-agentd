@@ -54,6 +54,11 @@ TEST_F(mock_notificationservice_test, default_block_update)
         notificationservice_api_sendreq_block_update(
             sock, alloc, EXPECTED_OFFSET, &EXPECTED_BLOCK_ID));
 
+    /* we should be able to match on this request. */
+    EXPECT_TRUE(
+        mock->request_matches_block_update(
+            EXPECTED_OFFSET, &EXPECTED_BLOCK_ID));
+
     /* we should be able to receive a block update response. */
     ASSERT_EQ(
         STATUS_SUCCESS,
