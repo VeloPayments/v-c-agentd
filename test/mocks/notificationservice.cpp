@@ -21,6 +21,7 @@ using namespace std;
 
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_resource;
+RCPR_IMPORT_uuid;
 
 /**
  * \brief Create a mock notificationservice instance that will listen on the
@@ -169,7 +170,7 @@ bool mock_notificationservice::mock_notificationservice::mock_read_and_dispatch(
     const uint8_t* payload;
     size_t payload_size;
 
-    /* read a request to the data service mock. */
+    /* read a request to the notificationservice mock. */
     if (AGENTD_STATUS_SUCCESS !=
             ipc_read_data_block(notifysock, (void**)&val, &size))
     {
@@ -193,11 +194,23 @@ bool mock_notificationservice::mock_notificationservice::mock_read_and_dispatch(
         goto cleanup_val;
     }
 
-    /* for now, just write a success status. */
-    mock_write_status(
-        method, 0U,
-        AGENTD_STATUS_SUCCESS, nullptr, 0);
-    retval = true;
+    /* decode the method id. */
+    switch (method)
+    {
+        case AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE:
+            retval =
+                mock_decode_and_dispatch_block_update(
+                    offset, payload, payload_size);
+            break;
+
+        default:
+            /* for now, just write a success status. */
+            mock_write_status(
+                method, offset,
+                AGENTD_STATUS_SUCCESS, nullptr, 0);
+            retval = true;
+            break;
+    }
 
     /* done */
     goto cleanup_val;
@@ -242,4 +255,60 @@ void mock_notificationservice::mock_notificationservice::mock_write_status(
     (void)retval;
 
 done:;
+}
+
+/**
+ * \brief Decode and dispatch a block update request.
+ *
+ * \returns true if the request was dispatched successfully and false
+ *          otherwise.
+ */
+bool mock_notificationservice::mock_notificationservice::
+    mock_decode_and_dispatch_block_update(
+    uint64_t offset, const uint8_t* payload, size_t payload_size)
+{
+    bool retval = false;
+    uint32_t status = STATUS_SUCCESS;
+    rcpr_uuid block_id;
+
+    /* parse the request payload. */
+    if (payload_size != sizeof(block_id))
+    {
+        retval = false;
+        status = AGENTD_ERROR_NOTIFICATIONSERVICE_MALFORMED_REQUEST;
+        goto done;
+    }
+
+    /* if the mock callback is set, call it. */
+    if (!!block_update_callback)
+    {
+        status = block_update_callback(offset, &block_id);
+    }
+
+    /* copy the block id. */
+    memcpy(&block_id, payload, payload_size);
+    (void)block_id;
+
+    retval = true;
+    goto done;
+
+done:
+    mock_write_status(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE, offset, status, 
+        nullptr, 0U);
+
+    return retval;
+}
+
+/**
+ * \brief Register a mock callback for block update.
+ *
+ * \param cb        The callback to register.
+ */
+void mock_notificationservice::mock_notificationservice::
+    register_callback_block_update(
+    std::function<int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id)>
+    cb)
+{
+    block_update_callback = cb;
 }
