@@ -83,7 +83,8 @@ public:
      * \param cb        The callback to register.
      */
     void register_callback_reduce_caps(
-        std::function<int(uint64_t offset, uint32_t* caps, size_t size)> cb);
+        std::function<
+            int(uint64_t offset, const uint32_t* caps, size_t size)> cb);
 
     /**
      * \brief Register a mock callback for block update.
@@ -120,7 +121,7 @@ private:
     pid_t mock_pid;
     std::list<std::shared_ptr<mock_request>> request_list;
     RCPR_SYM(allocator)* rcpr_alloc;
-    std::function<int(uint64_t offset, uint32_t* caps, size_t size)>
+    std::function<int(uint64_t offset, const uint32_t* caps, size_t size)>
     reduce_caps_callback;
     std::function<int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id)>
     block_update_callback;
@@ -144,6 +145,15 @@ private:
      *          wrong (e.g. a socket was closed).
      */
     bool mock_read_and_dispatch();
+
+    /**
+     * \brief Decode and dispatch a reduce capabilities request.
+     *
+     * \returns true if the request was dispatched successfully and false
+     *          otherwise.
+     */
+    bool mock_decode_and_dispatch_reduce_caps(
+        uint64_t offset, const uint8_t* payload, size_t payload_size);
 
     /**
      * \brief Decode and dispatch a block update request.

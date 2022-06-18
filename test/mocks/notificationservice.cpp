@@ -6,6 +6,7 @@
  * \copyright 2022 Velo-Payments, Inc.  All rights reserved.
  */
 
+#include <agentd/bitcap.h>
 #include <agentd/ipc.h>
 #include <agentd/notificationservice/api.h>
 #include <agentd/status_codes.h>
@@ -197,6 +198,12 @@ bool mock_notificationservice::mock_notificationservice::mock_read_and_dispatch(
     /* decode the method id. */
     switch (method)
     {
+        case AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS:
+            retval =
+                mock_decode_and_dispatch_reduce_caps(
+                    offset, payload, payload_size);
+            break;
+
         case AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE:
             retval =
                 mock_decode_and_dispatch_block_update(
@@ -279,15 +286,15 @@ bool mock_notificationservice::mock_notificationservice::
         goto done;
     }
 
+    /* copy the block id. */
+    memcpy(&block_id, payload, payload_size);
+    (void)block_id;
+
     /* if the mock callback is set, call it. */
     if (!!block_update_callback)
     {
         status = block_update_callback(offset, &block_id);
     }
-
-    /* copy the block id. */
-    memcpy(&block_id, payload, payload_size);
-    (void)block_id;
 
     retval = true;
     goto done;
@@ -311,4 +318,59 @@ void mock_notificationservice::mock_notificationservice::
     cb)
 {
     block_update_callback = cb;
+}
+
+/**
+ * \brief Decode and dispatch a reduce capabilities request.
+ *
+ * \returns true if the request was dispatched successfully and false
+ *          otherwise.
+ */
+bool mock_notificationservice::mock_notificationservice::
+    mock_decode_and_dispatch_reduce_caps(
+    uint64_t offset, const uint8_t* payload, size_t payload_size)
+{
+    bool retval = false;
+    uint32_t status = STATUS_SUCCESS;
+    BITCAP(caps, NOTIFICATIONSERVICE_API_CAP_BITS_MAX);
+
+    /* parse the request payload. */
+    if (payload_size != sizeof(caps))
+    {
+        retval = false;
+        status = AGENTD_ERROR_NOTIFICATIONSERVICE_MALFORMED_REQUEST;
+        goto done;
+    }
+
+    /* copy the caps. */
+    memcpy(caps, payload, payload_size);
+
+    /* if the mock callback is set, call it. */
+    if (!!reduce_caps_callback)
+    {
+        status = reduce_caps_callback(offset, caps, payload_size);
+    }
+
+    retval = true;
+    goto done;
+
+done:
+    mock_write_status(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS, offset, status, 
+        nullptr, 0U);
+
+    return retval;
+}
+
+/**
+ * \brief Register a mock callback for reduce caps request.
+ *
+ * \param cb        The callback to register.
+ */
+void mock_notificationservice::mock_notificationservice::
+    register_callback_reduce_caps(
+    std::function<
+        int(uint64_t offset, const uint32_t* caps, size_t size)> cb)
+{
+    reduce_caps_callback = cb;
 }
