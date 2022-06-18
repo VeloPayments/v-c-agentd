@@ -210,6 +210,12 @@ bool mock_notificationservice::mock_notificationservice::mock_read_and_dispatch(
                     offset, payload, payload_size);
             break;
 
+        case AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION:
+            retval =
+                mock_decode_and_dispatch_block_assertion(
+                    offset, payload, payload_size);
+            break;
+
         default:
             /* for now, just write a success status. */
             mock_write_status(
@@ -373,4 +379,60 @@ void mock_notificationservice::mock_notificationservice::
         int(uint64_t offset, const uint32_t* caps, size_t size)> cb)
 {
     reduce_caps_callback = cb;
+}
+
+/**
+ * \brief Decode and dispatch a block assertion request.
+ *
+ * \returns true if the request was dispatched successfully and false
+ *          otherwise.
+ */
+bool mock_notificationservice::mock_notificationservice::
+    mock_decode_and_dispatch_block_assertion(
+    uint64_t offset, const uint8_t* payload, size_t payload_size)
+{
+    bool retval = false;
+    uint32_t status = STATUS_SUCCESS;
+    rcpr_uuid block_id;
+
+    /* parse the request payload. */
+    if (payload_size != sizeof(block_id))
+    {
+        retval = false;
+        status = AGENTD_ERROR_NOTIFICATIONSERVICE_MALFORMED_REQUEST;
+        goto done;
+    }
+
+    /* copy the block id. */
+    memcpy(&block_id, payload, payload_size);
+    (void)block_id;
+
+    /* if the mock callback is set, call it. */
+    if (!!block_assertion_callback)
+    {
+        status = block_assertion_callback(offset, &block_id);
+    }
+
+    retval = true;
+    goto done;
+
+done:
+    mock_write_status(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION, offset,
+        status, nullptr, 0U);
+
+    return retval;
+}
+
+/**
+ * \brief Register a mock callback for block assertion.
+ *
+ * \param cb        The callback to register.
+ */
+void mock_notificationservice::mock_notificationservice::
+    register_callback_block_assertion(
+    std::function<int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id)>
+    cb)
+{
+    block_assertion_callback = cb;
 }
