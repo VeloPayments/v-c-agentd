@@ -170,6 +170,11 @@ TEST_F(mock_notificationservice_test, default_reduce_caps)
         notificationservice_api_sendreq_reduce_caps(
             sock, alloc, EXPECTED_OFFSET, caps, sizeof(caps)));
 
+    /* we should be able to match on this request. */
+    EXPECT_TRUE(
+        mock->request_matches_reduce_caps(
+            EXPECTED_OFFSET, caps, sizeof(caps)));
+
     /* we should be able to receive a reduce caps response. */
     ASSERT_EQ(
         STATUS_SUCCESS,

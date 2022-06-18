@@ -82,10 +82,10 @@ public:
      *
      * \param offset        The request offset.
      * \param caps          The caps buffer.
-     * \param size          The size of the caps buffer.
+     * \param caps_size     The size of the caps buffer.
      */
     bool request_matches_reduce_caps(
-        uint64_t offset, const uint32_t* caps, size_t size);
+        uint64_t offset, const uint32_t* caps, size_t caps_size);
 
     /**
      * \brief Return true if the next popped request matches this request.
