@@ -579,3 +579,82 @@ cleanup_val:
 done:
     return retval;
 }
+
+/**
+ * \brief Return true if the next popped request matches this request.
+ *
+ * \param offset        The request offset.
+ * \param caps          The caps buffer.
+ * \param caps_size     The size of the caps buffer.
+ */
+bool mock_notificationservice::mock_notificationservice::
+    request_matches_reduce_caps(
+    uint64_t offset, const uint32_t* caps, size_t caps_size)
+{
+    status status_code;
+    bool retval = false;
+    void* val = nullptr;
+    uint32_t size = 0U;
+    uint32_t method = 0U;
+    uint64_t read_offset = 0U;
+    const uint8_t* payload = nullptr;
+    size_t payload_size = 0U;
+    BITCAP(bitcaps, NOTIFICATIONSERVICE_API_CAP_BITS_MAX);
+
+    /* read a request from the test socket. */
+    status_code = ipc_read_data_block(testsock, &val, &size);
+    if (STATUS_SUCCESS != status_code)
+    {
+        retval = false;
+        goto done;
+    }
+
+    /* decode the request. */
+    status_code =
+        notificationservice_api_decode_request(
+            (const uint8_t*)val, size, &method, &read_offset, &payload,
+            &payload_size);
+    if (STATUS_SUCCESS != status_code)
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* check the payload size. */
+    if (payload_size != sizeof(bitcaps) || payload_size != caps_size)
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* compare the method id. */
+    if (AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS != method)
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* compare the offset. */
+    if (read_offset != offset)
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* compare the block id. */
+    if (memcmp(caps, payload, payload_size))
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* success. */
+    retval = true;
+    goto cleanup_val;
+
+cleanup_val:
+    free(val);
+
+done:
+    return retval;
+}
