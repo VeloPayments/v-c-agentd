@@ -403,6 +403,9 @@ TEST_F(mock_notificationservice_test, default_block_assertion_cancel)
         notificationservice_api_sendreq_assertion_cancel(
             sock, alloc, EXPECTED_OFFSET));
 
+    /* we should be able to match on this request. */
+    EXPECT_TRUE(mock->request_matches_block_assertion_cancel(EXPECTED_OFFSET));
+
     /* we should be able to receive a block update response. */
     ASSERT_EQ(
         STATUS_SUCCESS,

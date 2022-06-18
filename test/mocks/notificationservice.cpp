@@ -735,3 +735,72 @@ cleanup_val:
 done:
     return retval;
 }
+
+/**
+ * \brief Return true if the next popped request matches this request.
+ *
+ * \param offset        The request offset.
+ */
+bool mock_notificationservice::mock_notificationservice::
+    request_matches_block_assertion_cancel(uint64_t offset)
+{
+    status status_code;
+    bool retval = false;
+    void* val = nullptr;
+    uint32_t size = 0U;
+    uint32_t method = 0U;
+    uint64_t read_offset = 0U;
+    const uint8_t* payload = nullptr;
+    size_t payload_size = 0U;
+
+    /* read a request from the test socket. */
+    status_code = ipc_read_data_block(testsock, &val, &size);
+    if (STATUS_SUCCESS != status_code)
+    {
+        retval = false;
+        goto done;
+    }
+
+    /* decode the request. */
+    status_code =
+        notificationservice_api_decode_request(
+            (const uint8_t*)val, size, &method, &read_offset, &payload,
+            &payload_size);
+    if (STATUS_SUCCESS != status_code)
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* check the payload size. */
+    if (payload_size != 0U)
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* compare the method id. */
+    if (AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL
+        != method)
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* compare the offset. */
+    if (read_offset != offset)
+    {
+        retval = false;
+        goto cleanup_val;
+    }
+
+    /* success. */
+    retval = true;
+    goto cleanup_val;
+
+cleanup_val:
+    free(val);
+
+done:
+    return retval;
+}
