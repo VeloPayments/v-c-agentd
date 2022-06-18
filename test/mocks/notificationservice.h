@@ -165,6 +165,15 @@ private:
         uint64_t offset, const uint8_t* payload, size_t payload_size);
 
     /**
+     * \brief Decode and dispatch a block assertion request.
+     *
+     * \returns true if the request was dispatched successfully and false
+     *          otherwise.
+     */
+    bool mock_decode_and_dispatch_block_assertion(
+        uint64_t offset, const uint8_t* payload, size_t payload_size);
+
+    /**
      * \brief Write the status back to the caller.
      *
      * \param method    The method requested.
