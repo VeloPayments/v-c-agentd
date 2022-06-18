@@ -32,8 +32,8 @@ struct mock_request
 };
 
 /**
-     * \brief Mock request deleter.
-     */
+ * \brief Mock request deleter.
+ */
 struct mock_request_deleter
 {
     void operator()(mock_request* p) const
@@ -83,9 +83,7 @@ public:
      * \param cb        The callback to register.
      */
     void register_callback_reduce_caps(
-        std::function<
-            int(uint64_t offset, uint32_t* caps, size_t size, std::ostream&)>
-        cb);
+        std::function<int(uint64_t offset, uint32_t* caps, size_t size)> cb);
 
     /**
      * \brief Register a mock callback for block update.
@@ -93,9 +91,7 @@ public:
      * \param cb        The callback to register.
      */
     void register_callback_block_update(
-        std::function<
-            int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id,
-                std::ostream&)>
+        std::function<int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id)>
         cb);
 
     /**
@@ -104,9 +100,7 @@ public:
      * \param cb        The callback to register.
      */
     void register_callback_block_assertion(
-        std::function<
-            int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id,
-                std::ostream&)>
+        std::function<int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id)>
         cb);
 
     /**
@@ -115,8 +109,7 @@ public:
      * \param cb        The callback to register.
      */
     void register_callback_block_assertion_cancel(
-        std::function<
-            int(uint64_t offset, std::ostream&)>
+        std::function<int(uint64_t offset)>
         cb);
 
 private:
@@ -127,19 +120,13 @@ private:
     pid_t mock_pid;
     std::list<std::shared_ptr<mock_request>> request_list;
     RCPR_SYM(allocator)* rcpr_alloc;
-    std::function<
-        int(uint64_t offset, uint32_t* caps, size_t size, std::ostream&)>
+    std::function<int(uint64_t offset, uint32_t* caps, size_t size)>
     reduce_caps_callback;
-    std::function<
-        int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id,
-            std::ostream&)>
+    std::function<int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id)>
     block_update_callback;
-    std::function<
-        int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id,
-            std::ostream&)>
+    std::function<int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id)>
     block_assertion_callback;
-    std::function<
-        int(uint64_t offset, std::ostream&)>
+    std::function<int(uint64_t offset)>
     block_assertion_cancel_callback;
 
     /**
@@ -157,6 +144,15 @@ private:
      *          wrong (e.g. a socket was closed).
      */
     bool mock_read_and_dispatch();
+
+    /**
+     * \brief Decode and dispatch a block update request.
+     *
+     * \returns true if the request was dispatched successfully and false
+     *          otherwise.
+     */
+    bool mock_decode_and_dispatch_block_update(
+        uint64_t offset, const uint8_t* payload, size_t payload_size);
 
     /**
      * \brief Write the status back to the caller.
