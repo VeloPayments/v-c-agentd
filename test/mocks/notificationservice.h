@@ -78,6 +78,41 @@ public:
     void stop();
 
     /**
+     * \brief Return true if the next popped request matches this request.
+     *
+     * \param offset        The request offset.
+     * \param caps          The caps buffer.
+     * \param size          The size of the caps buffer.
+     */
+    bool request_matches_reduce_caps(
+        uint64_t offset, const uint32_t* caps, size_t size);
+
+    /**
+     * \brief Return true if the next popped request matches this request.
+     *
+     * \param offset        The request offset.
+     * \param block_id      The request block id.
+     */
+    bool request_matches_block_update(
+        uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id);
+
+    /**
+     * \brief Return true if the next popped request matches this request.
+     *
+     * \param offset        The request offset.
+     * \param block_id      The request block id.
+     */
+    bool request_matches_block_assertion(
+        uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id);
+
+    /**
+     * \brief Return true if the next popped request matches this request.
+     *
+     * \param offset        The request offset.
+     */
+    bool request_matches_block_assertion_cancel(uint64_t offset);
+
+    /**
      * \brief Register a mock callback for reduce caps request.
      *
      * \param cb        The callback to register.
