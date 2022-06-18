@@ -18,6 +18,7 @@
 #include <list>
 #include <memory>
 #include <rcpr/allocator.h>
+#include <rcpr/uuid.h>
 #include <sys/types.h>
 
 namespace mock_notificationservice {
@@ -76,6 +77,48 @@ public:
      */
     void stop();
 
+    /**
+     * \brief Register a mock callback for reduce caps request.
+     *
+     * \param cb        The callback to register.
+     */
+    void register_callback_reduce_caps(
+        std::function<
+            int(uint64_t offset, uint32_t* caps, size_t size, std::ostream&)>
+        cb);
+
+    /**
+     * \brief Register a mock callback for block update.
+     *
+     * \param cb        The callback to register.
+     */
+    void register_callback_block_update(
+        std::function<
+            int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id,
+                std::ostream&)>
+        cb);
+
+    /**
+     * \brief Register a mock callback for block assertion.
+     *
+     * \param cb        The callback to register.
+     */
+    void register_callback_block_assertion(
+        std::function<
+            int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id,
+                std::ostream&)>
+        cb);
+
+    /**
+     * \brief Register a mock callback for block assertion cancel.
+     *
+     * \param cb        The callback to register.
+     */
+    void register_callback_block_assertion_cancel(
+        std::function<
+            int(uint64_t offset, std::ostream&)>
+        cb);
+
 private:
     int notifysock;
     bool running;
@@ -84,6 +127,20 @@ private:
     pid_t mock_pid;
     std::list<std::shared_ptr<mock_request>> request_list;
     RCPR_SYM(allocator)* rcpr_alloc;
+    std::function<
+        int(uint64_t offset, uint32_t* caps, size_t size, std::ostream&)>
+    reduce_caps_callback;
+    std::function<
+        int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id,
+            std::ostream&)>
+    block_update_callback;
+    std::function<
+        int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id,
+            std::ostream&)>
+    block_assertion_callback;
+    std::function<
+        int(uint64_t offset, std::ostream&)>
+    block_assertion_cancel_callback;
 
     /**
      * \brief Run the mock notificationservice process.
