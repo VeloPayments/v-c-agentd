@@ -216,6 +216,12 @@ bool mock_notificationservice::mock_notificationservice::mock_read_and_dispatch(
                     offset, payload, payload_size);
             break;
 
+        case AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL:
+            retval =
+                mock_decode_and_dispatch_block_assertion_cancel(
+                    offset, payload, payload_size);
+            break;
+
         default:
             /* for now, just write a success status. */
             mock_write_status(
@@ -435,4 +441,57 @@ void mock_notificationservice::mock_notificationservice::
     cb)
 {
     block_assertion_callback = cb;
+}
+
+/**
+ * \brief Decode and dispatch a block assertion cancel request.
+ *
+ * \returns true if the request was dispatched successfully and false
+ *          otherwise.
+ */
+bool mock_notificationservice::mock_notificationservice::
+    mock_decode_and_dispatch_block_assertion_cancel(
+    uint64_t offset, const uint8_t* payload, size_t payload_size)
+{
+    bool retval = false;
+    uint32_t status = STATUS_SUCCESS;
+
+    /* parse the request payload. */
+    if (payload_size != 0U)
+    {
+        retval = false;
+        status = AGENTD_ERROR_NOTIFICATIONSERVICE_MALFORMED_REQUEST;
+        goto done;
+    }
+
+    (void)payload;
+
+    /* if the mock callback is set, call it. */
+    if (!!block_assertion_cancel_callback)
+    {
+        status = block_assertion_cancel_callback(offset);
+    }
+
+    retval = true;
+    goto done;
+
+done:
+    mock_write_status(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL, offset,
+        status, nullptr, 0U);
+
+    return retval;
+}
+
+/**
+ * \brief Register a mock callback for block assertion cancel.
+ *
+ * \param cb        The callback to register.
+ */
+void mock_notificationservice::mock_notificationservice::
+    register_callback_block_assertion_cancel(
+    std::function<int(uint64_t offset)>
+    cb)
+{
+    block_assertion_cancel_callback = cb;
 }
