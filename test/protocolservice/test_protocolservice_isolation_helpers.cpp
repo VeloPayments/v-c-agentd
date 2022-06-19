@@ -204,6 +204,11 @@ void protocolservice_isolation_test::SetUp()
     /* create the mock dataservice. */
     dataservice = make_unique<mock_dataservice::mock_dataservice>(datasock);
 
+    /* create the mock notificationservice. */
+    notifyservice =
+        make_unique<mock_notificationservice::mock_notificationservice>(
+            notifysock_srv);
+
     /* if the spawn is successful, send the service the other half of a protocol
      * socket. */
     if (0 == proto_proc_status)
@@ -253,6 +258,7 @@ void protocolservice_isolation_test::TearDown()
     close(datasock);
     close(acceptsock);
     close(controlsock);
+    close(notifysock);
     free(path);
     if (suite_instance_initialized)
     {

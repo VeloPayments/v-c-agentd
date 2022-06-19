@@ -10,6 +10,7 @@
 
 #include "../directory_test_helper.h"
 #include "../mocks/dataservice.h"
+#include "../mocks/notificationservice.h"
 #include <agentd/config.h>
 #include <agentd/inet.h>
 #include <agentd/ipc.h>
@@ -68,6 +69,8 @@ protected:
     vccrypt_buffer_t client_private_key;
     bool client_private_key_initialized;
     std::unique_ptr<mock_dataservice::mock_dataservice> dataservice;
+    std::unique_ptr<mock_notificationservice::mock_notificationservice>
+    notifyservice;
 
     static const uint8_t dir_key[32];
     static const uint8_t authorized_entity_id[16];
