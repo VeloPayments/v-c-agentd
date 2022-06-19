@@ -122,6 +122,14 @@ public:
             int(uint64_t offset, const uint32_t* caps, size_t size)> cb);
 
     /**
+     * \brief Override the return status for the reduce caps call.
+     *
+     * \param override_flag     Set to true to disable the status write, and
+     *                          false to enable it.
+     */
+    void override_reduce_caps_status(bool override_flag);
+
+    /**
      * \brief Register a mock callback for block update.
      *
      * \param cb        The callback to register.
@@ -129,6 +137,14 @@ public:
     void register_callback_block_update(
         std::function<int(uint64_t offset, const RCPR_SYM(rcpr_uuid)* block_id)>
         cb);
+
+    /**
+     * \brief Override the return status for the block update call.
+     *
+     * \param override_flag     Set to true to disable the status write, and
+     *                          false to enable it.
+     */
+    void override_block_update_status(bool override_flag);
 
     /**
      * \brief Register a mock callback for block assertion.
@@ -140,6 +156,14 @@ public:
         cb);
 
     /**
+     * \brief Override the return status for the block assertion call.
+     *
+     * \param override_flag     Set to true to disable the status write, and
+     *                          false to enable it.
+     */
+    void override_block_assertion_status(bool override_flag);
+
+    /**
      * \brief Register a mock callback for block assertion cancel.
      *
      * \param cb        The callback to register.
@@ -147,6 +171,14 @@ public:
     void register_callback_block_assertion_cancel(
         std::function<int(uint64_t offset)>
         cb);
+
+    /**
+     * \brief Override the return status for the block assertion cancel call.
+     *
+     * \param override_flag     Set to true to disable the status write, and
+     *                          false to enable it.
+     */
+    void override_block_assertion_cancel_status(bool override_flag);
 
     /**
      * \brief Write the status back to the caller.
