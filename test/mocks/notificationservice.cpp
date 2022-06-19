@@ -38,6 +38,7 @@ mock_notificationservice::mock_notificationservice::mock_notificationservice(
     , testsock(-1)
     , mocksock(-1)
     , reduce_caps_status_override(false)
+    , block_update_status_override(false)
 {
     status retval = rcpr_malloc_allocator_create(&rcpr_alloc);
     (void)retval;
@@ -320,9 +321,12 @@ bool mock_notificationservice::mock_notificationservice::
     goto done;
 
 done:
-    mock_write_status(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE, offset, status, 
-        nullptr, 0U);
+    if (!block_update_status_override)
+    {
+        mock_write_status(
+            AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE, offset,
+            status, nullptr, 0U);
+    }
 
     return retval;
 }
@@ -819,4 +823,16 @@ void mock_notificationservice::mock_notificationservice::
     override_reduce_caps_status(bool override_flag)
 {
     reduce_caps_status_override = override_flag;
+}
+
+/**
+ * \brief Override the return status for the block update call.
+ *
+ * \param override_flag     Set to true to disable the status write, and
+ *                          false to enable it.
+ */
+void mock_notificationservice::mock_notificationservice::
+    override_block_update_status(bool override_flag)
+{
+    block_update_status_override = override_flag;
 }
