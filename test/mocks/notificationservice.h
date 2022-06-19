@@ -211,6 +211,7 @@ private:
     block_assertion_cancel_callback;
     bool reduce_caps_status_override;
     bool block_update_status_override;
+    bool block_assertion_status_override;
 
     /**
      * \brief Run the mock notificationservice process.
