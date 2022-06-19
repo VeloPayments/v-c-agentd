@@ -741,8 +741,9 @@ TEST_F(protocolservice_isolation_test, get_latest_block_id_happy_path)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -785,8 +786,9 @@ TEST_F(protocolservice_isolation_test, get_latest_block_id_happy_path)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -848,8 +850,9 @@ TEST_F(protocolservice_isolation_test, get_block_id_by_height_happy_path)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -893,8 +896,9 @@ TEST_F(protocolservice_isolation_test, get_block_id_by_height_happy_path)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -940,8 +944,9 @@ TEST_F(protocolservice_isolation_test, transaction_submit_big_certificate)
     /* register dataservice helper mocks. */
     ASSERT_EQ(0, dataservice_mock_register_helper());
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -980,8 +985,9 @@ TEST_F(protocolservice_isolation_test, transaction_submit_big_certificate)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1029,8 +1035,9 @@ TEST_F(protocolservice_isolation_test, transaction_submit_happy_path)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1071,8 +1078,9 @@ TEST_F(protocolservice_isolation_test, transaction_submit_happy_path)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1120,8 +1128,9 @@ TEST_F(protocolservice_isolation_test, block_get_by_id_not_found)
             return AGENTD_ERROR_DATASERVICE_NOT_FOUND;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1161,8 +1170,9 @@ TEST_F(protocolservice_isolation_test, block_get_by_id_not_found)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1224,8 +1234,9 @@ TEST_F(protocolservice_isolation_test, block_get_by_id_happy_path)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1272,8 +1283,9 @@ TEST_F(protocolservice_isolation_test, block_get_by_id_happy_path)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1337,8 +1349,9 @@ TEST_F(protocolservice_isolation_test, block_get_next_id)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1381,8 +1394,9 @@ TEST_F(protocolservice_isolation_test, block_get_next_id)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1447,8 +1461,9 @@ TEST_F(protocolservice_isolation_test, block_get_next_id_end)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1488,8 +1503,9 @@ TEST_F(protocolservice_isolation_test, block_get_next_id_end)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1553,8 +1569,9 @@ TEST_F(protocolservice_isolation_test, block_get_prev_id)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1597,8 +1614,9 @@ TEST_F(protocolservice_isolation_test, block_get_prev_id)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1663,8 +1681,9 @@ TEST_F(protocolservice_isolation_test, block_get_prev_id_end)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1704,8 +1723,9 @@ TEST_F(protocolservice_isolation_test, block_get_prev_id_end)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1767,8 +1787,9 @@ TEST_F(protocolservice_isolation_test, txn_get_by_id_happy_path)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1815,8 +1836,9 @@ TEST_F(protocolservice_isolation_test, txn_get_by_id_happy_path)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1880,8 +1902,9 @@ TEST_F(protocolservice_isolation_test, txn_get_next_id_happy_path)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -1924,8 +1947,9 @@ TEST_F(protocolservice_isolation_test, txn_get_next_id_happy_path)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -1990,8 +2014,9 @@ TEST_F(protocolservice_isolation_test, txn_get_next_id_end)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -2031,8 +2056,9 @@ TEST_F(protocolservice_isolation_test, txn_get_next_id_end)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -2096,8 +2122,9 @@ TEST_F(protocolservice_isolation_test, txn_get_prev_id_happy_path)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -2140,8 +2167,9 @@ TEST_F(protocolservice_isolation_test, txn_get_prev_id_happy_path)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -2206,8 +2234,9 @@ TEST_F(protocolservice_isolation_test, txn_get_prev_id_end)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -2247,8 +2276,9 @@ TEST_F(protocolservice_isolation_test, txn_get_prev_id_end)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -2312,8 +2342,9 @@ TEST_F(protocolservice_isolation_test, txn_get_block_id_happy_path)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -2356,8 +2387,9 @@ TEST_F(protocolservice_isolation_test, txn_get_block_id_happy_path)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -2420,8 +2452,9 @@ TEST_F(protocolservice_isolation_test, artifact_first_txn_happy)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -2464,8 +2497,9 @@ TEST_F(protocolservice_isolation_test, artifact_first_txn_happy)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -2528,8 +2562,9 @@ TEST_F(protocolservice_isolation_test, artifact_last_txn_happy)
             return AGENTD_STATUS_SUCCESS;
         });
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -2572,8 +2607,9 @@ TEST_F(protocolservice_isolation_test, artifact_last_txn_happy)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -2603,8 +2639,9 @@ TEST_F(protocolservice_isolation_test, status_happy)
     /* register dataservice helper mocks. */
     ASSERT_EQ(0, dataservice_mock_register_helper());
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* add the hardcoded keys. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
@@ -2643,8 +2680,9 @@ TEST_F(protocolservice_isolation_test, status_happy)
     /* close the socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* verify proper connection setup. */
     EXPECT_EQ(0, dataservice_mock_valid_connection_setup());
@@ -2681,8 +2719,9 @@ TEST_F(protocolservice_isolation_test, ctrl_auth_entity_add)
     /* register dataservice helper mocks. */
     ASSERT_EQ(0, dataservice_mock_register_helper());
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* send an authorized entity add request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -2703,8 +2742,9 @@ TEST_F(protocolservice_isolation_test, ctrl_auth_entity_add)
     /* close the protocol socket */
     close(protosock);
 
-    /* stop the mock. */
+    /* stop the mocks. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* clean up. */
     dispose((disposable_t*)&entity_encryption_key);
@@ -2748,8 +2788,9 @@ TEST_F(protocolservice_isolation_test, ctrl_set_private_key)
     /* register dataservice helper mocks. */
     ASSERT_EQ(0, dataservice_mock_register_helper());
 
-    /* start the mock. */
+    /* start the mocks. */
     dataservice->start();
+    notifyservice->start();
 
     /* send the private key set request. */
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
@@ -2773,6 +2814,7 @@ TEST_F(protocolservice_isolation_test, ctrl_set_private_key)
 
     /* stop the mock. */
     dataservice->stop();
+    notifyservice->stop();
 
     /* clean up. */
     dispose((disposable_t*)&entity_encryption_pubkey);
