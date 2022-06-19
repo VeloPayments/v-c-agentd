@@ -148,6 +148,19 @@ public:
         std::function<int(uint64_t offset)>
         cb);
 
+    /**
+     * \brief Write the status back to the caller.
+     *
+     * \param method    The method requested.
+     * \param offset    The child offset.
+     * \param status    The status code.
+     * \param payload   The response payload, or ptr if none.
+     * \param size      The response payload size.
+     */
+    void mock_write_status(
+        uint32_t method, uint64_t offset, uint32_t status,
+        const void* payload, size_t size);
+
 private:
     int notifysock;
     bool running;
@@ -216,18 +229,5 @@ private:
      */
     bool mock_decode_and_dispatch_block_assertion_cancel(
         uint64_t offset, const uint8_t* payload, size_t payload_size);
-
-    /**
-     * \brief Write the status back to the caller.
-     *
-     * \param method    The method requested.
-     * \param offset    The child offset.
-     * \param status    The status code.
-     * \param payload   The response payload, or ptr if none.
-     * \param size      The response payload size.
-     */
-    void mock_write_status(
-        uint32_t method, uint64_t offset, uint32_t status,
-        const void* payload, size_t size);
 };
 }
