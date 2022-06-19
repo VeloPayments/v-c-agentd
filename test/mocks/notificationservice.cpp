@@ -37,6 +37,7 @@ mock_notificationservice::mock_notificationservice::mock_notificationservice(
     , running(false)
     , testsock(-1)
     , mocksock(-1)
+    , reduce_caps_status_override(false)
 {
     status retval = rcpr_malloc_allocator_create(&rcpr_alloc);
     (void)retval;
@@ -374,9 +375,12 @@ bool mock_notificationservice::mock_notificationservice::
     goto done;
 
 done:
-    mock_write_status(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS, offset, status, 
-        nullptr, 0U);
+    if (!reduce_caps_status_override)
+    {
+        mock_write_status(
+            AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS, offset,
+            status, nullptr, 0U);
+    }
 
     return retval;
 }
@@ -803,4 +807,16 @@ cleanup_val:
 
 done:
     return retval;
+}
+
+/**
+ * \brief Override the return status for the reduce caps call.
+ *
+ * \param override_flag     Set to true to disable the status write, and
+ *                          false to enable it.
+ */
+void mock_notificationservice::mock_notificationservice::
+    override_reduce_caps_status(bool override_flag)
+{
+    reduce_caps_status_override = override_flag;
 }
