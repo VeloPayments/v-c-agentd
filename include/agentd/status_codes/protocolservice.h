@@ -178,6 +178,12 @@ extern "C" {
 #define AGENTD_ERROR_PROTOCOLSERVICE_CONTROL_ENTITY_NOT_FOUND \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001BU)
 
+/**
+ * \brief The latest block assertion was already set.
+ */
+#define AGENTD_ERROR_PROTOCOLSERVICE_BLOCK_ASSERTION_ALREADY_SET \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001CU)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }

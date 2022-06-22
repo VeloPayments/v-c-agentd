@@ -207,7 +207,7 @@ void protocolservice_isolation_test::SetUp()
     /* create the mock notificationservice. */
     notifyservice =
         make_unique<mock_notificationservice::mock_notificationservice>(
-            notifysock_srv);
+            notifysock);
 
     /* if the spawn is successful, send the service the other half of a protocol
      * socket. */

@@ -118,6 +118,7 @@ struct protocolservice_context
     RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
     RCPR_SYM(mailbox_address) data_endpoint_addr;
     RCPR_SYM(mailbox_address) random_endpoint_addr;
+    RCPR_SYM(mailbox_address) notificationservice_endpoint_addr;
     RCPR_SYM(fiber)* main_fiber;
     RCPR_SYM(rbtree)* authorized_entity_dict;
     vccrypt_suite_options_t suite;
@@ -205,7 +206,55 @@ struct protocolservice_notificationservice_fiber_context
     RCPR_SYM(fiber_scheduler_discipline)* msgdisc;
     RCPR_SYM(mailbox_address) notify_addr;
     RCPR_SYM(psock)* notifysock;
+    RCPR_SYM(rbtree)* client_xlat_map;
+    RCPR_SYM(rbtree)* server_xlat_map;
     int reference_count;
+    uint64_t request_offset_counter;
+};
+
+/**
+ * \brief Block assertion request message for the notification service endpoint.
+ */
+typedef struct protocolservice_notificationservice_block_assertion_request
+protocolservice_notificationservice_block_assertion_request;
+
+struct protocolservice_notificationservice_block_assertion_request
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    RCPR_SYM(rcpr_uuid) block_id;
+    RCPR_SYM(mailbox_address) reply_addr;
+    bool cancel;
+};
+
+/**
+ * \brief Block assertion response message for the notification service
+ * endpoint.
+ */
+typedef struct protocolservice_notificationservice_block_assertion_response
+protocolservice_notificationservice_block_assertion_response;
+
+struct protocolservice_notificationservice_block_assertion_response
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    bool success;
+    uint64_t offset;
+};
+
+/**
+ * \brief Entry in the notificationservice translation table.
+ */
+typedef struct protocolservice_notificationservice_xlat_entry
+protocolservice_notificationservice_xlat_entry;
+
+struct protocolservice_notificationservice_xlat_entry
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    int reference_count;
+    RCPR_SYM(mailbox_address) client_addr;
+    uint64_t server_offset;
 };
 
 /**
@@ -310,6 +359,9 @@ struct protocolservice_protocol_fiber_context
     RCPR_SYM(mailbox_address) fiber_addr;
     const protocolservice_authorized_entity* entity;
     bool dataservice_context_opened;
+    bool latest_block_id_assertion_set;
+    uint32_t latest_block_id_assertion_client_offset;
+    uint64_t latest_block_id_assertion_server_offset;
 };
 
 /**
@@ -1759,6 +1811,22 @@ status protocolservice_protocol_dnd_artifact_last_transaction_id_get(
     const uint8_t* payload, size_t payload_size);
 
 /**
+ * \brief Decode and dispatch a block assertion request.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_dnd_assert_latest_block_id(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
  * \brief Decode and dispatch a status get request.
  *
  * \param ctx               The protocol service protocol fiber context.
@@ -1826,6 +1894,188 @@ status protocolservice_notificationservice_endpoint_fiber_entry(void* vctx);
  */
 status protocolservice_notificationservice_write_endpoint_fiber_entry(
     void* vctx);
+
+/**
+ * \brief Handle an assert block request from the protocol.
+ *
+ * This method creates an assert block request for the notification service
+ * endpoint, sends it, and receives a response with the notification service
+ * offset.
+ *
+ * \param ctx           The protocolservice protocol context for this request.
+ * \param block_id      The block id for this request.
+ * \param offset        Pointer to be populated with the notificationservice
+ *                      offset for this request, which can be used to cancel it.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_handle_assert_block_request(
+    protocolservice_protocol_fiber_context* ctx, const vpr_uuid* block_id,
+    uint64_t* offset);
+
+/**
+ * \brief Create a block assertion request message for the notificationservice
+ * endpoint.
+ *
+ * \param payload       The pointer to receive this created message payload.
+ * \param alloc         The allocator for this operation.
+ * \param block_id      The block id for this operation.
+ * \param return_addr   The return address to send the invalidation.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_block_assertion_request_create(
+    protocolservice_notificationservice_block_assertion_request** payload,
+    RCPR_SYM(allocator)* alloc, const RCPR_SYM(rcpr_uuid)* block_id,
+    RCPR_SYM(mailbox_address) return_addr);
+
+/**
+ * \brief Release the block assertion request resource.
+ *
+ * \param r             The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_block_assertion_request_release(
+    RCPR_SYM(resource)* r);
+
+/**
+ * \brief Compare two opaque \ref protocolservice_notificationservice_xlat_entry
+ * values.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs.
+ */
+RCPR_SYM(rcpr_comparison_result)
+protocolservice_notificationservice_client_xlat_map_compare(
+    void* context, const void* lhs, const void* rhs);
+
+/**
+ * \brief Given a protocolservice_notificationservice_xlat_entry resource handle,
+ * return its \ref client_offset value.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of an authorized entity.
+ *
+ * \returns the key for the authorized entity resource.
+ */
+const void* protocolservice_notificationservice_client_xlat_map_key(
+    void* context, const RCPR_SYM(resource)* r);
+
+/**
+ * \brief Compare two opaque \ref protocolservice_notificationservice_xlat_entry
+ * values.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs.
+ */
+RCPR_SYM(rcpr_comparison_result)
+protocolservice_notificationservice_server_xlat_map_compare(
+    void* context, const void* lhs, const void* rhs);
+
+/**
+ * \brief Given a protocolservice_notificationservice_xlat_entry resource handle,
+ * return its \ref server_offset value.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of an authorized entity.
+ *
+ * \returns the key for the authorized entity resource.
+ */
+const void* protocolservice_notificationservice_server_xlat_map_key(
+    void* context, const RCPR_SYM(resource)* r);
+
+/**
+ * \brief Add a request to the notificationservice translation maps.
+ *
+ * \param ctx           The endpoint context.
+ * \param msg_offset    The server-side offset.
+ * \param client_addr   The client_side mailbox address.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_xlat_map_add(
+    protocolservice_notificationservice_fiber_context* ctx,
+    uint64_t msg_offset, RCPR_SYM(mailbox_address) client_addr);
+
+/**
+ * \brief Send a response for a request sent to the notificationservice.
+ *
+ * \param ctx           The endpoint context.
+ * \param reply_addr    The reply address.
+ * \param msg_offset    The server-side offset.
+ * \param success       Flag indicating success or failure.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_endpoint_send_request_response(
+    protocolservice_notificationservice_fiber_context* ctx,
+    RCPR_SYM(mailbox_address) reply_addr, uint64_t msg_offset, bool success);
+
+/**
+ * \brief Reduce the reference count and possibly release a translation
+ * table entry resource.
+ *
+ * \param r             The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_xlat_entry_release(
+    RCPR_SYM(resource)* r);
+
+/**
+ * \brief Create a notificationservice endpoint block assertion response message
+ * payload.
+ *
+ * \param payload       Pointer to receive the payload on success.
+ * \param alloc         The allocator to use for this operation.
+ * \param offset        The offset value to send in the response.
+ * \param success       Flag to indicate whether the request was successful.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_block_assertion_response_create(
+    protocolservice_notificationservice_block_assertion_response** payload,
+    RCPR_SYM(allocator)* alloc, uint64_t offset, bool success);
+
+/**
+ * \brief Release a notificationservice endpoint block assertion response
+ * message payload resource.
+ *
+ * \param r             The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_block_assertion_response_release(
+    RCPR_SYM(resource)* r);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

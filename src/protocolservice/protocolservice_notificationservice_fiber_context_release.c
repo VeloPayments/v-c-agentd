@@ -14,6 +14,7 @@
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
+RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
 
 /**
@@ -30,6 +31,8 @@ status protocolservice_notificationservice_fiber_context_release(
 {
     status notify_addr_close_retval = STATUS_SUCCESS;
     status notifysock_release_retval = STATUS_SUCCESS;
+    status client_xlat_map_release_retval = STATUS_SUCCESS;
+    status server_xlat_map_release_retval = STATUS_SUCCESS;
     status reclaim_retval = STATUS_SUCCESS;
     protocolservice_notificationservice_fiber_context* ctx =
         (protocolservice_notificationservice_fiber_context*)r;
@@ -64,6 +67,20 @@ status protocolservice_notificationservice_fiber_context_release(
             resource_release(psock_resource_handle(ctx->notifysock));
     }
 
+    /* release the client-side translation map. */
+    if (NULL != ctx->client_xlat_map)
+    {
+        client_xlat_map_release_retval =
+            resource_release(rbtree_resource_handle(ctx->client_xlat_map));
+    }
+
+    /* release the server-side translation map. */
+    if (NULL != ctx->server_xlat_map)
+    {
+        server_xlat_map_release_retval =
+            resource_release(rbtree_resource_handle(ctx->server_xlat_map));
+    }
+
     /* clear the struct. */
     memset(ctx, 0, sizeof(*ctx));
 
@@ -78,6 +95,14 @@ status protocolservice_notificationservice_fiber_context_release(
     else if (STATUS_SUCCESS != notifysock_release_retval)
     {
         return notifysock_release_retval;
+    }
+    else if (STATUS_SUCCESS != client_xlat_map_release_retval)
+    {
+        return client_xlat_map_release_retval;
+    }
+    else if (STATUS_SUCCESS != server_xlat_map_release_retval)
+    {
+        return server_xlat_map_release_retval;
     }
     else
     {

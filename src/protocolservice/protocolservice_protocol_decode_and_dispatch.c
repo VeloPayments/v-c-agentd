@@ -113,6 +113,12 @@ status protocolservice_protocol_decode_and_dispatch(
                     ctx, request_offset, payload, payload_size);
             break;
 
+        case UNAUTH_PROTOCOL_REQ_ID_ASSERT_LATEST_BLOCK_ID:
+            retval =
+                protocolservice_protocol_dnd_assert_latest_block_id(
+                    ctx, request_offset, payload, payload_size);
+            break;
+
         case UNAUTH_PROTOCOL_REQ_ID_STATUS_GET:
             retval =
                 protocolservice_protocol_dnd_status_get(
