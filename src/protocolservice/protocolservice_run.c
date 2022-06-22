@@ -124,6 +124,9 @@ int protocolservice_run(
         goto cleanup_context;
     }
 
+    /* set the notificationservice endpoint address in the context. */
+    ctx->notificationservice_endpoint_addr = notify_endpoint_addr;
+
     /* add the management fiber. */
     retval = protocolservice_management_fiber_add(alloc, sched);
     if (STATUS_SUCCESS != retval)

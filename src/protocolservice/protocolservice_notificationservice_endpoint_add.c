@@ -14,6 +14,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_fiber;
 RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
+RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
 
 /**
@@ -111,6 +112,28 @@ status protocolservice_notificationservice_endpoint_add(
 
     /* the inner psock is now owned by the fiber context. */
     inner = NULL;
+
+    /* create the client-side request translation rbtree. */
+    retval =
+        rbtree_create(
+            &tmp->client_xlat_map, ctx->alloc,
+            &protocolservice_notificationservice_client_xlat_map_compare,
+            &protocolservice_notificationservice_client_xlat_map_key, NULL);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_inner;
+    }
+
+    /* create the server-side request translation rbtree. */
+    retval =
+        rbtree_create(
+            &tmp->server_xlat_map, ctx->alloc,
+            &protocolservice_notificationservice_server_xlat_map_compare,
+            &protocolservice_notificationservice_server_xlat_map_key, NULL);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_inner;
+    }
 
     /* add the fiber to the scheduler. */
     retval =

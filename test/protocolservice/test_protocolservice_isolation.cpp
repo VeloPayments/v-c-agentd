@@ -12,11 +12,14 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
+#include <vcblockchain/protocol.h>
 #include <vpr/disposable.h>
 
 #include "test_protocolservice_isolation.h"
 
 using namespace std;
+
+RCPR_IMPORT_uuid;
 
 /**
  * Test that we can spawn the unauthorized protocol service.
@@ -2821,4 +2824,63 @@ TEST_F(protocolservice_isolation_test, ctrl_set_private_key)
     dispose((disposable_t*)&entity_encryption_privkey);
     dispose((disposable_t*)&entity_signing_pubkey);
     dispose((disposable_t*)&entity_signing_privkey);
+}
+
+/**
+ * An assert block request reserves a block assertion in the notification
+ * service.
+ */
+TEST_F(protocolservice_isolation_test, assert_block_happy_path)
+{
+    uint64_t client_iv = 0;
+    uint64_t server_iv = 0;
+    vccrypt_buffer_t shared_secret;
+    ssock sock;
+    vpr_uuid BLOCK_ID = { .data = {
+        0xa8, 0xc1, 0x54, 0x15, 0x9e, 0x3d, 0x40, 0x0a,
+        0xa4, 0x1f, 0x06, 0x4b, 0x92, 0xea, 0xea, 0x54 } };
+    const uint32_t EXPECTED_OFFSET = 47;
+
+    /* register dataservice helper mocks. */
+    ASSERT_EQ(0, dataservice_mock_register_helper());
+
+    /* don't send the response from a block assert. */
+    notifyservice->override_block_assertion_status(true);
+
+    /* start the mocks. */
+    dataservice->start();
+    notifyservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
+    /* do the handshake, populating the shared secret on success. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+              do_handshake(&shared_secret, &server_iv, &client_iv));
+
+    /* convert our socket to a ssock instance to call the extended API. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+
+    /* send the latest block id assert request. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_sendreq_assert_latest_block_id(
+            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            &BLOCK_ID));
+
+    /* dispose the socket instance. */
+    dispose((disposable_t*)&sock);
+
+    /* stop the mocks. */
+    dataservice->stop();
+    notifyservice->stop();
+
+    /* verify that a block assertion request was sent to the notification
+     * service. */
+    EXPECT_TRUE(
+        notifyservice->request_matches_block_assertion(
+            1, (const rcpr_uuid*)&BLOCK_ID));
+
+    /* clean up. */
+    dispose((disposable_t*)&shared_secret);
 }
