@@ -88,7 +88,6 @@ status protocolservice_notificationservice_write_endpoint_fiber_entry(
         if (entry_found)
         {
             /* create the response payload. */
-            /* TODO - cache client offset so it can be returned here. */
             retval =
                 protocolservice_protocol_write_endpoint_message_create(
                     &reply_payload, ctx->ctx,
