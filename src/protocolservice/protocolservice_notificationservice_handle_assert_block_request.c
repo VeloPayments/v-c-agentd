@@ -22,6 +22,7 @@ RCPR_IMPORT_uuid;
  * offset.
  *
  * \param ctx           The protocolservice protocol context for this request.
+ * \param req_offset    The request offset from the client request.
  * \param block_id      The block id for this request.
  * \param offset        Pointer to be populated with the notificationservice
  *                      offset for this request, which can be used to cancel it.
@@ -31,8 +32,8 @@ RCPR_IMPORT_uuid;
  *      - a non-zero error code on failure.
  */
 status protocolservice_notificationservice_handle_assert_block_request(
-    protocolservice_protocol_fiber_context* ctx, const vpr_uuid* block_id,
-    uint64_t* offset)
+    protocolservice_protocol_fiber_context* ctx, uint32_t req_offset,
+    const vpr_uuid* block_id, uint64_t* offset)
 {
     status retval, release_retval;
     message* req_message = NULL;
@@ -45,7 +46,7 @@ status protocolservice_notificationservice_handle_assert_block_request(
     /* create the request message. */
     retval =
         protocolservice_notificationservice_block_assertion_request_create(
-            &req_payload, ctx->alloc, (const rcpr_uuid*)block_id,
+            &req_payload, ctx->alloc, req_offset, (const rcpr_uuid*)block_id,
             ctx->return_addr);
     if (STATUS_SUCCESS != retval)
     {

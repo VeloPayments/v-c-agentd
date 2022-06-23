@@ -61,7 +61,8 @@ status protocolservice_notificationservice_endpoint_fiber_entry(void* vctx)
         /* add the request entry to the translation map. */
         retval =
             protocolservice_notificationservice_xlat_map_add(
-                ctx, msg_offset, req_payload->reply_addr);
+                ctx, msg_offset, req_payload->reply_addr,
+                req_payload->req_offset);
         if (STATUS_SUCCESS != retval)
         {
             goto cleanup_req_msg;

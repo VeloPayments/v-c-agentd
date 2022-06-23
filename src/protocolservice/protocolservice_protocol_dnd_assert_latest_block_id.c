@@ -56,7 +56,7 @@ status protocolservice_protocol_dnd_assert_latest_block_id(
     /* send request to notification service endpoint. */
     retval =
         protocolservice_notificationservice_handle_assert_block_request(
-            ctx, &req.latest_block_id,
+            ctx, req.offset, &req.latest_block_id,
             &ctx->latest_block_id_assertion_server_offset);
     if (STATUS_SUCCESS != retval)
     {

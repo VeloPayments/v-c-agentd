@@ -37,7 +37,7 @@ RCPR_IMPORT_resource;
  */
 status protocolservice_protocol_write_endpoint_message_create(
     protocolservice_protocol_write_endpoint_message** reply_payload,
-    protocolservice_dataservice_endpoint_context* ctx, uint32_t message_type,
+    protocolservice_context* ctx, uint32_t message_type,
     uint32_t original_req_id, uint32_t offset, const void* payload,
     size_t payload_size)
 {

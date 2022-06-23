@@ -83,7 +83,7 @@ status pde_decode_and_dispatch_req_dataservice_req(
     /* create the payload to send to the protocolservice write endpoint. */
     retval =
         protocolservice_protocol_write_endpoint_message_create(
-            reply_payload, ctx,
+            reply_payload, ctx->ctx,
             PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_MSG,
             req_payload->protocol_request_id, req_payload->offset, reply_data,
             reply_data_size);

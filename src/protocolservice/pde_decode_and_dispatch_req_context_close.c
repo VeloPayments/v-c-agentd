@@ -102,7 +102,7 @@ status pde_decode_and_dispatch_req_context_close(
 send_response:
     return
         protocolservice_protocol_write_endpoint_message_create(
-            reply_payload, ctx,
+            reply_payload, ctx->ctx,
             PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_DATASERVICE_CONTEXT_CREATE_MSG,
             0U, req_payload->offset, NULL, 0U);
 }

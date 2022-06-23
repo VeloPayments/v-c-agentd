@@ -23,6 +23,8 @@ RCPR_IMPORT_resource;
 /**
  * \brief Create and add the protocol service data service endpoint fiber.
  *
+ * \param ctx           Pointer to the saved context. NOTE THAT THIS IS OWNED
+ *                      BY THE DATASERVICE ENDPOINT.
  * \param addr          Pointer to receive the mailbox address for this
  *                      endpoint on success.
  * \param alloc         The allocator to use to create this fiber.
@@ -35,6 +37,7 @@ RCPR_IMPORT_resource;
  *      - a non-zero error code on failure.
  */
 status protocolservice_dataservice_endpoint_add(
+    protocolservice_dataservice_endpoint_context** ctx,
     RCPR_SYM(mailbox_address)* addr, RCPR_SYM(allocator)* alloc,
     RCPR_SYM(fiber_scheduler)* sched, int datasock)
 {
@@ -158,6 +161,8 @@ status protocolservice_dataservice_endpoint_add(
         goto cleanup_endpoint_fiber;
     }
 
+    /* give the caller a weak reference to the context. */
+    *ctx = tmp;
     /* the endpoint fiber is now owned by the scheduler. */
     endpoint_fiber = NULL;
     /* the context is now owned by the endpoint fiber. */

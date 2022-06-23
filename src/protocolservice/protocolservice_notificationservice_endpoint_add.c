@@ -57,9 +57,10 @@ status protocolservice_notificationservice_endpoint_add(
     resource_init(
         &tmp->hdr, &protocolservice_notificationservice_fiber_context_release);
 
-    /* save the allocator and message discipline. */
+    /* save the allocator, message discipline, and context. */
     tmp->alloc = ctx->alloc;
     tmp->msgdisc = ctx->msgdisc;
+    tmp->ctx = ctx;
 
     /* set the reference count to start at 1. */
     tmp->reference_count = 1;

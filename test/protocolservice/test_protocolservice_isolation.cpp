@@ -2884,3 +2884,80 @@ TEST_F(protocolservice_isolation_test, assert_block_happy_path)
     /* clean up. */
     dispose((disposable_t*)&shared_secret);
 }
+
+/**
+ * When an invalidation is sent, the client gets a reply from the assert block
+ * call. We can simulate this with the mock just by allowing the block assertion
+ * status to pass through, which it does by default.
+ */
+TEST_F(protocolservice_isolation_test, assert_block_invalidation)
+{
+    uint64_t client_iv = 0;
+    uint64_t server_iv = 0;
+    uint32_t request_id, offset, status;
+    vccrypt_buffer_t shared_secret;
+    vccrypt_buffer_t response;
+    ssock sock;
+    vpr_uuid BLOCK_ID = { .data = {
+        0xa8, 0xc1, 0x54, 0x15, 0x9e, 0x3d, 0x40, 0x0a,
+        0xa4, 0x1f, 0x06, 0x4b, 0x92, 0xea, 0xea, 0x54 } };
+    const uint32_t EXPECTED_OFFSET = 47;
+
+    /* register dataservice helper mocks. */
+    ASSERT_EQ(0, dataservice_mock_register_helper());
+
+    /* start the mocks. */
+    dataservice->start();
+    notifyservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
+    /* do the handshake, populating the shared secret on success. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+              do_handshake(&shared_secret, &server_iv, &client_iv));
+
+    /* convert our socket to a ssock instance to call the extended API. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+
+    /* send the latest block id assert request. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_sendreq_assert_latest_block_id(
+            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            &BLOCK_ID));
+
+    /* we should receive a response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_recvresp(
+            &sock, &suite, &server_iv, &shared_secret, &response));
+
+    /* we should be able to decode this response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_response_decode_header(
+            &request_id, &offset, &status, &response));
+
+    /* the request_id should match what we expect. */
+    EXPECT_EQ(UNAUTH_PROTOCOL_REQ_ID_ASSERT_LATEST_BLOCK_ID, request_id);
+    EXPECT_EQ(AGENTD_STATUS_SUCCESS, status);
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+
+    /* dispose the socket instance. */
+    dispose((disposable_t*)&sock);
+
+    /* stop the mocks. */
+    dataservice->stop();
+    notifyservice->stop();
+
+    /* verify that a block assertion request was sent to the notification
+     * service. */
+    EXPECT_TRUE(
+        notifyservice->request_matches_block_assertion(
+            1, (const rcpr_uuid*)&BLOCK_ID));
+
+    /* clean up. */
+    dispose((disposable_t*)&shared_secret);
+    dispose((disposable_t*)&response);
+}
