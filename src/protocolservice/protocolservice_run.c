@@ -66,6 +66,7 @@ int protocolservice_run(
     mailbox_address random_endpoint_addr;
     mailbox_address notify_endpoint_addr;
     protocolservice_context* ctx;
+    protocolservice_dataservice_endpoint_context* data_ctx;
 
     /* parameter sanity checking. */
     MODEL_ASSERT(randomsock >= 0);
@@ -91,7 +92,7 @@ int protocolservice_run(
     /* add the data service endpoint fiber. */
     retval =
         protocolservice_dataservice_endpoint_add(
-            &data_endpoint_addr, alloc, sched, datasock);
+            &data_ctx, &data_endpoint_addr, alloc, sched, datasock);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_scheduler;
@@ -114,6 +115,9 @@ int protocolservice_run(
     {
         goto cleanup_scheduler;
     }
+
+    /* save the context to the dataservice endpoint context. */
+    data_ctx->ctx = ctx;
 
     /* add the notification service endpoint fiber. */
     retval =

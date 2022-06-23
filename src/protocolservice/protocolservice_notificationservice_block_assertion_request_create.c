@@ -18,6 +18,7 @@ RCPR_IMPORT_resource;
  *
  * \param payload       The pointer to receive this created message payload.
  * \param alloc         The allocator for this operation.
+ * \param req_offset    The client request offset.
  * \param block_id      The block id for this operation.
  * \param return_addr   The return address to send the invalidation.
  *
@@ -27,8 +28,8 @@ RCPR_IMPORT_resource;
  */
 status protocolservice_notificationservice_block_assertion_request_create(
     protocolservice_notificationservice_block_assertion_request** payload,
-    RCPR_SYM(allocator)* alloc, const RCPR_SYM(rcpr_uuid)* block_id,
-    RCPR_SYM(mailbox_address) return_addr)
+    RCPR_SYM(allocator)* alloc, uint32_t req_offset,
+    const RCPR_SYM(rcpr_uuid)* block_id, RCPR_SYM(mailbox_address) return_addr)
 {
     status retval;
     protocolservice_notificationservice_block_assertion_request* tmp;
@@ -56,6 +57,7 @@ status protocolservice_notificationservice_block_assertion_request_create(
 
     /* set the fields. */
     tmp->alloc = alloc;
+    tmp->req_offset = req_offset;
     tmp->reply_addr = return_addr;
     memcpy(&tmp->block_id, block_id, sizeof(*block_id));
 

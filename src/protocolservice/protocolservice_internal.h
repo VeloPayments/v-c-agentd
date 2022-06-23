@@ -208,6 +208,7 @@ struct protocolservice_notificationservice_fiber_context
     RCPR_SYM(psock)* notifysock;
     RCPR_SYM(rbtree)* client_xlat_map;
     RCPR_SYM(rbtree)* server_xlat_map;
+    protocolservice_context* ctx;
     int reference_count;
     uint64_t request_offset_counter;
 };
@@ -222,6 +223,7 @@ struct protocolservice_notificationservice_block_assertion_request
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
+    uint32_t req_offset;
     RCPR_SYM(rcpr_uuid) block_id;
     RCPR_SYM(mailbox_address) reply_addr;
     bool cancel;
@@ -255,6 +257,7 @@ struct protocolservice_notificationservice_xlat_entry
     int reference_count;
     RCPR_SYM(mailbox_address) client_addr;
     uint64_t server_offset;
+    uint64_t client_offset;
 };
 
 /**
@@ -274,6 +277,7 @@ struct protocolservice_dataservice_endpoint_context
     RCPR_SYM(psock)* datasock;
     RCPR_SYM(rbtree)* mailbox_context_tree;
     RCPR_SYM(rbtree)* context_mailbox_tree;
+    protocolservice_context* ctx;
 };
 
 /**
@@ -403,6 +407,8 @@ status protocolservice_dataservice_send_request(
 /**
  * \brief Create and add the protocol service data service endpoint fiber.
  *
+ * \param ctx           Pointer to the saved context. NOTE THAT THIS IS OWNED
+ *                      BY THE DATASERVICE ENDPOINT.
  * \param addr          Pointer to receive the mailbox address for this
  *                      endpoint on success.
  * \param alloc         The allocator to use to create this fiber.
@@ -415,6 +421,7 @@ status protocolservice_dataservice_send_request(
  *      - a non-zero error code on failure.
  */
 status protocolservice_dataservice_endpoint_add(
+    protocolservice_dataservice_endpoint_context** ctx,
     RCPR_SYM(mailbox_address)* addr, RCPR_SYM(allocator)* alloc,
     RCPR_SYM(fiber_scheduler)* sched, int datasock);
 
@@ -603,7 +610,7 @@ status protocolservice_dataservice_request_message_release(
  */
 status protocolservice_protocol_write_endpoint_message_create(
     protocolservice_protocol_write_endpoint_message** reply_payload,
-    protocolservice_dataservice_endpoint_context* ctx, uint32_t message_type,
+    protocolservice_context* ctx, uint32_t message_type,
     uint32_t original_req_id, uint32_t offset, const void* payload,
     size_t payload_size);
 
@@ -1562,6 +1569,20 @@ status protocolservice_pwe_dnd_dataservice_block_id_by_height_get(
     protocolservice_protocol_write_endpoint_message* payload);
 
 /**
+ * \brief Decode and dispatch a response message from the notificationservice.
+ *
+ * \param ctx           The protocol service protocol fiber context.
+ * \param payload       The message payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_pwe_dnd_notificationservice_message(
+    protocolservice_protocol_fiber_context* ctx,
+    protocolservice_protocol_write_endpoint_message* payload);
+
+/**
  * \brief Write a packet to the peer.
  *
  * \param ctx           The protocol service protocol fiber context.
@@ -1903,6 +1924,7 @@ status protocolservice_notificationservice_write_endpoint_fiber_entry(
  * offset.
  *
  * \param ctx           The protocolservice protocol context for this request.
+ * \param req_offset    The request offset from the client request.
  * \param block_id      The block id for this request.
  * \param offset        Pointer to be populated with the notificationservice
  *                      offset for this request, which can be used to cancel it.
@@ -1912,8 +1934,8 @@ status protocolservice_notificationservice_write_endpoint_fiber_entry(
  *      - a non-zero error code on failure.
  */
 status protocolservice_notificationservice_handle_assert_block_request(
-    protocolservice_protocol_fiber_context* ctx, const vpr_uuid* block_id,
-    uint64_t* offset);
+    protocolservice_protocol_fiber_context* ctx, uint32_t req_offset,
+    const vpr_uuid* block_id, uint64_t* offset);
 
 /**
  * \brief Create a block assertion request message for the notificationservice
@@ -1921,6 +1943,7 @@ status protocolservice_notificationservice_handle_assert_block_request(
  *
  * \param payload       The pointer to receive this created message payload.
  * \param alloc         The allocator for this operation.
+ * \param req_offset    The client request offset.
  * \param block_id      The block id for this operation.
  * \param return_addr   The return address to send the invalidation.
  *
@@ -1930,8 +1953,8 @@ status protocolservice_notificationservice_handle_assert_block_request(
  */
 status protocolservice_notificationservice_block_assertion_request_create(
     protocolservice_notificationservice_block_assertion_request** payload,
-    RCPR_SYM(allocator)* alloc, const RCPR_SYM(rcpr_uuid)* block_id,
-    RCPR_SYM(mailbox_address) return_addr);
+    RCPR_SYM(allocator)* alloc, uint32_t req_offset,
+    const RCPR_SYM(rcpr_uuid)* block_id, RCPR_SYM(mailbox_address) return_addr);
 
 /**
  * \brief Release the block assertion request resource.
@@ -2009,6 +2032,7 @@ const void* protocolservice_notificationservice_server_xlat_map_key(
  * \param ctx           The endpoint context.
  * \param msg_offset    The server-side offset.
  * \param client_addr   The client_side mailbox address.
+ * \param req_offset    The client-side offset.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -2016,7 +2040,8 @@ const void* protocolservice_notificationservice_server_xlat_map_key(
  */
 status protocolservice_notificationservice_xlat_map_add(
     protocolservice_notificationservice_fiber_context* ctx,
-    uint64_t msg_offset, RCPR_SYM(mailbox_address) client_addr);
+    uint64_t msg_offset, RCPR_SYM(mailbox_address) client_addr,
+    uint32_t req_offset);
 
 /**
  * \brief Send a response for a request sent to the notificationservice.
@@ -2076,6 +2101,23 @@ status protocolservice_notificationservice_block_assertion_response_create(
  */
 status protocolservice_notificationservice_block_assertion_response_release(
     RCPR_SYM(resource)* r);
+
+/**
+ * \brief Look up a return address from a notificationservice offset, and remove
+ * the entries from the lookup tables.
+ *
+ * \param return_addr       Pointer to receive the return address on success.
+ * \param req_offset        Pointer to receive the client-side request offset.
+ * \param ctx               The endpoint fiber context.
+ * \param offset            The notificationservice offset.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_lookup_return_address_from_offset(
+    RCPR_SYM(mailbox_address)* return_address, uint32_t* req_offset,
+    protocolservice_notificationservice_fiber_context* ctx, uint64_t offset);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

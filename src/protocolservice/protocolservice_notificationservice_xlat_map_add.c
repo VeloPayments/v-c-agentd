@@ -19,6 +19,7 @@ RCPR_IMPORT_resource;
  * \param ctx           The endpoint context.
  * \param msg_offset    The server-side offset.
  * \param client_addr   The client_side mailbox address.
+ * \param req_offset    The client-side offset.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -26,7 +27,8 @@ RCPR_IMPORT_resource;
  */
 status protocolservice_notificationservice_xlat_map_add(
     protocolservice_notificationservice_fiber_context* ctx,
-    uint64_t msg_offset, RCPR_SYM(mailbox_address) client_addr)
+    uint64_t msg_offset, RCPR_SYM(mailbox_address) client_addr,
+    uint32_t req_offset)
 {
     status retval, release_retval;
     protocolservice_notificationservice_xlat_entry* tmp = NULL;
@@ -56,6 +58,7 @@ status protocolservice_notificationservice_xlat_map_add(
     tmp->reference_count = 1;
     tmp->client_addr = client_addr;
     tmp->server_offset = msg_offset;
+    tmp->client_offset = req_offset;
 
     /* insert entry into the client xlat map. */
     retval = rbtree_insert(ctx->client_xlat_map, &tmp->hdr);

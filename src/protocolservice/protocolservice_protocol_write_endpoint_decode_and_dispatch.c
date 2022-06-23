@@ -57,9 +57,11 @@ status protocolservice_protocol_write_endpoint_decode_and_dispatch(
                 protocolservice_pwe_dnd_dataservice_message(
                     ctx, payload);
 
-        /* TODO - add decode and dispatch for notification service responses. */
+        /* decode and dispatch for notification service responses. */
         case PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_NOTIFICATION_MSG:
-            return STATUS_SUCCESS;
+            return
+                protocolservice_pwe_dnd_notificationservice_message(
+                    ctx, payload);
 
         /* Handle the write endpoint packet request. */
         case PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_PACKET:
