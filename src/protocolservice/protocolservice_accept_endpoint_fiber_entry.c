@@ -48,6 +48,8 @@ status protocolservice_accept_endpoint_fiber_entry(void* vctx)
             goto cleanup_context;
         }
 
+        /* TODO - limit connections by configurable value. */
+
         /* add a protocol fiber to the scheduler to handle this descriptor. */
         retval = protocolservice_protocol_fiber_add(ctx->alloc, ctx->ctx, desc);
         if (STATUS_SUCCESS != retval)
