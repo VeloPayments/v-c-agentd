@@ -7,6 +7,7 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <agentd/protocolservice/protocolservice_capabilities.h>
 #include <agentd/status_codes.h>
 #include <vcblockchain/protocol/serialization.h>
 
@@ -35,6 +36,17 @@ status protocolservice_protocol_dnd_assert_latest_block_id(
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
     MODEL_ASSERT(NULL != payload);
 
+    /* perform a capability check for this operation. */
+    if (!
+        protocolservice_authorized_entity_capability_check(
+            ctx->entity, &ctx->entity_uuid,
+            &PROTOCOLSERVICE_API_CAPABILITY_ASSERT_LATEST_BLOCK_ID,
+            &ctx->ctx->agentd_uuid))
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
+        goto done;
+    }
+
     /* decode the request. */
     retval =
         vcblockchain_protocol_decode_req_assert_latest_block_id(
@@ -43,8 +55,6 @@ status protocolservice_protocol_dnd_assert_latest_block_id(
     {
         goto done;
     }
-
-    /* TODO - capabilities check. */
 
     /* if the assertion is already set, it can't be set again. */
     if (ctx->latest_block_id_assertion_set)

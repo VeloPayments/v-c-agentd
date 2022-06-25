@@ -18,33 +18,44 @@ extern "C" {
 /**
  * \brief Get the latest block id.
  */
-extern RCPR_SYM(rcpr_uuid) PROTOCOLSERVICE_API_CAPABILITY_BLOCK_ID_LATEST_READ;
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_BLOCK_ID_LATEST_READ;
 
 /**
  * \brief Submit a transaction.
  */
-extern RCPR_SYM(rcpr_uuid) PROTOCOLSERVICE_API_CAPABILITY_TRANSACTION_SUBMIT;
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_TRANSACTION_SUBMIT;
 
 /**
  * \brief Read a block by id.
  */
-extern RCPR_SYM(rcpr_uuid) PROTOCOLSERVICE_API_CAPABILITY_BLOCK_READ;
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_BLOCK_READ;
 
 /**
  * \brief Read a block id by block height.
  */
-extern RCPR_SYM(rcpr_uuid)
+extern const RCPR_SYM(rcpr_uuid)
 PROTOCOLSERVICE_API_CAPABILITY_BLOCK_ID_BY_HEIGHT_READ;
 
 /**
  * \brief Read a transaction by id.
  */
-extern RCPR_SYM(rcpr_uuid) PROTOCOLSERVICE_API_CAPABILITY_TRANSACTION_READ;
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_TRANSACTION_READ;
 
 /**
  * \brief Read an artifact by id.
  */
-extern RCPR_SYM(rcpr_uuid) PROTOCOLSERVICE_API_CAPABILITY_ARTIFACT_READ;
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_ARTIFACT_READ;
+
+/**
+ * \brief Assert that a given block id is the latest.
+ */
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_ASSERT_LATEST_BLOCK_ID;
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus

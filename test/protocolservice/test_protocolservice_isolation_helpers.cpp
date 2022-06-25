@@ -6,10 +6,12 @@
  * \copyright 2021 Velo-Payments, Inc.  All rights reserved.
  */
 
+#include <algorithm>
 #include <agentd/protocolservice.h>
 #include <agentd/protocolservice/control_api.h>
 #include <agentd/randomservice.h>
 #include <agentd/status_codes.h>
+#include <rcpr/uuid.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <vpr/allocator/malloc_allocator.h>
@@ -17,12 +19,17 @@
 #include "test_protocolservice_isolation.h"
 
 using namespace std;
+RCPR_IMPORT_uuid;
 
 const uint8_t protocolservice_isolation_test::dir_key[32] = {
     0x7e, 0x4b, 0xb1, 0x5d, 0xb5, 0x00, 0x41, 0x95,
     0xb0, 0xed, 0x43, 0x59, 0x43, 0x20, 0x9b, 0x72,
     0x28, 0x07, 0xad, 0xbb, 0x87, 0x70, 0x49, 0x8a,
     0xac, 0x89, 0x44, 0xcb, 0x23, 0x56, 0x67, 0x3f };
+
+const string
+    protocolservice_isolation_test::authorized_entity_id_string(
+    "6c362b3e-9081-4fcb-80fe-16354e0ae28f");
 
 const uint8_t
     protocolservice_isolation_test::authorized_entity_id[16] = {
@@ -65,6 +72,10 @@ authorized_entity_sign_pubkey_buffer[32] = {
         0x3e, 0xb1, 0xbf, 0x04, 0xbf, 0xdf, 0x30, 0xcb,
         0x57, 0xf2, 0xdb, 0xe0, 0x93, 0xeb, 0xa5, 0x14 };
 
+const string
+    protocolservice_isolation_test::agent_id_string(
+    "3d963f54-83e2-4b0d-86a1-81b6aaaa5c1b");
+
 const uint8_t protocolservice_isolation_test::agent_id[16] = {
     0x3d, 0x96, 0x3f, 0x54, 0x83, 0xe2, 0x4b, 0x0d,
     0x86, 0xa1, 0x81, 0xb6, 0xaa, 0xaa, 0x5c, 0x1b };
@@ -103,6 +114,59 @@ protocolservice_isolation_test::agent_sign_privkey_buffer[64] = {
 
 const uint32_t
     protocolservice_isolation_test::EXPECTED_CHILD_INDEX = 17U;
+
+const string protocolservice_isolation_test::blank_uuid(
+    "00000000-0000-0000-0000-000000000000");
+const string protocolservice_isolation_test::verb_latest_block_id_get(
+    "c5b0eb04-6b24-48be-b7d9-bf9083a4be5d");
+const string protocolservice_isolation_test::verb_block_id_by_height_get(
+    "915a5ef4-8f96-4ef5-9588-0a75b1cae68d");
+const string protocolservice_isolation_test::verb_block_get(
+    "f382e365-1224-43b4-924a-1de4d9f4cf25");
+const string protocolservice_isolation_test::verb_transaction_get(
+    "7df210d6-f00b-47c4-a608-6f3f1df7511a");
+const string protocolservice_isolation_test::verb_transaction_submit(
+    "ef560d24-eea6-4847-9009-464b127f249b");
+const string protocolservice_isolation_test::verb_artifact_get(
+    "fc0e22ea-1e77-4ea4-a2ae-08be5ff73ccc");
+const string protocolservice_isolation_test::verb_assert_latest_block_id(
+    "447617b4-a847-437c-b62b-5bc6a94206fa");
+const string protocolservice_isolation_test::verb_sentinel_extend_api(
+    "c41b053c-6b4a-40a1-981b-882bdeffe978");
+
+const capabilities_map protocolservice_isolation_test::global_caps{
+    {   protocolservice_isolation_test::verb_latest_block_id_get,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_latest_block_id_get,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_block_id_by_height_get,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_block_id_by_height_get,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_block_get,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_block_get,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_transaction_get,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_transaction_get,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_transaction_submit,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_transaction_submit,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_artifact_get,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_artifact_get,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_assert_latest_block_id,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_assert_latest_block_id,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_sentinel_extend_api,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_sentinel_extend_api,
+            protocolservice_isolation_test::blank_uuid } } };
 
 void protocolservice_isolation_test::SetUp()
 {
@@ -218,6 +282,18 @@ void protocolservice_isolation_test::SetUp()
         ipc_sendsocket_block(acceptsock, protosock_srv);
         close(protosock_srv);
     }
+
+    /* transform the global caps into local entity caps. */
+    transform(
+        global_caps.begin(), global_caps.end(),
+        inserter(entity_caps, entity_caps.end()),
+        [this](const pair<string, capabilities_entry>& e) {
+            return make_pair(
+                e.first,
+                make_tuple(
+                    authorized_entity_id_string,
+                    get<cap_verb>(e.second),
+                    agent_id_string)); });
 
     /* set up directory test helper. */
     string dbpath = "build/test/isolation/databases/";
@@ -402,8 +478,16 @@ int protocolservice_isolation_test::
     BITCAP(testbits, DATASERVICE_API_CAP_BITS_MAX);
     BITCAP_INIT_FALSE(testbits);
     BITCAP_SET_TRUE(testbits, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
+    BITCAP_SET_TRUE(testbits, DATASERVICE_API_CAP_APP_BLOCK_ID_LATEST_READ);
+    BITCAP_SET_TRUE(testbits, DATASERVICE_API_CAP_APP_BLOCK_READ);
+    BITCAP_SET_TRUE(testbits, DATASERVICE_API_CAP_APP_TRANSACTION_READ);
+    BITCAP_SET_TRUE(testbits, DATASERVICE_API_CAP_APP_PQ_TRANSACTION_SUBMIT);
+    BITCAP_SET_TRUE(testbits, DATASERVICE_API_CAP_APP_ARTIFACT_READ);
+    BITCAP_SET_TRUE(testbits, DATASERVICE_API_CAP_APP_BLOCK_ID_BY_HEIGHT_READ);
     if (!dataservice->request_matches_child_context_create(testbits))
+    {
         return 1;
+    }
 
     return 0;
 }
@@ -568,6 +652,78 @@ int protocolservice_isolation_test::add_hardcoded_keys()
     {
         retval = (int)status;
         goto cleanup_entity_sign_pubkey;
+    }
+
+    /* iterate through all capabilities, adding them to this entity. */
+    for (auto e : entity_caps)
+    {
+        rcpr_uuid entity_id;
+        rcpr_uuid subject_id;
+        rcpr_uuid verb_id;
+        rcpr_uuid object_id;
+
+        /* attempt to parse the entity id. */
+        retval =
+            rcpr_uuid_parse_string(
+                &entity_id, get<cap_subject>(e.second).c_str());
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_entity_sign_pubkey;
+        }
+
+        /* attempt to parse the subject id. */
+        retval =
+            rcpr_uuid_parse_string(
+                &subject_id, get<cap_subject>(e.second).c_str());
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_entity_sign_pubkey;
+        }
+
+        /* attempt to parse the verb id. */
+        retval =
+            rcpr_uuid_parse_string(
+                &verb_id, get<cap_verb>(e.second).c_str());
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_entity_sign_pubkey;
+        }
+
+        /* attempt to parse the object id. */
+        retval =
+            rcpr_uuid_parse_string(
+                &object_id, get<cap_object>(e.second).c_str());
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_entity_sign_pubkey;
+        }
+
+        /* add this capability to the authorized entity. */
+        retval =
+            protocolservice_control_api_sendreq_authorized_entity_capability_add(
+                controlsock, suite.alloc_opts, (const uint8_t*)&entity_id,
+                (const uint8_t*)&subject_id, (const uint8_t*)&verb_id,
+                (const uint8_t*)&object_id);
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_entity_sign_pubkey;
+        }
+
+        /* receive a response from the cap add call. */
+        retval =
+            protocolservice_control_api_recvresp_authorized_entity_capability_add(
+                controlsock, &offset, &status);
+        if (AGENTD_STATUS_SUCCESS != retval)
+        {
+            goto cleanup_entity_sign_pubkey;
+        }
+
+        /* verify that the authorized entity capability was added. */
+        if (AGENTD_STATUS_SUCCESS != (int)status)
+        {
+            retval = (int)status;
+            goto cleanup_entity_sign_pubkey;
+        }
     }
 
     /* success. */
