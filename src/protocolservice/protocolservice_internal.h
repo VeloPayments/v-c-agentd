@@ -1226,7 +1226,7 @@ const void* protocolservice_authorized_entity_capabilities_key(
  * \returns true if the capability is set and false otherwise.
  */
 bool protocolservice_authorized_entity_capability_check(
-    protocolservice_authorized_entity* entity,
+    const protocolservice_authorized_entity* entity,
     const RCPR_SYM(rcpr_uuid)* subject_id, const RCPR_SYM(rcpr_uuid)* verb_id,
     const RCPR_SYM(rcpr_uuid)* object_id);
 

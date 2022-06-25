@@ -17,6 +17,7 @@
 #include <agentd/string.h>
 #include <functional>
 #include <gtest/gtest.h>
+#include <map>
 #include <string>
 #include <vector>
 #include <vpr/disposable.h>
@@ -30,6 +31,26 @@ extern "C" {
 #if !defined(__cplusplus)
 #error This is a C++ header file.
 #endif /*! defined(__cplusplus)*/
+
+struct capability_entry
+{
+    RCPR_SYM(rcpr_uuid) subject;
+    RCPR_SYM(rcpr_uuid) verb;
+    RCPR_SYM(rcpr_uuid) object;
+};
+
+/**
+ * Capabilities entry.
+ */
+typedef std::tuple<std::string, std::string, std::string> capabilities_entry;
+
+enum capabilities_entry_field { cap_subject, cap_verb, cap_object };
+
+/**
+ * Capabilities map.
+ */
+typedef
+std::map<std::string, capabilities_entry> capabilities_map;
 
 /**
  * The protocol service isolation test class deals with the drudgery of
@@ -71,6 +92,18 @@ protected:
     std::unique_ptr<mock_dataservice::mock_dataservice> dataservice;
     std::unique_ptr<mock_notificationservice::mock_notificationservice>
     notifyservice;
+    capabilities_map entity_caps;
+    static const std::string blank_uuid;
+    static const std::string verb_latest_block_id_get;
+    static const std::string verb_block_id_by_height_get;
+    static const std::string verb_block_get;
+    static const std::string verb_transaction_get;
+    static const std::string verb_transaction_submit;
+    static const std::string verb_artifact_get;
+    static const std::string verb_assert_latest_block_id;
+    static const std::string verb_sentinel_extend_api;
+
+    static const capabilities_map global_caps;
 
     static const uint8_t dir_key[32];
     static const uint8_t authorized_entity_id[16];
@@ -83,6 +116,8 @@ protected:
     static const uint8_t agent_enc_privkey_buffer[32];
     static const uint8_t agent_sign_pubkey_buffer[32];
     static const uint8_t agent_sign_privkey_buffer[64];
+    static const std::string authorized_entity_id_string;
+    static const std::string agent_id_string;
 
     static const uint32_t EXPECTED_CHILD_INDEX;
 
