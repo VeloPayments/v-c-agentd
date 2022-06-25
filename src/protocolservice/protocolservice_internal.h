@@ -1848,6 +1848,22 @@ status protocolservice_protocol_dnd_assert_latest_block_id(
     const uint8_t* payload, size_t payload_size);
 
 /**
+ * \brief Decode and dispatch a block assertion cancellation request.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_dnd_assert_latest_block_id_cancel(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
  * \brief Decode and dispatch a status get request.
  *
  * \param ctx               The protocol service protocol fiber context.
@@ -1936,6 +1952,23 @@ status protocolservice_notificationservice_write_endpoint_fiber_entry(
 status protocolservice_notificationservice_handle_assert_block_request(
     protocolservice_protocol_fiber_context* ctx, uint32_t req_offset,
     const vpr_uuid* block_id, uint64_t* offset);
+
+/**
+ * \brief Handle an assert block cancellation request from the protocol.
+ *
+ * This method creates an assert block cancel request for the notification
+ * service endpoint, sends it, and receives a response with the notification
+ * service offset.
+ *
+ * \param ctx           The protocolservice protocol context for this request.
+ * \param req_offset    The request offset from the client request.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_notificationservice_handle_assert_block_cancel_request(
+    protocolservice_protocol_fiber_context* ctx, uint32_t req_offset);
 
 /**
  * \brief Create a block assertion request message for the notificationservice

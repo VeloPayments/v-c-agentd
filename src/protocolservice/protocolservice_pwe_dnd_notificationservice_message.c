@@ -47,6 +47,10 @@ status protocolservice_pwe_dnd_notificationservice_message(
         goto cleanup_respbuf;
     }
 
+    /* clear the notification set flag, as this is either an invalidation or a
+     * cancellation response. */
+    ctx->latest_block_id_assertion_set = false;
+
     /* success. */
     retval = STATUS_SUCCESS;
     goto cleanup_respbuf;
