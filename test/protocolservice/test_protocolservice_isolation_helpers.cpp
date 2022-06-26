@@ -131,6 +131,8 @@ const string protocolservice_isolation_test::verb_artifact_get(
     "fc0e22ea-1e77-4ea4-a2ae-08be5ff73ccc");
 const string protocolservice_isolation_test::verb_assert_latest_block_id(
     "447617b4-a847-437c-b62b-5bc6a94206fa");
+const string protocolservice_isolation_test::verb_assert_latest_block_id_cancel(
+    "d848b118-7c34-46c5-80db-d4ffd921bb50");
 const string protocolservice_isolation_test::verb_sentinel_extend_api(
     "c41b053c-6b4a-40a1-981b-882bdeffe978");
 
@@ -162,6 +164,10 @@ const capabilities_map protocolservice_isolation_test::global_caps{
     {   protocolservice_isolation_test::verb_assert_latest_block_id,
         {   protocolservice_isolation_test::blank_uuid,
             protocolservice_isolation_test::verb_assert_latest_block_id,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_assert_latest_block_id_cancel,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_assert_latest_block_id_cancel,
             protocolservice_isolation_test::blank_uuid } },
     {   protocolservice_isolation_test::verb_sentinel_extend_api,
         {   protocolservice_isolation_test::blank_uuid,

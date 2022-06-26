@@ -3120,3 +3120,75 @@ TEST_F(protocolservice_isolation_test, assert_block_cancel_happy_path)
     dispose((disposable_t*)&response);
     dispose((disposable_t*)&shared_secret);
 }
+
+/**
+ * An assert block request cancellation will fail if unauthorized.
+ */
+TEST_F(protocolservice_isolation_test, assert_block_cancel_unauthorized)
+{
+    uint64_t client_iv = 0;
+    uint64_t server_iv = 0;
+    uint32_t request_id, offset, status;
+    vccrypt_buffer_t shared_secret;
+    vccrypt_buffer_t response;
+    ssock sock;
+    const uint32_t EXPECTED_OFFSET = 47;
+
+    /* register dataservice helper mocks. */
+    ASSERT_EQ(0, dataservice_mock_register_helper());
+
+    /* don't send the response from a block assert. */
+    notifyservice->override_block_assertion_status(true);
+
+    /* start the mocks. */
+    dataservice->start();
+    notifyservice->start();
+
+    /* remove the block assertion cancellation capability. */
+    entity_caps.erase(verb_assert_latest_block_id_cancel);
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
+    /* do the handshake, populating the shared secret on success. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+              do_handshake(&shared_secret, &server_iv, &client_iv));
+
+    /* convert our socket to a ssock instance to call the extended API. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+
+    /* cancel a block assertion request. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_sendreq_assert_latest_block_id_cancel(
+            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+
+    /* we should receive a response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_recvresp(
+            &sock, &suite, &server_iv, &shared_secret, &response));
+
+    /* we should be able to decode this response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_response_decode_header(
+            &request_id, &offset, &status, &response));
+
+    /* the request_id should match what we expect. */
+    EXPECT_EQ(UNAUTH_PROTOCOL_REQ_ID_ASSERT_LATEST_BLOCK_ID_CANCEL, request_id);
+    /* this call succeeded. */
+    EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, status);
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+
+    /* dispose the socket instance. */
+    dispose((disposable_t*)&sock);
+
+    /* stop the mocks. */
+    dataservice->stop();
+    notifyservice->stop();
+
+    /* clean up. */
+    dispose((disposable_t*)&response);
+    dispose((disposable_t*)&shared_secret);
+}

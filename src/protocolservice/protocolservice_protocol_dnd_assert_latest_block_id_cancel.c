@@ -36,7 +36,16 @@ status protocolservice_protocol_dnd_assert_latest_block_id_cancel(
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
     MODEL_ASSERT(NULL != payload);
 
-    /* TODO - perform a capability check for this operation. */
+    /* perform a capability check for this operation. */
+    if (!
+        protocolservice_authorized_entity_capability_check(
+            ctx->entity, &ctx->entity_uuid,
+            &PROTOCOLSERVICE_API_CAPABILITY_ASSERT_LATEST_BLOCK_ID_CANCEL,
+            &ctx->ctx->agentd_uuid))
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
+        goto done;
+    }
 
     /* decode the request. */
     retval =

@@ -57,6 +57,12 @@ PROTOCOLSERVICE_API_CAPABILITY_ARTIFACT_READ;
 extern const RCPR_SYM(rcpr_uuid)
 PROTOCOLSERVICE_API_CAPABILITY_ASSERT_LATEST_BLOCK_ID;
 
+/**
+ * \brief Cancel a block assertion.
+ */
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_ASSERT_LATEST_BLOCK_ID_CANCEL;
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
