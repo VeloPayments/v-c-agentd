@@ -184,6 +184,12 @@ extern "C" {
 #define AGENTD_ERROR_PROTOCOLSERVICE_BLOCK_ASSERTION_ALREADY_SET \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001CU)
 
+/**
+ * \brief The latest block assertion has not been set.
+ */
+#define AGENTD_ERROR_PROTOCOLSERVICE_BLOCK_ASSERTION_NOT_SET \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001DU)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }

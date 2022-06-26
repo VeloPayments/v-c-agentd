@@ -13,6 +13,7 @@
 #include "protocolservice_internal.h"
 
 RCPR_IMPORT_message;
+RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
 
 /**
@@ -32,6 +33,8 @@ status protocolservice_notificationservice_endpoint_fiber_entry(void* vctx)
     protocolservice_notificationservice_fiber_context* ctx =
         (protocolservice_notificationservice_fiber_context*)vctx;
     protocolservice_notificationservice_block_assertion_request* req_payload;
+    protocolservice_notificationservice_xlat_entry* entry = NULL;
+    uint64_t msg_offset;
 
     /* parameter sanity checks. */
     MODEL_ASSERT(
@@ -52,30 +55,56 @@ status protocolservice_notificationservice_endpoint_fiber_entry(void* vctx)
             (protocolservice_notificationservice_block_assertion_request*)
             message_payload(req_msg, false);
 
-        /* TODO - discriminate between assertion and assertion cancel. */
-
-        /* compute a new offset. */
-        ctx->request_offset_counter += 1;
-        uint64_t msg_offset = ctx->request_offset_counter;
-
-        /* add the request entry to the translation map. */
-        retval =
-            protocolservice_notificationservice_xlat_map_add(
-                ctx, msg_offset, req_payload->reply_addr,
-                req_payload->req_offset);
-        if (STATUS_SUCCESS != retval)
+        /* decode the request type. */
+        if (!req_payload->cancel)
         {
-            goto cleanup_req_msg;
+            /* compute a new offset. */
+            ctx->request_offset_counter += 1;
+            msg_offset = ctx->request_offset_counter;
+
+            /* add the request entry to the translation map. */
+            retval =
+                protocolservice_notificationservice_xlat_map_add(
+                    ctx, msg_offset, req_payload->reply_addr,
+                    req_payload->req_offset);
+            if (STATUS_SUCCESS != retval)
+            {
+                goto cleanup_req_msg;
+            }
+
+            /* send the request to the notification service API. */
+            retval =
+                notificationservice_api_sendreq_block_assertion(
+                    ctx->notifysock, ctx->alloc, msg_offset,
+                    &req_payload->block_id);
+            if (STATUS_SUCCESS != retval)
+            {
+                goto reply_error;
+            }
         }
-
-        /* send the request to the notification service API. */
-        retval =
-            notificationservice_api_sendreq_block_assertion(
-                ctx->notifysock, ctx->alloc, msg_offset,
-                &req_payload->block_id);
-        if (STATUS_SUCCESS != retval)
+        else
         {
-            goto reply_error;
+            /* look up the offset based on the reply address. */
+            retval =
+                rbtree_find(
+                    (resource**)&entry, ctx->client_xlat_map,
+                    &req_payload->reply_addr);
+            if (STATUS_SUCCESS != retval)
+            {
+                goto reply_error;
+            }
+
+            /* set the message offset. */
+            msg_offset = entry->server_offset;
+
+            /* send the cancel request to the notification service API. */
+            retval =
+                notificationservice_api_sendreq_assertion_cancel(
+                    ctx->notifysock, ctx->alloc, msg_offset);
+            if (STATUS_SUCCESS != retval)
+            {
+                goto reply_error;
+            }
         }
 
         /* send the response to the reply-to mailbox. */

@@ -32,7 +32,7 @@ status protocolservice_notificationservice_write_endpoint_fiber_entry(
     status retval, release_retval;
     uint8_t* buf;
     size_t size;
-    uint32_t method_id, status_code;
+    uint32_t method_id, status_code, return_method_id;
     uint32_t return_offset;
     uint64_t offset;
     const uint8_t* payload;
@@ -83,7 +83,18 @@ status protocolservice_notificationservice_write_endpoint_fiber_entry(
             entry_found = true;
         }
 
-        /* TODO - handle different method IDs. */
+        switch (method_id)
+        {
+            case AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL:
+                return_method_id =
+                    UNAUTH_PROTOCOL_REQ_ID_ASSERT_LATEST_BLOCK_ID_CANCEL;
+                break;
+
+            default:
+                return_method_id =
+                    UNAUTH_PROTOCOL_REQ_ID_ASSERT_LATEST_BLOCK_ID;
+                break;
+        }
 
         if (entry_found)
         {
@@ -92,7 +103,7 @@ status protocolservice_notificationservice_write_endpoint_fiber_entry(
                 protocolservice_protocol_write_endpoint_message_create(
                     &reply_payload, ctx->ctx,
                     PROTOCOLSERVICE_PROTOCOL_WRITE_ENDPOINT_NOTIFICATION_MSG,
-                    UNAUTH_PROTOCOL_REQ_ID_ASSERT_LATEST_BLOCK_ID,
+                    return_method_id,
                     return_offset, NULL, 0U);
             if (STATUS_SUCCESS != retval)
             {
