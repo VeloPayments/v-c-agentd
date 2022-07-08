@@ -102,7 +102,9 @@ protected:
     static const std::string verb_artifact_get;
     static const std::string verb_assert_latest_block_id;
     static const std::string verb_assert_latest_block_id_cancel;
-    static const std::string verb_sentinel_extend_api;
+    static const std::string verb_sentinel_extend_api_enable;
+    static const std::string verb_extended_api_req;
+    static const std::string verb_extended_api_resp;
 
     static const capabilities_map global_caps;
 

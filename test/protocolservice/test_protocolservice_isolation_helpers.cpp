@@ -133,8 +133,12 @@ const string protocolservice_isolation_test::verb_assert_latest_block_id(
     "447617b4-a847-437c-b62b-5bc6a94206fa");
 const string protocolservice_isolation_test::verb_assert_latest_block_id_cancel(
     "d848b118-7c34-46c5-80db-d4ffd921bb50");
-const string protocolservice_isolation_test::verb_sentinel_extend_api(
+const string protocolservice_isolation_test::verb_sentinel_extend_api_enable(
     "c41b053c-6b4a-40a1-981b-882bdeffe978");
+const string protocolservice_isolation_test::verb_extended_api_req(
+    "51b9e424-0c45-491b-9bda-690e10873c1c");
+const string protocolservice_isolation_test::verb_extended_api_resp(
+    "25795b47-b0f0-456f-aac4-22131f4eace2");
 
 const capabilities_map protocolservice_isolation_test::global_caps{
     {   protocolservice_isolation_test::verb_latest_block_id_get,
@@ -169,9 +173,17 @@ const capabilities_map protocolservice_isolation_test::global_caps{
         {   protocolservice_isolation_test::blank_uuid,
             protocolservice_isolation_test::verb_assert_latest_block_id_cancel,
             protocolservice_isolation_test::blank_uuid } },
-    {   protocolservice_isolation_test::verb_sentinel_extend_api,
+    {   protocolservice_isolation_test::verb_sentinel_extend_api_enable,
         {   protocolservice_isolation_test::blank_uuid,
-            protocolservice_isolation_test::verb_sentinel_extend_api,
+            protocolservice_isolation_test::verb_sentinel_extend_api_enable,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_extended_api_req,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_extended_api_req,
+            protocolservice_isolation_test::blank_uuid } },
+    {   protocolservice_isolation_test::verb_extended_api_resp,
+        {   protocolservice_isolation_test::blank_uuid,
+            protocolservice_isolation_test::verb_extended_api_resp,
             protocolservice_isolation_test::blank_uuid } } };
 
 void protocolservice_isolation_test::SetUp()
