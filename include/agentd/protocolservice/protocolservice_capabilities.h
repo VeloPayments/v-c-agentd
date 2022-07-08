@@ -69,6 +69,12 @@ PROTOCOLSERVICE_API_CAPABILITY_ASSERT_LATEST_BLOCK_ID_CANCEL;
 extern const RCPR_SYM(rcpr_uuid)
 PROTOCOLSERVICE_API_CAPABILITY_EXTENDED_API_ENABLE;
 
+/**
+ * \brief Respond to a client extended API request.
+ */
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_EXTENDED_API_RESP;
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
