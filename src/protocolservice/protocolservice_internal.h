@@ -2188,6 +2188,22 @@ status protocolservice_notificationservice_lookup_return_address_from_offset(
     RCPR_SYM(mailbox_address)* return_address, uint32_t* req_offset,
     protocolservice_notificationservice_fiber_context* ctx, uint64_t offset);
 
+/**
+ * \brief Compare two opaque \ref protocolservice_extended_api_dict_entry
+ * keys.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs.
+ */
+RCPR_SYM(rcpr_comparison_result) protocolservice_extended_api_dict_compare(
+    void* context, const void* lhs, const void* rhs);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
