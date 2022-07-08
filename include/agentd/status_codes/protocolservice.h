@@ -190,6 +190,12 @@ extern "C" {
 #define AGENTD_ERROR_PROTOCOLSERVICE_BLOCK_ASSERTION_NOT_SET \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001DU)
 
+/**
+ * \brief The extended API has already been enabled for this entity.
+ */
+#define AGENTD_ERROR_PROTOCOLSERVICE_EXTENDED_API_ALREADY_ENABLED \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001EU)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
