@@ -2204,6 +2204,18 @@ status protocolservice_notificationservice_lookup_return_address_from_offset(
 RCPR_SYM(rcpr_comparison_result) protocolservice_extended_api_dict_compare(
     void* context, const void* lhs, const void* rhs);
 
+/**
+ * \brief Given a \ref protocolservice_extended_api_dict_entry resource handle,
+ * return its \ref rcpr_uuid key.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of an extended api dict entry.
+ *
+ * \returns the key for the authorized entity resource.
+ */
+const void* protocolservice_extended_api_dict_entry_key(
+    void* context, const RCPR_SYM(resource)* r);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
