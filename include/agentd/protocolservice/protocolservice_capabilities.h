@@ -63,6 +63,12 @@ PROTOCOLSERVICE_API_CAPABILITY_ASSERT_LATEST_BLOCK_ID;
 extern const RCPR_SYM(rcpr_uuid)
 PROTOCOLSERVICE_API_CAPABILITY_ASSERT_LATEST_BLOCK_ID_CANCEL;
 
+/**
+ * \brief Extend the API so that this entity can accept API requests.
+ */
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_EXTENDED_API_ENABLE;
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
