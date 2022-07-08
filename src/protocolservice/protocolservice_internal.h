@@ -121,6 +121,7 @@ struct protocolservice_context
     RCPR_SYM(mailbox_address) notificationservice_endpoint_addr;
     RCPR_SYM(fiber)* main_fiber;
     RCPR_SYM(rbtree)* authorized_entity_dict;
+    RCPR_SYM(rbtree)* extended_api_dict;
     vccrypt_suite_options_t suite;
     RCPR_SYM(rcpr_uuid) agentd_uuid;
     vccrypt_buffer_t agentd_enc_pubkey;
@@ -348,6 +349,8 @@ struct protocolservice_protocol_fiber_context
     RCPR_SYM(allocator)* alloc;
     int reference_count;
     bool shutdown;
+    bool extended_api_enabled;
+    bool extended_api_can_respond;
     protocolservice_context* ctx;
     RCPR_SYM(fiber)* fib;
     RCPR_SYM(psock)* protosock;
@@ -366,6 +369,8 @@ struct protocolservice_protocol_fiber_context
     bool latest_block_id_assertion_set;
     uint32_t latest_block_id_assertion_client_offset;
     uint64_t latest_block_id_assertion_server_offset;
+    uint64_t extended_api_offset;
+    RCPR_SYM(rbtree)* extended_api_offset_dict;
 };
 
 /**
@@ -1860,6 +1865,22 @@ status protocolservice_protocol_dnd_assert_latest_block_id(
  *      - a non-zero error code on failure.
  */
 status protocolservice_protocol_dnd_assert_latest_block_id_cancel(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
+ * \brief Decode and dispatch an extended API enable request.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_dnd_extended_api_enable(
     protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
     const uint8_t* payload, size_t payload_size);
 
