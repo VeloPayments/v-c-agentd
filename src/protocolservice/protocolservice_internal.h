@@ -2244,6 +2244,32 @@ status protocolservice_extended_api_dict_entry_create(
 status protocolservice_extended_api_dict_entry_resource_release(
     RCPR_SYM(resource)* r);
 
+/**
+ * \brief Route the extended API for a given sentinel entity.
+ *
+ * \param ctx           The protocolservice protocol fiber context for this
+ *                      entity connection.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_route_extended_api_for_entity(
+    protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Unroute the extended API for a given sentinel entity.
+ *
+ * \param ctx           The protocolservice protocol fiber context for this
+ *                      entity connection.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_unroute_extended_api_for_entity(
+    protocolservice_protocol_fiber_context* ctx);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
