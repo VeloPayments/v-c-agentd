@@ -2232,6 +2232,18 @@ status protocolservice_extended_api_dict_entry_create(
     const RCPR_SYM(rcpr_uuid)* entity_id,
     protocolservice_protocol_fiber_context* ctx);
 
+/**
+ * \brief Release an extended API dictionary entry resource.
+ *
+ * \param r             The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_extended_api_dict_entry_resource_release(
+    RCPR_SYM(resource)* r);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
