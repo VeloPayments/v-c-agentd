@@ -196,6 +196,12 @@ extern "C" {
 #define AGENTD_ERROR_PROTOCOLSERVICE_EXTENDED_API_ALREADY_ENABLED \
     AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001EU)
 
+/**
+ * \brief No extended API entity by that ID is registered.
+ */
+#define AGENTD_ERROR_PROTOCOLSERVICE_EXTENDED_API_UNKNOWN_ENTITY \
+    AGENTD_STATUS_ERROR_MACRO(AGENTD_SERVICE_PROTOCOL, 0x001FU)
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }

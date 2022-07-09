@@ -3327,3 +3327,84 @@ TEST_F(protocolservice_isolation_test, extended_api_enable_unauthorized)
     dispose((disposable_t*)&shared_secret);
     dispose((disposable_t*)&response);
 }
+
+/**
+ * If an extended api call is made to an unregistered entity, an error is
+ * returned.
+ */
+TEST_F(protocolservice_isolation_test, extended_api_unregistered_entity)
+{
+    uint64_t client_iv = 0;
+    uint64_t server_iv = 0;
+    uint32_t request_id, offset, status;
+    vccrypt_buffer_t shared_secret;
+    vccrypt_buffer_t response;
+    ssock sock;
+    const uint32_t EXPECTED_OFFSET = 147;
+    const vpr_uuid sentinel_id = { .data = {
+        0x33, 0x61, 0x48, 0x6f, 0xe8, 0x8d, 0x4c, 0x72,
+        0xa1, 0x5b, 0xbf, 0xf2, 0x2d, 0xcd, 0xeb, 0xfd } };
+    const vpr_uuid verb_id = { .data = {
+        0x55, 0x75, 0x79, 0x60, 0x6f, 0x0c, 0x41, 0xbd,
+        0xb1, 0x67, 0x10, 0x78, 0x4e, 0x25, 0x58, 0xaf } };
+    vccrypt_buffer_t request_body;
+
+    /* create dummy request body. */
+    ASSERT_EQ(
+        VCCRYPT_STATUS_SUCCESS,
+        vccrypt_buffer_init(&request_body, &alloc_opts, 32));
+    memset(request_body.data, 0x55, request_body.size);
+
+    /* register dataservice helper mocks. */
+    ASSERT_EQ(0, dataservice_mock_register_helper());
+
+    /* start the mocks. */
+    dataservice->start();
+    notifyservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
+    /* do the handshake, populating the shared secret on success. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+              do_handshake(&shared_secret, &server_iv, &client_iv));
+
+    /* convert our socket to a ssock instance to call the extended API. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+
+    /* send an extended api request. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_sendreq_extended_api(
+            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            &sentinel_id, &verb_id, &request_body));
+
+    /* we should receive a response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_recvresp(
+            &sock, &suite, &server_iv, &shared_secret, &response));
+
+    /* we should be able to decode this response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_response_decode_header(
+            &request_id, &offset, &status, &response));
+
+    /* the request id should match what we expect. */
+    EXPECT_EQ(UNAUTH_PROTOCOL_REQ_ID_EXTENDED_API_SENDRECV, request_id);
+    EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_EXTENDED_API_UNKNOWN_ENTITY, status);
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+
+    /* dispose the socket instance. */
+    dispose((disposable_t*)&sock);
+
+    /* stop the mocks. */
+    dataservice->stop();
+    notifyservice->stop();
+
+    /* clean up. */
+    dispose((disposable_t*)&shared_secret);
+    dispose((disposable_t*)&response);
+    dispose((disposable_t*)&request_body);
+}
