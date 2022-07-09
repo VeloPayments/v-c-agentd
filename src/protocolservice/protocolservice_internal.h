@@ -390,6 +390,21 @@ struct protocolservice_control_fiber_context
 };
 
 /**
+ * \brief Entry in the extended api dictionary.
+ */
+typedef struct protocolservice_extended_api_dict_entry
+protocolservice_extended_api_dict_entry;
+
+struct protocolservice_extended_api_dict_entry
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    RCPR_SYM(rcpr_uuid) entity_id;
+    RCPR_SYM(mailbox_address) mailbox;
+    bool can_respond;
+};
+
+/**
  * \brief Send a message to the dataservice endpoint.
  *
  * \note This function takes ownership of the contents of the request buffer on
