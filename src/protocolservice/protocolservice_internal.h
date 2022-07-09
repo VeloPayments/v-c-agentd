@@ -400,7 +400,6 @@ struct protocolservice_extended_api_dict_entry
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
     RCPR_SYM(rcpr_uuid) entity_id;
-    RCPR_SYM(mailbox_address) mailbox;
     protocolservice_protocol_fiber_context* ctx;
 };
 
@@ -2215,6 +2214,23 @@ RCPR_SYM(rcpr_comparison_result) protocolservice_extended_api_dict_compare(
  */
 const void* protocolservice_extended_api_dict_entry_key(
     void* context, const RCPR_SYM(resource)* r);
+
+/**
+ * \brief Create an extended API dictionary entry.
+ *
+ * \param entry         Pointer to receive the entry on success.
+ * \param alloc         The allocator to use for this operation.
+ * \param entity_id     The entity id for this entry.
+ * \param ctx           A weak reference to the protocolservice protocol fiber
+ *                      context for this entry.
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_extended_api_dict_entry_create(
+    protocolservice_extended_api_dict_entry** entry, RCPR_SYM(allocator)* alloc,
+    const RCPR_SYM(rcpr_uuid)* entity_id,
+    protocolservice_protocol_fiber_context* ctx);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
