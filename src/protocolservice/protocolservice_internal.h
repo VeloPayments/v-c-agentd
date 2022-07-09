@@ -18,6 +18,7 @@
 #include <rcpr/resource/protected.h>
 #include <rcpr/uuid.h>
 #include <stdbool.h>
+#include <vcblockchain/protocol/data.h>
 #include <vccrypt/suite.h>
 
 /* make this header C++ friendly. */
@@ -1899,6 +1900,22 @@ status protocolservice_protocol_dnd_extended_api_enable(
     const uint8_t* payload, size_t payload_size);
 
 /**
+ * \brief Decode and dispatch an extended API send request.
+ *
+ * \param ctx               The protocol service protocol fiber context.
+ * \param request_offset    The request offset of the packet.
+ * \param payload           The payload of the packet.
+ * \param payload_size      The size of the payload.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_dnd_extended_api_sendrecv(
+    protocolservice_protocol_fiber_context* ctx, uint32_t request_offset,
+    const uint8_t* payload, size_t payload_size);
+
+/**
  * \brief Decode and dispatch a status get request.
  *
  * \param ctx               The protocol service protocol fiber context.
@@ -2269,6 +2286,21 @@ status protocolservice_protocol_route_extended_api_for_entity(
  */
 status protocolservice_protocol_unroute_extended_api_for_entity(
     protocolservice_protocol_fiber_context* ctx);
+
+/**
+ * \brief Forward an extended API request to the appropriate sentinel.
+ *
+ * \param ctx           The protocolservice protocol fiber context for this
+ *                      operation.
+ * \param req           The request to forward.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_extended_api_send_req(
+    protocolservice_protocol_fiber_context* ctx,
+    const protocol_req_extended_api* req);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
