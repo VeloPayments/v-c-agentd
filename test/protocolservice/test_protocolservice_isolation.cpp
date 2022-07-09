@@ -3257,3 +3257,73 @@ TEST_F(protocolservice_isolation_test, extended_api_enable_happy_path)
     dispose((disposable_t*)&shared_secret);
     dispose((disposable_t*)&response);
 }
+
+/**
+ * An entity that DOES NOT have the extended API enable capability will receive
+ * an unauthorized failure when attempting the extended api enable call.
+ */
+TEST_F(protocolservice_isolation_test, extended_api_enable_unauthorized)
+{
+    uint64_t client_iv = 0;
+    uint64_t server_iv = 0;
+    uint32_t request_id, offset, status;
+    vccrypt_buffer_t shared_secret;
+    vccrypt_buffer_t response;
+    ssock sock;
+    const uint32_t EXPECTED_OFFSET = 147;
+
+    /* register dataservice helper mocks. */
+    ASSERT_EQ(0, dataservice_mock_register_helper());
+
+    /* remove the extended api enable capability. */
+    entity_caps.erase(verb_sentinel_extend_api_enable);
+
+    /* start the mocks. */
+    dataservice->start();
+    notifyservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
+    /* do the handshake, populating the shared secret on success. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+              do_handshake(&shared_secret, &server_iv, &client_iv));
+
+    /* convert our socket to a ssock instance to call the extended API. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+
+    /* send the extended api enable request. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_sendreq_extended_api_enable(
+            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+
+    /* we should receive a response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_recvresp(
+            &sock, &suite, &server_iv, &shared_secret, &response));
+
+    /* we should be able to decode this response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_response_decode_header(
+            &request_id, &offset, &status, &response));
+
+    /* the request id should match what we expect. */
+    EXPECT_EQ(UNAUTH_PROTOCOL_REQ_ID_EXTENDED_API_ENABLE, request_id);
+    /* however, the call should have failed with an unauthorized status. */
+    EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, status);
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+
+    /* dispose the socket instance. */
+    dispose((disposable_t*)&sock);
+
+    /* stop the mocks. */
+    dataservice->stop();
+    notifyservice->stop();
+
+    /* clean up. */
+    dispose((disposable_t*)&shared_secret);
+    dispose((disposable_t*)&response);
+}
