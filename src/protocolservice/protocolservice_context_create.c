@@ -83,6 +83,17 @@ status protocolservice_context_create(
         goto cleanup_context;
     }
 
+    /* create the extended api rbtree. */
+    retval =
+        rbtree_create(
+            &tmp->extended_api_dict, alloc,
+            &protocolservice_extended_api_dict_compare,
+            &protocolservice_extended_api_dict_entry_key, NULL);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
     /* initialize the VPR allocator. */
     malloc_allocator_options_init(&tmp->vpr_alloc);
 

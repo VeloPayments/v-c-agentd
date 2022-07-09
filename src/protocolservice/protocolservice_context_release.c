@@ -26,6 +26,7 @@ RCPR_IMPORT_resource;
 status protocolservice_context_release(RCPR_SYM(resource)* r)
 {
     status authorized_entity_dict_release_retval = STATUS_SUCCESS;
+    status extended_api_dict_release_retval = STATUS_SUCCESS;
     status context_release_retval = STATUS_SUCCESS;
     protocolservice_context* ctx = (protocolservice_context*)r;
 
@@ -67,6 +68,14 @@ status protocolservice_context_release(RCPR_SYM(resource)* r)
                 rbtree_resource_handle(ctx->authorized_entity_dict));
     }
 
+    /* release the extended api dictionary if initialized. */
+    if (NULL != ctx->extended_api_dict)
+    {
+        extended_api_dict_release_retval =
+            resource_release(
+                rbtree_resource_handle(ctx->extended_api_dict));
+    }
+
     /* release the context memory. */
     context_release_retval = rcpr_allocator_reclaim(alloc, ctx);
 
@@ -74,6 +83,10 @@ status protocolservice_context_release(RCPR_SYM(resource)* r)
     if (STATUS_SUCCESS != authorized_entity_dict_release_retval)
     {
         return authorized_entity_dict_release_retval;
+    }
+    else if (STATUS_SUCCESS != extended_api_dict_release_retval)
+    {
+        return extended_api_dict_release_retval;
     }
     else
     {
