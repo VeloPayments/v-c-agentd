@@ -401,7 +401,7 @@ struct protocolservice_extended_api_dict_entry
     RCPR_SYM(allocator)* alloc;
     RCPR_SYM(rcpr_uuid) entity_id;
     RCPR_SYM(mailbox_address) mailbox;
-    bool can_respond;
+    protocolservice_protocol_fiber_context* ctx;
 };
 
 /**
