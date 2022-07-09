@@ -36,7 +36,6 @@ status protocolservice_protocol_dnd_extended_api_enable(
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
     MODEL_ASSERT(NULL != payload);
 
-#if 0
     /* perform a capability check for this operation. */
     if (!
         protocolservice_authorized_entity_capability_check(
@@ -47,7 +46,6 @@ status protocolservice_protocol_dnd_extended_api_enable(
         retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
         goto done;
     }
-#endif
 
     /* decode the request. */
     retval =
