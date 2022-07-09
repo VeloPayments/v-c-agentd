@@ -74,14 +74,12 @@ status protocolservice_protocol_dnd_extended_api_enable(
     }
 #endif
 
-#if 0
     /* attempt to add routing for this entity to the extended API dictionary. */
     retval = protocolservice_protocol_route_extended_api_for_entity(ctx);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_req;
     }
-#endif
 
     /* enable the extended API. */
     ctx->extended_api_enabled = true;
