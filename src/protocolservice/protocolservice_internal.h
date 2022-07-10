@@ -2302,6 +2302,25 @@ status protocolservice_protocol_extended_api_send_req(
     protocolservice_protocol_fiber_context* ctx,
     const protocol_req_extended_api* req);
 
+/**
+ * \brief Create an extended API client request payload buffer.
+ *
+ * \param buffer        Uninitialized buffer to receive the payload on success.
+ * \param offset        Pointer to receive the offset on success.
+ * \param ctx           The sending client's context.
+ * \param entry         The receiving sentinel's routing entry.
+ * \param req           The extended API request to send to the sentinel.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_protocol_create_extended_api_clientreq_payload(
+    vccrypt_buffer_t* buffer, uint64_t* offset,
+    protocolservice_protocol_fiber_context* ctx,
+    protocolservice_extended_api_dict_entry* entry,
+    const protocol_req_extended_api* req);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
