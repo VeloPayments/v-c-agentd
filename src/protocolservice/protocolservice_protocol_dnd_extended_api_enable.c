@@ -56,7 +56,6 @@ status protocolservice_protocol_dnd_extended_api_enable(
         goto done;
     }
 
-#if 0
     /* if this entity has the capability of responding, set response flag. */
     if (
         protocolservice_authorized_entity_capability_check(
@@ -70,7 +69,6 @@ status protocolservice_protocol_dnd_extended_api_enable(
     {
         ctx->extended_api_can_respond = false;
     }
-#endif
 
     /* attempt to add routing for this entity to the extended API dictionary. */
     retval = protocolservice_protocol_route_extended_api_for_entity(ctx);
