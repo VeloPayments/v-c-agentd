@@ -137,6 +137,12 @@ status protocolservice_protocol_decode_and_dispatch(
                     ctx, request_offset, payload, payload_size);
             break;
 
+        case UNAUTH_PROTOCOL_REQ_ID_EXTENDED_API_SENDRESP:
+            retval =
+                protocolservice_protocol_dnd_extended_api_sendresp(
+                    ctx, request_offset, payload, payload_size);
+            break;
+
         case UNAUTH_PROTOCOL_REQ_ID_STATUS_GET:
             retval =
                 protocolservice_protocol_dnd_status_get(
