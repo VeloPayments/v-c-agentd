@@ -14,6 +14,7 @@
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
+RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
 
 /**
@@ -34,6 +35,7 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
     status fiber_mailbox_close_retval = STATUS_SUCCESS;
     status context_release_retval = STATUS_SUCCESS;
     status extended_api_disable_retval = STATUS_SUCCESS;
+    status extended_api_offset_dict_release_retval = STATUS_SUCCESS;
     protocolservice_protocol_fiber_context* ctx =
         (protocolservice_protocol_fiber_context*)r;
 
@@ -103,6 +105,14 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
         dispose((disposable_t*)&ctx->shared_secret);
     }
 
+    /* release the extended api dictionary. */
+    if (NULL != ctx->extended_api_offset_dict)
+    {
+        extended_api_offset_dict_release_retval =
+            resource_release(
+                rbtree_resource_handle(ctx->extended_api_offset_dict));
+    }
+
     /* close the mailbox associated with this fiber. */
     if (ctx->return_addr > 0)
     {
@@ -140,6 +150,10 @@ status protocolservice_protocol_fiber_context_release(RCPR_SYM(resource)* r)
     else if (STATUS_SUCCESS != fiber_mailbox_close_retval)
     {
         return fiber_mailbox_close_retval;
+    }
+    else if (STATUS_SUCCESS != extended_api_offset_dict_release_retval)
+    {
+        return extended_api_offset_dict_release_retval;
     }
     else
     {

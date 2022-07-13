@@ -263,6 +263,21 @@ struct protocolservice_notificationservice_xlat_entry
 };
 
 /**
+ * \brief Entry in the protocol extended api response translation table.
+ */
+typedef struct protocolservice_extended_api_response_xlat_entry
+protocolservice_extended_api_response_xlat_entry;
+
+struct protocolservice_extended_api_response_xlat_entry
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    uint64_t server_offset;
+    uint32_t client_offset;
+    RCPR_SYM(mailbox_address) client_return_address;
+};
+
+/**
  * \brief Context structure for the protocol service dataservice endpoint.
  */
 typedef struct protocolservice_dataservice_endpoint_context
@@ -2336,6 +2351,35 @@ status protocolservice_protocol_create_extended_api_clientreq_payload(
     protocolservice_protocol_fiber_context* ctx,
     protocolservice_extended_api_dict_entry* entry,
     const protocol_req_extended_api* req);
+
+/**
+ * \brief Compare two opaque \ref
+ * protocolservice_extended_api_response_xlat_entry keys.
+ *
+ * \param context       Unused.
+ * \param lhs           The left-hand side of the comparison.
+ * \param rhs           The right-hand side of the comparison.
+ *
+ * \returns an integer value representing the comparison result.
+ *      - RCPR_COMPARE_LT if \p lhs &lt; \p rhs.
+ *      - RCPR_COMPARE_EQ if \p lhs == \p rhs.
+ *      - RCPR_COMPARE_GT if \p lhs &gt; \p rhs.
+ */
+RCPR_SYM(rcpr_comparison_result)
+protocolservice_extended_api_response_xlat_entry_compare(
+    void* context, const void* lhs, const void* rhs);
+
+/**
+ * \brief Given a \ref protocolservice_extended_api_response_xlat_entry resource
+ * handle, return its \ref rcpr_uuid key.
+ *
+ * \param context       Unused.
+ * \param r             The resource handle of an extended api xlat entry.
+ *
+ * \returns the key for the authorized entity resource.
+ */
+const void* protocolservice_extended_api_response_xlat_entry_key(
+    void* context, const RCPR_SYM(resource)* r);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
