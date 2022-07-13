@@ -16,6 +16,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_fiber;
 RCPR_IMPORT_message;
 RCPR_IMPORT_psock;
+RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
 
 /**
@@ -118,6 +119,17 @@ status protocolservice_protocol_fiber_add(
     /* create a special fiber mailbox for this fiber. */
     retval =
         mailbox_create(&tmp->fiber_addr, ctx->msgdisc);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_context;
+    }
+
+    /* create the extended api offset dictionary for this fiber. */
+    retval =
+        rbtree_create(
+            &tmp->extended_api_offset_dict, alloc,
+            &protocolservice_extended_api_response_xlat_entry_compare,
+            &protocolservice_extended_api_response_xlat_entry_key, NULL);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_context;
