@@ -75,6 +75,12 @@ PROTOCOLSERVICE_API_CAPABILITY_EXTENDED_API_ENABLE;
 extern const RCPR_SYM(rcpr_uuid)
 PROTOCOLSERVICE_API_CAPABILITY_EXTENDED_API_RESP;
 
+/**
+ * \brief Send an extended api request.
+ */
+extern const RCPR_SYM(rcpr_uuid)
+PROTOCOLSERVICE_API_CAPABILITY_EXTENDED_API_SENDRECV;
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
