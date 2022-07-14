@@ -60,6 +60,10 @@ status protocolservice_extended_api_response_xlat_entry_add(
         goto cleanup_tmp;
     }
 
+    /* success. */
+    retval = STATUS_SUCCESS;
+    goto done;
+
 cleanup_tmp:
     release_retval = resource_release(&tmp->hdr);
     if (STATUS_SUCCESS != release_retval)
