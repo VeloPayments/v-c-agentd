@@ -2381,6 +2381,34 @@ protocolservice_extended_api_response_xlat_entry_compare(
 const void* protocolservice_extended_api_response_xlat_entry_key(
     void* context, const RCPR_SYM(resource)* r);
 
+/**
+ * \brief Add an extended API response xlat entry to the given sentinel context.
+ *
+ * \param ctx           The context to which this entry is added.
+ * \param server_offset The server offset.
+ * \param client_offset The client offset.
+ * \param return_addr   The client return address.
+ *
+ * \returns an error code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_extended_api_response_xlat_entry_add(
+    protocolservice_protocol_fiber_context* ctx, uint64_t server_offset,
+    uint32_t client_offset, RCPR_SYM(mailbox_address) return_addr);
+
+/**
+ * \brief Release an extended API xlat table entry resource.
+ *
+ * \param r             The resource to release.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status protocolservice_extended_api_response_xlat_entry_release(
+    RCPR_SYM(resource)* r);
+
 /* make this header C++ friendly. */
 #ifdef __cplusplus
 }
