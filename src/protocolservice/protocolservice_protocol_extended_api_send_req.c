@@ -37,16 +37,6 @@ status protocolservice_protocol_extended_api_send_req(
     message* msg = NULL;
     uint64_t clientreq_offset;
 
-    /* attempt to look up the entity route mapping. */
-    retval =
-        rbtree_find(
-            (resource**)&entry, ctx->ctx->extended_api_dict, &req->entity_id);
-    if (STATUS_SUCCESS != retval)
-    {
-        retval = AGENTD_ERROR_PROTOCOLSERVICE_EXTENDED_API_UNKNOWN_ENTITY;
-        goto done;
-    }
-
     /* perform a capability check to ensure that this entity is allowed to
      * perform the requested verb on the requested entity. */
     if (!
@@ -55,6 +45,16 @@ status protocolservice_protocol_extended_api_send_req(
             (const rcpr_uuid*)&req->entity_id))
     {
         retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
+        goto done;
+    }
+
+    /* attempt to look up the entity route mapping. */
+    retval =
+        rbtree_find(
+            (resource**)&entry, ctx->ctx->extended_api_dict, &req->entity_id);
+    if (STATUS_SUCCESS != retval)
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_EXTENDED_API_UNKNOWN_ENTITY;
         goto done;
     }
 
