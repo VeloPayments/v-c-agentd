@@ -3424,11 +3424,14 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e)
     vccrypt_buffer_t response;
     ssock sock;
     const uint32_t EXPECTED_OFFSET = 147;
+    const string verb_string = "55757960-6f0c-41bd-b167-10784e2558af";
     const vpr_uuid verb_id = { .data = {
         0x55, 0x75, 0x79, 0x60, 0x6f, 0x0c, 0x41, 0xbd,
         0xb1, 0x67, 0x10, 0x78, 0x4e, 0x25, 0x58, 0xaf } };
     vccrypt_buffer_t request_body;
     protocol_resp_extended_api_client_request client_resp;
+    capabilities_entry ext_api_auth = {
+        authorized_entity_id_string, verb_string, authorized_entity_id_string };
 
     /* create dummy request body. */
     ASSERT_EQ(
@@ -3441,6 +3444,9 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e)
 
     /* remove the extended api response capability. */
     entity_caps.erase(verb_extended_api_resp);
+
+    /* add the ability to perform the requested verb id on this entity. */
+    entity_caps.insert(make_pair(verb_string, ext_api_auth));
 
     /* start the mocks. */
     dataservice->start();
@@ -3598,12 +3604,15 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e2)
     ssock sock;
     const uint32_t EXPECTED_OFFSET = 147;
     const uint32_t EXPECTED_RESPONSE_STATUS = 27;
+    const string verb_string = "55757960-6f0c-41bd-b167-10784e2558af";
     const vpr_uuid verb_id = { .data = {
         0x55, 0x75, 0x79, 0x60, 0x6f, 0x0c, 0x41, 0xbd,
         0xb1, 0x67, 0x10, 0x78, 0x4e, 0x25, 0x58, 0xaf } };
     vccrypt_buffer_t request_body;
     protocol_resp_extended_api_client_request client_resp;
     protocol_resp_extended_api extresp;
+    capabilities_entry ext_api_auth = {
+        authorized_entity_id_string, verb_string, authorized_entity_id_string };
 
     /* create dummy request body. */
     ASSERT_EQ(
@@ -3613,6 +3622,9 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e2)
 
     /* register dataservice helper mocks. */
     ASSERT_EQ(0, dataservice_mock_register_helper());
+
+    /* add the ability to perform the requested verb id on this entity. */
+    entity_caps.insert(make_pair(verb_string, ext_api_auth));
 
     /* start the mocks. */
     dataservice->start();
@@ -3826,6 +3838,112 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized)
 
     /* remove the extended api request capability. */
     entity_caps.erase(verb_extended_api_req);
+
+    /* start the mocks. */
+    dataservice->start();
+    notifyservice->start();
+
+    /* add the hardcoded keys. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, add_hardcoded_keys());
+
+    /* do the handshake, populating the shared secret on success. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
+              do_handshake(&shared_secret, &server_iv, &client_iv));
+
+    /* convert our socket to a ssock instance to call the extended API. */
+    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+
+    /* send the extended api enable request. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_sendreq_extended_api_enable(
+            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+
+    /* we should receive a response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_recvresp(
+            &sock, &suite, &server_iv, &shared_secret, &response));
+
+    /* we should be able to decode this response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_response_decode_header(
+            &request_id, &offset, &status, &response));
+
+    /* the request id should match what we expect. */
+    EXPECT_EQ(UNAUTH_PROTOCOL_REQ_ID_EXTENDED_API_ENABLE, request_id);
+    EXPECT_EQ(AGENTD_STATUS_SUCCESS, status);
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+
+    /* clean up response. */
+    dispose((disposable_t*)&response);
+
+    /* send an extended API request. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_sendreq_extended_api(
+            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            (const vpr_uuid*)authorized_entity_id, &verb_id, &request_body));
+
+    /* we should receive a response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_recvresp(
+            &sock, &suite, &server_iv, &shared_secret, &response));
+
+    /* we should be able to decode this response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_response_decode_header(
+            &request_id, &offset, &status, &response));
+
+    /* it should be a sendrecv request. */
+    EXPECT_EQ(UNAUTH_PROTOCOL_REQ_ID_EXTENDED_API_SENDRECV, request_id);
+    /* the offset should match. */
+    EXPECT_EQ(EXPECTED_OFFSET, offset);
+    /* it should have failed with an unauthorized error. */
+    EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, status);
+
+    /* dispose the socket instance. */
+    dispose((disposable_t*)&sock);
+
+    /* stop the mocks. */
+    dataservice->stop();
+    notifyservice->stop();
+
+    /* clean up. */
+    dispose((disposable_t*)&request_body);
+    dispose((disposable_t*)&shared_secret);
+    dispose((disposable_t*)&response);
+}
+
+/**
+ * An unauthorized error is returned if a client attempts to perform an extended
+ * api request without explicit permission for that entity and verb.
+ */
+TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized2)
+{
+    uint64_t client_iv = 0;
+    uint64_t server_iv = 0;
+    uint32_t request_id, offset, status;
+    vccrypt_buffer_t shared_secret;
+    vccrypt_buffer_t response;
+    ssock sock;
+    const uint32_t EXPECTED_OFFSET = 147;
+    const vpr_uuid verb_id = { .data = {
+        0x55, 0x75, 0x79, 0x60, 0x6f, 0x0c, 0x41, 0xbd,
+        0xb1, 0x67, 0x10, 0x78, 0x4e, 0x25, 0x58, 0xaf } };
+    vccrypt_buffer_t request_body;
+
+    /* create dummy request body. */
+    ASSERT_EQ(
+        VCCRYPT_STATUS_SUCCESS,
+        vccrypt_buffer_init(&request_body, &alloc_opts, 32));
+    memset(request_body.data, 0x55, request_body.size);
+
+    /* register dataservice helper mocks. */
+    ASSERT_EQ(0, dataservice_mock_register_helper());
 
     /* start the mocks. */
     dataservice->start();

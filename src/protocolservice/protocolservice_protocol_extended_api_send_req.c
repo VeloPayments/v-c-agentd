@@ -14,6 +14,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_message;
 RCPR_IMPORT_rbtree;
 RCPR_IMPORT_resource;
+RCPR_IMPORT_uuid;
 
 /**
  * \brief Forward an extended API request to the appropriate sentinel.
@@ -43,6 +44,17 @@ status protocolservice_protocol_extended_api_send_req(
     if (STATUS_SUCCESS != retval)
     {
         retval = AGENTD_ERROR_PROTOCOLSERVICE_EXTENDED_API_UNKNOWN_ENTITY;
+        goto done;
+    }
+
+    /* perform a capability check to ensure that this entity is allowed to
+     * perform the requested verb on the requested entity. */
+    if (!
+        protocolservice_authorized_entity_capability_check(
+            ctx->entity, &ctx->entity_uuid, (const rcpr_uuid*)&req->verb_id,
+            (const rcpr_uuid*)&req->entity_id))
+    {
+        retval = AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED;
         goto done;
     }
 
