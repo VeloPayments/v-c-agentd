@@ -3343,13 +3343,17 @@ TEST_F(protocolservice_isolation_test, extended_api_unregistered_entity)
     vccrypt_buffer_t response;
     ssock sock;
     const uint32_t EXPECTED_OFFSET = 147;
+    const string sentinel_string = "3361486f-e88d-4c72-a15b-bff22dcdebfd";
     const vpr_uuid sentinel_id = { .data = {
         0x33, 0x61, 0x48, 0x6f, 0xe8, 0x8d, 0x4c, 0x72,
         0xa1, 0x5b, 0xbf, 0xf2, 0x2d, 0xcd, 0xeb, 0xfd } };
+    const string verb_string = "55757960-6f0c-41bd-b167-10784e2558af";
     const vpr_uuid verb_id = { .data = {
         0x55, 0x75, 0x79, 0x60, 0x6f, 0x0c, 0x41, 0xbd,
         0xb1, 0x67, 0x10, 0x78, 0x4e, 0x25, 0x58, 0xaf } };
     vccrypt_buffer_t request_body;
+    capabilities_entry ext_api_auth = {
+        authorized_entity_id_string, verb_string, sentinel_string };
 
     /* create dummy request body. */
     ASSERT_EQ(
@@ -3359,6 +3363,9 @@ TEST_F(protocolservice_isolation_test, extended_api_unregistered_entity)
 
     /* register dataservice helper mocks. */
     ASSERT_EQ(0, dataservice_mock_register_helper());
+
+    /* add the ability to perform the requested verb id on this sentinel. */
+    entity_caps.insert(make_pair(verb_string, ext_api_auth));
 
     /* start the mocks. */
     dataservice->start();
