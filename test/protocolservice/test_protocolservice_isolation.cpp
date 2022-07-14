@@ -3588,7 +3588,7 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e)
  * End-to-end with the extended API works -- one entity sending an extended API
  * call to itself, and it responds to this call.
  */
-TEST_F(protocolservice_isolation_test, DISABLED_extended_api_e2e2)
+TEST_F(protocolservice_isolation_test, extended_api_e2e2)
 {
     uint64_t client_iv = 0;
     uint64_t server_iv = 0;
@@ -3761,6 +3761,26 @@ TEST_F(protocolservice_isolation_test, DISABLED_extended_api_e2e2)
         0,
         memcmp(
             request_body.data, extresp.response_body.data, request_body.size));
+
+    /* clean up the response. */
+    dispose((disposable_t*)&response);
+
+    /* we should receive a response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_recvresp(
+            &sock, &suite, &server_iv, &shared_secret, &response));
+
+    /* we should be able to decode this response. */
+    ASSERT_EQ(
+        AGENTD_STATUS_SUCCESS,
+        vcblockchain_protocol_response_decode_header(
+            &request_id, &offset, &status, &response));
+
+    /* it should be the extended api response send response. */
+    EXPECT_EQ(UNAUTH_PROTOCOL_REQ_ID_EXTENDED_API_SENDRESP, request_id);
+    EXPECT_EQ(1U, offset);
+    EXPECT_EQ(STATUS_SUCCESS, status);
 
     /* dispose the socket instance. */
     dispose((disposable_t*)&sock);

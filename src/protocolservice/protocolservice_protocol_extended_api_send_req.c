@@ -105,9 +105,9 @@ status protocolservice_protocol_extended_api_send_req(
     }
     else
     {
-        /* TODO - associate the clientreq offset in the translation table with
-         * the client context and the client offset. */
-        retval = STATUS_SUCCESS;
+        retval =
+            protocolservice_extended_api_response_xlat_entry_add(
+                entry->ctx, clientreq_offset, req->offset, ctx->return_addr);
     }
 
     /* exit. */
