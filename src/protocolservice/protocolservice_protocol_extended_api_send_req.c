@@ -98,7 +98,7 @@ status protocolservice_protocol_extended_api_send_req(
     payload = NULL;
 
     /* send the message to the protocol write endpoint. */
-    retval = message_send(ctx->return_addr, msg, ctx->ctx->msgdisc);
+    retval = message_send(entry->ctx->return_addr, msg, ctx->ctx->msgdisc);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_message;
