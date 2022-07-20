@@ -62,9 +62,7 @@ int protocolservice_api_sendreq_handshake_ack_block(
     /* create a mac instance for building the response to the challenge. */
     /* TODO - shared secret parameter should be const in suite. */
     vccrypt_mac_context_t mac;
-    retval =
-        vccrypt_suite_mac_short_init(
-            suite, &mac, (vccrypt_buffer_t*)shared_secret);
+    retval = vccrypt_suite_mac_short_init(suite, &mac, shared_secret);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         goto cleanup_digest;
