@@ -90,11 +90,9 @@ int protocolservice_api_sendreq_handshake_ack_block(
     *client_iv = 0x0000000000000001;
 
     /* write IPC authed data packet to server. */
-    /* TODO - shared_secret parameter in ipc should be const. */
     retval =
         ipc_write_authed_data_block(
-            sock, *client_iv, digest.data, digest.size, suite,
-            (vccrypt_buffer_t*)shared_secret);
+            sock, *client_iv, digest.data, digest.size, suite, shared_secret);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         goto cleanup_mac;
