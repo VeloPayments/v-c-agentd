@@ -46,7 +46,7 @@ enum agentd_psock_boxed_type
  */
 int psock_write_authed_data(
     RCPR_SYM(psock)* sock, uint64_t iv, const void* val, uint32_t size,
-    vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret);
+    vccrypt_suite_options_t* suite, const vccrypt_buffer_t* secret);
 
 /**
  * \brief Read an authenticated data packet.
