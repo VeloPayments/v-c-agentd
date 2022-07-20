@@ -62,13 +62,11 @@ int protocolservice_api_recvresp_handshake_ack_block(
     *server_iv = 0x8000000000000001;
 
     /* read the response from the server. */
-    /* TODO - fix constness in ipc method for shared secret. */
     uint32_t* val;
     uint32_t size;
     retval =
         ipc_read_authed_data_block(
-            sock, *server_iv, (void**)&val, &size, suite,
-            (vccrypt_buffer_t*)shared_secret);
+            sock, *server_iv, (void**)&val, &size, suite, shared_secret);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         goto done;
