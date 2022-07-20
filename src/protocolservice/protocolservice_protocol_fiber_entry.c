@@ -68,7 +68,6 @@ status protocolservice_protocol_fiber_entry(void* vctx)
         }
     }
 
-    /* TODO - extend decode-and-dispatch with sentinel service registry. */
     retval = STATUS_SUCCESS;
     goto shutdown_write_endpoint;
 
