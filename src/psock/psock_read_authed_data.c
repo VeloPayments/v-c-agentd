@@ -48,7 +48,7 @@ RCPR_IMPORT_psock;
 int psock_read_authed_data(
     RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint64_t iv,
     void** val, uint32_t* size, vccrypt_suite_options_t* suite,
-    vccrypt_buffer_t* secret)
+    const vccrypt_buffer_t* secret)
 {
     status retval = 0, release_retval = 0;
     uint32_t type = 0U;
