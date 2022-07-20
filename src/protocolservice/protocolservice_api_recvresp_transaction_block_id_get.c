@@ -66,11 +66,9 @@ int protocolservice_api_recvresp_transaction_block_id_get(
     MODEL_ASSERT(NULL != block_id);
 
     /* read the response from the server. */
-    /* TODO - fix constness in ipc method for shared secret. */
     retval =
         ipc_read_authed_data_block(
-            sock, *server_iv, (void**)&val, &size, suite,
-            (vccrypt_buffer_t*)shared_secret);
+            sock, *server_iv, (void**)&val, &size, suite, shared_secret);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         goto done;
