@@ -80,7 +80,8 @@ int psock_write_authed_data(
  */
 int psock_read_authed_data(
     RCPR_SYM(psock)* sock, RCPR_SYM(allocator)* alloc, uint64_t iv, void** val,
-    uint32_t* size, vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret);
+    uint32_t* size, vccrypt_suite_options_t* suite,
+    const vccrypt_buffer_t* secret);
 
 /* C++ compatibility. */
 # ifdef   __cplusplus
