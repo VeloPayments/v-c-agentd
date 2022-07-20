@@ -55,7 +55,7 @@
  */
 int ipc_read_authed_data_noblock(
     ipc_socket_context_t* sock, uint64_t iv, void** val, uint32_t* size,
-    vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret)
+    vccrypt_suite_options_t* suite, const vccrypt_buffer_t* secret)
 {
     int retval = 0;
     uint32_t type = 0U;
