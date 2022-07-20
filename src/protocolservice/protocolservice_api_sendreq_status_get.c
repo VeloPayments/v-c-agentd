@@ -61,11 +61,9 @@ int protocolservice_api_sendreq_status_get(
     memcpy(breq + sizeof(uint32_t), &net_request_id, sizeof(net_request_id));
 
     /* write IPC authed request packet to the server. */
-    /* TODO - shared secret parameter in ipc should be const. */
     retval =
         ipc_write_authed_data_block(
-            sock, *client_iv, req.data, req.size, suite,
-            (vccrypt_buffer_t*)shared_secret);
+            sock, *client_iv, req.data, req.size, suite, shared_secret);
     if (AGENTD_STATUS_SUCCESS != retval)
     {
         goto cleanup_req;
