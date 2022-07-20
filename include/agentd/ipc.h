@@ -769,7 +769,7 @@ int ipc_write_data_noblock(
  */
 int ipc_write_authed_data_noblock(
     ipc_socket_context_t* sock, uint64_t iv, const void* val, uint32_t size,
-    vccrypt_suite_options_t* suite, vccrypt_buffer_t* secret);
+    vccrypt_suite_options_t* suite, const vccrypt_buffer_t* secret);
 
 /**
  * \brief Write a character string to a non-blocking socket.
