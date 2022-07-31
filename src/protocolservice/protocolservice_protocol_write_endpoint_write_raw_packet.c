@@ -7,7 +7,7 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
-#include <agentd/psock.h>
+#include <vcblockchain/psock.h>
 
 #include "protocolservice_internal.h"
 

@@ -7,13 +7,15 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
-#include <agentd/psock.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
 #include <string.h>
 #include <unistd.h>
+#include <vcblockchain/psock.h>
 
 #include "protocolservice_internal.h"
+
+RCPR_IMPORT_allocator_as(rcpr);
 
 /**
  * \brief Read a packet from the client socket, and decode / dispatch it.
@@ -93,7 +95,11 @@ cleanup_req:
     if (NULL != req)
     {
         memset(req, 0, size);
-        free(req);
+        release_retval = rcpr_allocator_reclaim(ctx->alloc, req);
+        if (STATUS_SUCCESS != release_retval)
+        {
+            retval = release_retval;
+        }
     }
     req = NULL;
 
