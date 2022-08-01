@@ -7,11 +7,11 @@
  */
 
 #include <agentd/dataservice/async_api.h>
-#include <agentd/psock.h>
 #include <agentd/status_codes.h>
 #include <cbmc/model_assert.h>
 #include <string.h>
 #include <unistd.h>
+#include <vcblockchain/psock.h>
 
 #include "protocolservice_internal.h"
 

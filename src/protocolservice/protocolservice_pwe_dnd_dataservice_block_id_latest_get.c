@@ -8,8 +8,8 @@
  */
 
 #include <agentd/dataservice/async_api.h>
-#include <agentd/psock.h>
 #include <vcblockchain/protocol/serialization.h>
+#include <vcblockchain/psock.h>
 
 #include "protocolservice_internal.h"
 
