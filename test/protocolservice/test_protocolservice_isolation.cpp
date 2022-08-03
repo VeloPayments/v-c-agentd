@@ -21,6 +21,8 @@
 
 using namespace std;
 
+RCPR_IMPORT_psock;
+RCPR_IMPORT_resource;
 RCPR_IMPORT_uuid;
 
 /**
@@ -2837,7 +2839,7 @@ TEST_F(protocolservice_isolation_test, assert_block_happy_path)
     uint64_t client_iv = 0;
     uint64_t server_iv = 0;
     vccrypt_buffer_t shared_secret;
-    ssock sock;
+    psock* sock;
     vpr_uuid BLOCK_ID = { .data = {
         0xa8, 0xc1, 0x54, 0x15, 0x9e, 0x3d, 0x40, 0x0a,
         0xa4, 0x1f, 0x06, 0x4b, 0x92, 0xea, 0xea, 0x54 } };
@@ -2860,18 +2862,20 @@ TEST_F(protocolservice_isolation_test, assert_block_happy_path)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the latest block id assert request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_assert_latest_block_id(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             &BLOCK_ID));
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -2899,7 +2903,7 @@ TEST_F(protocolservice_isolation_test, assert_block_invalidation)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     vpr_uuid BLOCK_ID = { .data = {
         0xa8, 0xc1, 0x54, 0x15, 0x9e, 0x3d, 0x40, 0x0a,
         0xa4, 0x1f, 0x06, 0x4b, 0x92, 0xea, 0xea, 0x54 } };
@@ -2919,21 +2923,23 @@ TEST_F(protocolservice_isolation_test, assert_block_invalidation)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the latest block id assert request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_assert_latest_block_id(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             &BLOCK_ID));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -2946,8 +2952,8 @@ TEST_F(protocolservice_isolation_test, assert_block_invalidation)
     EXPECT_EQ(AGENTD_STATUS_SUCCESS, status);
     EXPECT_EQ(EXPECTED_OFFSET, offset);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -2975,7 +2981,7 @@ TEST_F(protocolservice_isolation_test, assert_block_capabilities_check)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     vpr_uuid BLOCK_ID = { .data = {
         0xa8, 0xc1, 0x54, 0x15, 0x9e, 0x3d, 0x40, 0x0a,
         0xa4, 0x1f, 0x06, 0x4b, 0x92, 0xea, 0xea, 0x54 } };
@@ -2998,21 +3004,23 @@ TEST_F(protocolservice_isolation_test, assert_block_capabilities_check)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the latest block id assert request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_assert_latest_block_id(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             &BLOCK_ID));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3026,8 +3034,8 @@ TEST_F(protocolservice_isolation_test, assert_block_capabilities_check)
     EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, status);
     EXPECT_EQ(EXPECTED_OFFSET, offset);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3048,7 +3056,7 @@ TEST_F(protocolservice_isolation_test, assert_block_cancel_happy_path)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     vpr_uuid BLOCK_ID = { .data = {
         0xa8, 0xc1, 0x54, 0x15, 0x9e, 0x3d, 0x40, 0x0a,
         0xa4, 0x1f, 0x06, 0x4b, 0x92, 0xea, 0xea, 0x54 } };
@@ -3071,27 +3079,29 @@ TEST_F(protocolservice_isolation_test, assert_block_cancel_happy_path)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the latest block id assert request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_assert_latest_block_id(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             &BLOCK_ID));
 
     /* cancel this request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_assert_latest_block_id_cancel(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3105,8 +3115,8 @@ TEST_F(protocolservice_isolation_test, assert_block_cancel_happy_path)
     EXPECT_EQ(AGENTD_STATUS_SUCCESS, status);
     EXPECT_EQ(EXPECTED_OFFSET, offset);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3133,7 +3143,7 @@ TEST_F(protocolservice_isolation_test, assert_block_cancel_unauthorized)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     const uint32_t EXPECTED_OFFSET = 47;
 
     /* register dataservice helper mocks. */
@@ -3156,20 +3166,22 @@ TEST_F(protocolservice_isolation_test, assert_block_cancel_unauthorized)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* cancel a block assertion request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_assert_latest_block_id_cancel(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3183,8 +3195,8 @@ TEST_F(protocolservice_isolation_test, assert_block_cancel_unauthorized)
     EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, status);
     EXPECT_EQ(EXPECTED_OFFSET, offset);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3205,7 +3217,7 @@ TEST_F(protocolservice_isolation_test, extended_api_enable_happy_path)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     const uint32_t EXPECTED_OFFSET = 147;
 
     /* register dataservice helper mocks. */
@@ -3222,20 +3234,22 @@ TEST_F(protocolservice_isolation_test, extended_api_enable_happy_path)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the extended api enable request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api_enable(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3248,8 +3262,8 @@ TEST_F(protocolservice_isolation_test, extended_api_enable_happy_path)
     EXPECT_EQ(AGENTD_STATUS_SUCCESS, status);
     EXPECT_EQ(EXPECTED_OFFSET, offset);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3271,7 +3285,7 @@ TEST_F(protocolservice_isolation_test, extended_api_enable_unauthorized)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     const uint32_t EXPECTED_OFFSET = 147;
 
     /* register dataservice helper mocks. */
@@ -3291,20 +3305,22 @@ TEST_F(protocolservice_isolation_test, extended_api_enable_unauthorized)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the extended api enable request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api_enable(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3318,8 +3334,8 @@ TEST_F(protocolservice_isolation_test, extended_api_enable_unauthorized)
     EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, status);
     EXPECT_EQ(EXPECTED_OFFSET, offset);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3341,7 +3357,7 @@ TEST_F(protocolservice_isolation_test, extended_api_unregistered_entity)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     const uint32_t EXPECTED_OFFSET = 147;
     const string sentinel_string = "3361486f-e88d-4c72-a15b-bff22dcdebfd";
     const vpr_uuid sentinel_id = { .data = {
@@ -3378,21 +3394,24 @@ TEST_F(protocolservice_isolation_test, extended_api_unregistered_entity)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
+
 
     /* send an extended api request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             &sentinel_id, &verb_id, &request_body));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3405,8 +3424,8 @@ TEST_F(protocolservice_isolation_test, extended_api_unregistered_entity)
     EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_EXTENDED_API_UNKNOWN_ENTITY, status);
     EXPECT_EQ(EXPECTED_OFFSET, offset);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3429,7 +3448,7 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     const uint32_t EXPECTED_OFFSET = 147;
     const string verb_string = "55757960-6f0c-41bd-b167-10784e2558af";
     const vpr_uuid verb_id = { .data = {
@@ -3466,20 +3485,22 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the extended api enable request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api_enable(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3499,14 +3520,14 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e)
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             (const vpr_uuid*)authorized_entity_id, &verb_id, &request_body));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3570,7 +3591,7 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e)
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3583,8 +3604,8 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e)
     EXPECT_EQ(EXPECTED_OFFSET, offset);
     EXPECT_EQ(AGENTD_STATUS_SUCCESS, status);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3608,7 +3629,7 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e2)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     const uint32_t EXPECTED_OFFSET = 147;
     const uint32_t EXPECTED_RESPONSE_STATUS = 27;
     const string verb_string = "55757960-6f0c-41bd-b167-10784e2558af";
@@ -3644,20 +3665,22 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e2)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the extended api enable request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api_enable(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3677,14 +3700,14 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e2)
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             (const vpr_uuid*)authorized_entity_id, &verb_id, &request_body));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3748,14 +3771,14 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e2)
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api_response(
-            &sock, &suite, &client_iv, &shared_secret, 1UL,
+            sock, &suite, &client_iv, &shared_secret, 1UL,
             EXPECTED_RESPONSE_STATUS, &request_body));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3788,7 +3811,7 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e2)
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3801,8 +3824,8 @@ TEST_F(protocolservice_isolation_test, extended_api_e2e2)
     EXPECT_EQ(1U, offset);
     EXPECT_EQ(STATUS_SUCCESS, status);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3827,7 +3850,7 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     const uint32_t EXPECTED_OFFSET = 147;
     const vpr_uuid verb_id = { .data = {
         0x55, 0x75, 0x79, 0x60, 0x6f, 0x0c, 0x41, 0xbd,
@@ -3857,20 +3880,22 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the extended api enable request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api_enable(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3890,14 +3915,14 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized)
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             (const vpr_uuid*)authorized_entity_id, &verb_id, &request_body));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3912,8 +3937,8 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized)
     /* it should have failed with an unauthorized error. */
     EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, status);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
@@ -3936,7 +3961,7 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized2)
     uint32_t request_id, offset, status;
     vccrypt_buffer_t shared_secret;
     vccrypt_buffer_t response;
-    ssock sock;
+    psock* sock;
     const uint32_t EXPECTED_OFFSET = 147;
     const vpr_uuid verb_id = { .data = {
         0x55, 0x75, 0x79, 0x60, 0x6f, 0x0c, 0x41, 0xbd,
@@ -3963,20 +3988,22 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized2)
     ASSERT_EQ(AGENTD_STATUS_SUCCESS,
               do_handshake(&shared_secret, &server_iv, &client_iv));
 
-    /* convert our socket to a ssock instance to call the extended API. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, ssock_init_from_posix(&sock, protosock));
+    /* convert our socket to a psock instance to call the extended API. */
+    ASSERT_EQ(
+        STATUS_SUCCESS,
+        psock_create_from_descriptor(&sock, alloc, protosock));
 
     /* send the extended api enable request. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api_enable(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -3996,14 +4023,14 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized2)
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_sendreq_extended_api(
-            &sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
+            sock, &suite, &client_iv, &shared_secret, EXPECTED_OFFSET,
             (const vpr_uuid*)authorized_entity_id, &verb_id, &request_body));
 
     /* we should receive a response. */
     ASSERT_EQ(
         AGENTD_STATUS_SUCCESS,
         vcblockchain_protocol_recvresp(
-            &sock, &suite, &server_iv, &shared_secret, &response));
+            sock, alloc, &suite, &server_iv, &shared_secret, &response));
 
     /* we should be able to decode this response. */
     ASSERT_EQ(
@@ -4018,8 +4045,8 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized2)
     /* it should have failed with an unauthorized error. */
     EXPECT_EQ(AGENTD_ERROR_PROTOCOLSERVICE_UNAUTHORIZED, status);
 
-    /* dispose the socket instance. */
-    dispose((disposable_t*)&sock);
+    /* release the socket instance. */
+    ASSERT_EQ(STATUS_SUCCESS, resource_release(psock_resource_handle(sock)));
 
     /* stop the mocks. */
     dataservice->stop();
