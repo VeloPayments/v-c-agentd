@@ -84,6 +84,7 @@ protected:
     char wd[16384];
     const char* oldpath;
     allocator_options_t alloc_opts;
+    RCPR_SYM(allocator)* alloc;
     vccrypt_suite_options_t suite;
     bool suite_instance_initialized;
     bool suite_initialized;

@@ -19,7 +19,10 @@
 #include "test_protocolservice_isolation.h"
 
 using namespace std;
+
+RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_uuid;
+RCPR_IMPORT_resource;
 
 const uint8_t protocolservice_isolation_test::dir_key[32] = {
     0x7e, 0x4b, 0xb1, 0x5d, 0xb5, 0x00, 0x41, 0x95,
@@ -188,11 +191,17 @@ const capabilities_map protocolservice_isolation_test::global_caps{
 
 void protocolservice_isolation_test::SetUp()
 {
+    status retval;
+
     vccrypt_suite_register_velo_v1();
 
     /* initialize allocator. */
     malloc_allocator_options_init(&alloc_opts);
 
+    /* initialize RCRP allocator. */
+    retval = rcpr_malloc_allocator_create(&alloc);
+    (void)retval;
+    
     /* initialize the crypto suite. */
     if (VCCRYPT_STATUS_SUCCESS ==
         vccrypt_suite_options_init(
@@ -362,6 +371,8 @@ void protocolservice_isolation_test::TearDown()
     {
         dispose((disposable_t*)&client_private_key);
     }
+    status retval = resource_release(rcpr_allocator_resource_handle(alloc));
+    (void)retval;
     dispose((disposable_t*)&alloc_opts);
 }
 
