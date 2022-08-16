@@ -30,10 +30,10 @@ RCPR_IMPORT_uuid;
 
 /* forward decls */
 typedef struct parser_callback_context parser_callback_context;
-static bool dummy_txn_resolver(
+static bool basic_txn_resolver(
     void* options, void* parser, const uint8_t* artifact_id,
     const uint8_t* txn_id, vccrypt_buffer_t* output_buffer, bool* trusted);
-static int32_t dummy_artifact_state_resolver(
+static int32_t basic_artifact_state_resolver(
     void* options, void* parser, const uint8_t* artifact_id,
     vccrypt_buffer_t* txn_id);
 static int basic_contract_resolver(
@@ -111,8 +111,8 @@ void private_command_read_public_entities(bootstrap_config_t* UNUSED(bconf))
     /* initialize the parser options. */
     retval =
         vccert_parser_options_init(
-            &parser_opts, &alloc_opts, &suite, &dummy_txn_resolver,
-            &dummy_artifact_state_resolver, &basic_contract_resolver,
+            &parser_opts, &alloc_opts, &suite, &basic_txn_resolver,
+            &basic_artifact_state_resolver, &basic_contract_resolver,
             &endorser_key_resolver, ctx);
     if (VCCERT_STATUS_SUCCESS != retval)
     {
@@ -529,7 +529,7 @@ done:
 /**
  * \brief Dummy transaction resolver.
  */
-static bool dummy_txn_resolver(
+static bool basic_txn_resolver(
     void* UNUSED(options), void* UNUSED(parser),
     const uint8_t* UNUSED(artifact_id),
     const uint8_t* UNUSED(txn_id), vccrypt_buffer_t* UNUSED(output_buffer),
@@ -541,7 +541,7 @@ static bool dummy_txn_resolver(
 /**
  * \brief Dummy artifact state resolver.
  */
-static int32_t dummy_artifact_state_resolver(
+static int32_t basic_artifact_state_resolver(
     void* UNUSED(options), void* UNUSED(parser),
     const uint8_t* UNUSED(artifact_id), vccrypt_buffer_t* UNUSED(txn_id))
 {
