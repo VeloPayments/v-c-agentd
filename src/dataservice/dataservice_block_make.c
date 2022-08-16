@@ -32,21 +32,6 @@ static uint8_t ff_uuid[16] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 };
 
-/* forward decls for parser callbacks. */
-static bool dummy_txn_resolver(
-    void* options, void* parser, const uint8_t* artifact_id,
-    const uint8_t* txn_id, vccrypt_buffer_t* output_buffer,
-    bool* trusted);
-static int32_t dummy_artifact_state_resolver(
-    void* options, void* parser, const uint8_t* artifact_id,
-    vccrypt_buffer_t* txn_id);
-static bool dummy_entity_key_resolver(
-    void* options, void* parser, uint64_t height, const uint8_t* entity_id,
-    vccrypt_buffer_t* pubenckey_buffer, vccrypt_buffer_t* pubsignkey_buffer);
-static int dummy_contract_resolver(
-    void* options, void* parser, const uint8_t* type_id,
-    const uint8_t* artifact_id, vccert_contract_closure_t* closure);
-
 /* constraint forward decls */
 static int constraint_matching_block_height(
     vccert_parser_context_t* parser, const data_block_node_t* end_node,
@@ -205,7 +190,7 @@ int dataservice_block_make(
     }
 
     /* create parser options for parsing this block. */
-    if (VCCERT_STATUS_SUCCESS != vccert_parser_options_init(&parser_options, &alloc_opts, &crypto_suite, &dummy_txn_resolver, &dummy_artifact_state_resolver, &dummy_contract_resolver, &dummy_entity_key_resolver, NULL))
+    if (VCCERT_STATUS_SUCCESS != vccert_parser_options_simple_init(&parser_options, &alloc_opts, &crypto_suite))
     {
         retval = AGENTD_ERROR_DATASERVICE_VCCERT_PARSER_OPTIONS_INIT_FAILURE;
         goto dispose_crypto_suite;
@@ -367,50 +352,6 @@ dispose_alloc_opts:
 
 done:
     return retval;
-}
-
-/**
- * Dummy transaction resolver.
- */
-static bool dummy_txn_resolver(
-    void* UNUSED(options), void* UNUSED(parser),
-    const uint8_t* UNUSED(artifact_id), const uint8_t* UNUSED(txn_id),
-    vccrypt_buffer_t* UNUSED(output_buffer), bool* UNUSED(trusted))
-{
-    return false;
-}
-
-/**
- * Dummy artifact state resolver.
- */
-static int32_t dummy_artifact_state_resolver(
-    void* UNUSED(options), void* UNUSED(parser),
-    const uint8_t* UNUSED(artifact_id), vccrypt_buffer_t* UNUSED(txn_id))
-{
-    return -1;
-}
-
-/**
- * Dummy entity key resolver.
- */
-static bool dummy_entity_key_resolver(
-    void* UNUSED(options), void* UNUSED(parser), uint64_t UNUSED(height),
-    const uint8_t* UNUSED(entity_id),
-    vccrypt_buffer_t* UNUSED(pubenckey_buffer),
-    vccrypt_buffer_t* UNUSED(pubsignkey_buffer))
-{
-    return false;
-}
-
-/**
- * Dummy contract resolver.
- */
-static int dummy_contract_resolver(
-    void* UNUSED(options), void* UNUSED(parser), const uint8_t* UNUSED(type_id),
-    const uint8_t* UNUSED(artifact_id),
-    vccert_contract_closure_t* UNUSED(closure))
-{
-    return VCCERT_ERROR_PARSER_ATTEST_MISSING_CONTRACT;
 }
 
 /**
