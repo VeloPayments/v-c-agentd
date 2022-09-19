@@ -34,7 +34,7 @@ mkdir -p $PACKAGE_DIR/bin $PACKAGE_DIR/lib $PACKAGE_DIR/etc $PACKAGE_DIR/data
 install $3 $PACKAGE_DIR/bin
 
 #add any dynamic libs required
-ldd $3 | egrep "[.]so" | grep -v ld.so | grep -v vdso.so \
+ldd $3 | grep -E "[.]so" | grep -v ld.so | grep -v vdso.so \
     | grep -v ld-linux-x86-64.so.2 \
     | sed 's/(.*)//; s/\(.*\)=>/\1/' \
     | awk '{ print $NF }' \
