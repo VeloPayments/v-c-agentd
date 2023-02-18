@@ -4,7 +4,7 @@
  * \brief Spawn a process as the blockchain user/group to read the private key
  * file.
  *
- * \copyright 2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2020-2023 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/config.h>
@@ -20,7 +20,8 @@
 static int config_private_key_file_send(
     int clientsock, const config_private_key_entry_t* entry);
 static int config_private_key_read(
-    int clientsock, config_private_key_t* entry);
+    int clientsock, allocator_options_t* alloc_opts,
+    config_private_key_t* entry);
 static void private_key_dispose(void* disp);
 
 /**
@@ -33,6 +34,7 @@ static void private_key_dispose(void* disp);
  *
  * \param bconf         The bootstrap configuration used to spawn the process.
  * \param conf          The config structure used to spawn the process.
+ * \param alloc_opts    The allocator options to use for this operation.
  * \param private_key   The \ref config_private_key_t to populate.
  *
  * \returns a status code indicating success or failure.
@@ -65,7 +67,7 @@ static void private_key_dispose(void* disp);
  */
 int config_read_private_key_proc(
     const struct bootstrap_config* bconf, agent_config_t* conf,
-    config_private_key_t* private_key)
+    allocator_options_t* alloc_opts, config_private_key_t* private_key)
 {
     int retval = 1;
     int clientsock = -1, serversock = -1;
@@ -212,7 +214,7 @@ int config_read_private_key_proc(
         }
 
         /* read back the response. */
-        if (0 != config_private_key_read(clientsock, private_key))
+        if (0 != config_private_key_read(clientsock, alloc_opts, private_key))
         {
             retval = AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE;
             goto done;
@@ -281,6 +283,7 @@ static int config_private_key_file_send(
  * \brief Read a private key from the reader proc.
  *
  * \param clientsock        The reader process socket.
+ * \param alloc_opts        The allocator to use for this operation.
  * \param entry             The entry to read. On success, it is initialized.
  *                          The caller is responsible for disposing it.;
  *
@@ -289,14 +292,11 @@ static int config_private_key_file_send(
  *      - a non-zero error code on failure.
  */
 static int config_private_key_read(
-    int clientsock, config_private_key_t* entry)
+    int clientsock, allocator_options_t* alloc_opts,
+    config_private_key_t* entry)
 {
     int retval;
     uint8_t type;
-    allocator_options_t alloc_opts;
-
-    /* create malloc allocator. */
-    malloc_allocator_options_init(&alloc_opts);
 
     /* first, read the begin of message marker. */
     retval = ipc_read_uint8_block(clientsock, &type);
@@ -391,7 +391,7 @@ static int config_private_key_read(
 
     /* initialize buffer for the encryption public key. */
     retval =
-        vccrypt_buffer_init(&entry->enc_pubkey, &alloc_opts, enc_pubsize);
+        vccrypt_buffer_init(&entry->enc_pubkey, alloc_opts, enc_pubsize);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         goto clear_entry;
@@ -402,7 +402,7 @@ static int config_private_key_read(
 
     /* initialize buffer for the encryption private key. */
     retval =
-        vccrypt_buffer_init(&entry->enc_privkey, &alloc_opts, enc_privsize);
+        vccrypt_buffer_init(&entry->enc_privkey, alloc_opts, enc_privsize);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         goto cleanup_enc_pubkey;
@@ -413,7 +413,7 @@ static int config_private_key_read(
 
     /* initialize buffer for the signature public key. */
     retval =
-        vccrypt_buffer_init(&entry->sign_pubkey, &alloc_opts, sign_pubsize);
+        vccrypt_buffer_init(&entry->sign_pubkey, alloc_opts, sign_pubsize);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         goto cleanup_enc_privkey;
@@ -424,7 +424,7 @@ static int config_private_key_read(
 
     /* initialize buffer for the signature private key. */
     retval =
-        vccrypt_buffer_init(&entry->sign_privkey, &alloc_opts, sign_privsize);
+        vccrypt_buffer_init(&entry->sign_privkey, alloc_opts, sign_privsize);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         goto cleanup_sign_pubkey;
