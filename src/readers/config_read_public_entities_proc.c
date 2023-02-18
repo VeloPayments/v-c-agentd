@@ -22,8 +22,8 @@ static int config_public_file_send_endorser_flag(
 static int config_public_file_send(
     int clientsock, const char* filename);
 static int config_entity_read(
-    int clientsock, agent_config_t* conf, config_public_entity_node_t** entry,
-    bool is_endorser);
+    int clientsock, agent_config_t* conf, allocator_options_t* alloc_opts,
+    config_public_entity_node_t** entry, bool is_endorser);
 static void public_entity_dispose(void* disp);
 static void public_entity_caps_dispose(void* disp);
 static int config_entity_read_capabilities(
@@ -39,6 +39,7 @@ static int config_entity_read_capabilities(
  *
  * \param bconf         The bootstrap configuration used to spawn the process.
  * \param conf          The config structure used to spawn the process.
+ * \param alloc_opts    The allocator options to use for this operation.
  * \param endorser      The \ref config_public_entity_node_t of the endorser.
  * \param entities      The \ref config_public_entity_node_t list to populate.
  *
@@ -68,7 +69,7 @@ static int config_entity_read_capabilities(
  */
 int config_read_public_entities_proc(
     const struct bootstrap_config* bconf, agent_config_t* conf,
-    config_public_entity_node_t** endorser,
+    allocator_options_t* alloc_opts, config_public_entity_node_t** endorser,
     config_public_entity_node_t** entities)
 {
     int retval = 1;
@@ -223,7 +224,10 @@ int config_read_public_entities_proc(
 
             /* read back the response. */
             config_public_entity_node_t* entry = NULL;
-            if (0 != config_entity_read(clientsock, conf, &entry, true))
+            if (
+                0
+                    != config_entity_read(
+                            clientsock, conf, alloc_opts, &entry, true))
             {
                 retval = AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE;
                 goto cleanup_entities;
@@ -255,7 +259,10 @@ int config_read_public_entities_proc(
 
             /* read back the response. */
             config_public_entity_node_t* entry = NULL;
-            if (0 != config_entity_read(clientsock, conf, &entry, false))
+            if (
+                0
+                    != config_entity_read(
+                            clientsock, conf, alloc_opts, &entry, false))
             {
                 retval = AGENTD_ERROR_READER_IPC_READ_DATA_FAILURE;
                 goto cleanup_entities;
@@ -384,6 +391,7 @@ static int config_public_file_send(
  *
  * \param clientsock        The reader process socket.
  * \param conf              The agent config.
+ * \param alloc_opts        The allocator options to use for this operation.
  * \param entry             The entry to read. On success, it is allocated and
  *                          populated. The caller is responsible for disposing
  *                          and freeing it.
@@ -394,16 +402,12 @@ static int config_public_file_send(
  *      - a non-zero error code on failure.
  */
 static int config_entity_read(
-    int clientsock, agent_config_t* conf, config_public_entity_node_t** entry,
-    bool is_endorser)
+    int clientsock, agent_config_t* conf, allocator_options_t* alloc_opts,
+    config_public_entity_node_t** entry, bool is_endorser)
 {
     int retval = AGENTD_STATUS_SUCCESS;
     uint8_t type;
-    allocator_options_t alloc_opts;
     config_public_entity_capability_node_t* caps = NULL;
-
-    /* create malloc allocator. */
-    malloc_allocator_options_init(&alloc_opts);
 
     /* first, read the begin of message marker. */
     retval = ipc_read_uint8_block(clientsock, &type);
@@ -498,7 +502,7 @@ static int config_entity_read(
     caps = NULL;
 
     /* initialize buffer for the encryption public key. */
-    retval = vccrypt_buffer_init(&(*entry)->enc_pubkey, &alloc_opts, enc_size);
+    retval = vccrypt_buffer_init(&(*entry)->enc_pubkey, alloc_opts, enc_size);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         goto free_entry;
@@ -509,7 +513,7 @@ static int config_entity_read(
 
     /* initialize buffer for the signing public key. */
     retval =
-        vccrypt_buffer_init(&(*entry)->sign_pubkey, &alloc_opts, sign_size);
+        vccrypt_buffer_init(&(*entry)->sign_pubkey, alloc_opts, sign_size);
     if (VCCRYPT_STATUS_SUCCESS != retval)
     {
         goto cleanup_enc_pubkey;
@@ -554,8 +558,6 @@ cleanup_uuid_data:
     free(uuid_data);
 
 done:
-    dispose((disposable_t*)&alloc_opts);
-
     return retval;
 }
 

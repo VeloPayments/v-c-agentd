@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <vpr/allocator/malloc_allocator.h>
 #include <vpr/parameters.h>
 
 /* forward decls. */
@@ -100,6 +101,7 @@ void private_command_supervisor(bootstrap_config_t* bconf)
 static int supervisor_run(const bootstrap_config_t* bconf)
 {
     int retval = AGENTD_STATUS_SUCCESS;
+    allocator_options_t alloc_opts;
     agent_config_t conf;
     process_t* random_service;
     process_t* random_for_canonizationservice;
@@ -155,18 +157,21 @@ static int supervisor_run(const bootstrap_config_t* bconf)
     int auth_svc_log_dummy_sock = -1;
 #endif /*AUTHSERVICE*/
 
+    /* create a malloc allocator. */
+    malloc_allocator_options_init(&alloc_opts);
+
     /* read config. */
     TRY_OR_FAIL(config_read_proc(bconf, &conf), done);
 
     /* Spawn a process to read the public entities. */
     TRY_OR_FAIL(
         config_read_public_entities_proc(
-            bconf, &conf, &endorser_entity, &public_entities),
+            bconf, &conf, &alloc_opts, &endorser_entity, &public_entities),
         cleanup_config);
 
     /* Spawn a process to read the private key. */
     TRY_OR_FAIL(
-        config_read_private_key_proc(bconf, &conf, &private_key),
+        config_read_private_key_proc(bconf, &conf, &alloc_opts, &private_key),
         cleanup_public_entities);
 
     /* TODO - replace with log service. */
@@ -470,6 +475,9 @@ done:
     CLOSE_IF_VALID(auth_svc_log_dummy_sock);
     CLOSE_IF_VALID(auth_svc_sock);
 #endif /*AUTHSERVICE*/
+
+    /* clean up the allocator instance. */
+    dispose(&alloc_opts.hdr);
 
     return retval;
 }

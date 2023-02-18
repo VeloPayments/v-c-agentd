@@ -413,6 +413,7 @@ int config_read_proc(
  *
  * \param bconf         The bootstrap configuration used to spawn the process.
  * \param conf          The config structure used to spawn the process.
+ * \param alloc_opts    The allocator options to use for this operation.
  * \param endorser      The \ref config_public_entity_node_t of the endorser.
  * \param entities      The \ref config_public_entity_node_t list to populate.
  *
@@ -442,7 +443,7 @@ int config_read_proc(
  */
 int config_read_public_entities_proc(
     const struct bootstrap_config* bconf, agent_config_t* conf,
-    config_public_entity_node_t** endorser,
+    allocator_options_t* alloc_opts, config_public_entity_node_t** endorser,
     config_public_entity_node_t** entities);
 
 /**
@@ -455,6 +456,7 @@ int config_read_public_entities_proc(
  *
  * \param bconf         The bootstrap configuration used to spawn the process.
  * \param conf          The config structure used to spawn the process.
+ * \param alloc_opts    The allocator options to use for this operation.
  * \param private_key   The \ref config_private_key_t to populate.
  *
  * \returns a status code indicating success or failure.
@@ -487,7 +489,7 @@ int config_read_public_entities_proc(
  */
 int config_read_private_key_proc(
     const struct bootstrap_config* bconf, agent_config_t* conf,
-    config_private_key_t* private_key);
+    allocator_options_t* alloc_opts, config_private_key_t* private_key);
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
