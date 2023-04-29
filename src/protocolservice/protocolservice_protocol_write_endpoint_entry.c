@@ -37,8 +37,8 @@ status protocolservice_protocol_write_endpoint_entry(void* vctx)
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
 
-    /* loop while we are not quiescing. */
-    while (!ctx->ctx->quiesce)
+    /* loop while we are not quiescing and we shouldn't shut down. */
+    while (!ctx->ctx->quiesce && !ctx->shutdown)
     {
         /* read a message from the return mailbox. */
         retval = message_receive(ctx->return_addr, &msg, ctx->ctx->msgdisc);
@@ -66,7 +66,7 @@ status protocolservice_protocol_write_endpoint_entry(void* vctx)
 
     /* we are shutting down. */
     retval = STATUS_SUCCESS;
-    goto done;
+    goto cleanup_context;
 
 cleanup_message:
     release_retval = resource_release(message_resource_handle(msg));
@@ -82,6 +82,5 @@ cleanup_context:
         retval = release_retval;
     }
 
-done:
     return retval;
 }
