@@ -44,8 +44,8 @@ status protocolservice_protocol_dnd_close(
         goto write_error_response;
     }
 
-    /* set the shutdown flag. */
-    ctx->shutdown = true;
+    /* set the request shutdown flag. */
+    ctx->req_shutdown = true;
 
     /* success. */
     retval = STATUS_SUCCESS;

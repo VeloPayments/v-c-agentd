@@ -364,6 +364,7 @@ struct protocolservice_protocol_fiber_context
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
     int reference_count;
+    bool req_shutdown;
     bool shutdown;
     bool extended_api_enabled;
     bool extended_api_can_respond;
