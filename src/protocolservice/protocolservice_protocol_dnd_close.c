@@ -36,14 +36,6 @@ status protocolservice_protocol_dnd_close(
     /* parameter sanity checks. */
     MODEL_ASSERT(prop_protocolservice_protocol_fiber_context_valid(ctx));
 
-    /* close the dataservice context. */
-    retval =
-        protocolservice_protocol_close_data_service_context(ctx);
-    if (STATUS_SUCCESS != retval)
-    {
-        goto write_error_response;
-    }
-
     /* set the request shutdown flag. */
     ctx->req_shutdown = true;
 
