@@ -97,6 +97,19 @@ status protocolservice_protocol_extended_api_send_req(
     /* the payload is now owned by the message. */
     payload = NULL;
 
+    /* if response flag is set, make sure this entry is in the xlat table. */
+    if (entry->ctx->extended_api_can_respond)
+    {
+        /* TODO - if message send fails below, we need to remove this entry. */
+        retval =
+            protocolservice_extended_api_response_xlat_entry_add(
+                entry->ctx, clientreq_offset, req->offset, ctx->return_addr);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto cleanup_message;
+        }
+    }
+
     /* send the message to the protocol write endpoint. */
     retval = message_send(entry->ctx->return_addr, msg, ctx->ctx->msgdisc);
     if (STATUS_SUCCESS != retval)
@@ -117,9 +130,7 @@ status protocolservice_protocol_extended_api_send_req(
     }
     else
     {
-        retval =
-            protocolservice_extended_api_response_xlat_entry_add(
-                entry->ctx, clientreq_offset, req->offset, ctx->return_addr);
+        retval = STATUS_SUCCESS;
     }
 
     /* exit. */
