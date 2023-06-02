@@ -32,8 +32,8 @@ status protocolservice_protocol_create_extended_api_clientreq_payload(
     const protocol_req_extended_api* req)
 {
     /* assign the new offset. */
-    entry->ctx->latest_block_id_assertion_server_offset += 1;
-    *offset = entry->ctx->latest_block_id_assertion_server_offset;
+    entry->ctx->extended_api_offset += 1;
+    *offset = entry->ctx->extended_api_offset;
 
     /* create the client request. */
     return
