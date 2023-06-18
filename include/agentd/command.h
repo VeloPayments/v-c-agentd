@@ -102,6 +102,18 @@ void private_command_notificationservice(bootstrap_config_t* bconf);
 int command_start(struct bootstrap_config* bconf);
 
 /**
+ * \brief Set up a blockchain agent installation.
+ *
+ * This command attempts to add missing user / group entries and fix up file
+ * permissions for a fresh agentd installation.
+ *
+ * \param bconf         The bootstrap configuration for this command.
+ *
+ * \returns 0 on success and non-zero on failure.
+ */
+int command_setup(struct bootstrap_config* bconf);
+
+/**
  * \brief Print help information to standard output.
  *
  * \param bconf         The bootstrap configuration for this command.
