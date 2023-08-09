@@ -26,7 +26,7 @@ CONF_FILE=$2
 
 #get the TAR binary
 TAR=`which gtar`
-if [ ! -x $TAR ]; then
+if [ "$TAR" == "" ]; then
 TAR=`which tar`
 fi
 
