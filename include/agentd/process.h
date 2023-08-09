@@ -13,6 +13,7 @@
 #include <cbmc/model_assert.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <vpr/disposable.h>
 
 /* make this header C++ friendly. */

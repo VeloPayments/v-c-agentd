@@ -24,6 +24,20 @@ PACKAGE_DIR=agentd-${1}
 PACKAGE_NAME=agentd-${1}.tar.xz
 CONF_FILE=$2
 
+#get the TAR binary
+TAR=`which gtar`
+if [ ! -x $TAR ]; then
+TAR=`which tar`
+fi
+
+#verify that this is GNU Tar
+if ($TAR --version | grep -q GNU); then
+echo "GNU tar detected."
+else
+echo "GNU tar required."
+exit 1
+fi
+
 #delete the old package directory
 rm -rf $PACKAGE_DIR
 
@@ -63,7 +77,7 @@ mkdir -p $PACKAGE_DIR/var/pid
 install -m 400 $CONF_FILE $PACKAGE_DIR/etc/agentd.conf
 
 #build the package
-tar --owner=veloagent --group=veloagent -cf - $PACKAGE_DIR | xz -c > $PACKAGE_NAME
+$TAR --owner=veloagent --group=veloagent -cf - $PACKAGE_DIR | xz -c > $PACKAGE_NAME
 
 #clean up
 rm -rf $PACKAGE_DIR
