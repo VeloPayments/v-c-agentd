@@ -14,6 +14,9 @@
 #include <sys/wait.h>
 #include <vpr/allocator/malloc_allocator.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_canonizationservice_isolation.h"
 
 using namespace std;
@@ -382,3 +385,4 @@ cleanup_entity_encryption_pubkey:
 done:
     return retval;
 }
+#endif

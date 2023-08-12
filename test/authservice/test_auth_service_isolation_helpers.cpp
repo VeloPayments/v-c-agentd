@@ -9,6 +9,9 @@
 #include <signal.h>
 #include <sys/wait.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "../../src/authservice/auth_service_private.h"
 #include "test_auth_service_isolation.h"
 
@@ -154,3 +157,4 @@ void auth_service_isolation_test::nonblock_write(
 
     that->onWrite();
 }
+#endif

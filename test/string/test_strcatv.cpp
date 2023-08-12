@@ -6,8 +6,10 @@
  * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
  */
 
-#include <gtest/gtest.h>
 #include <agentd/string.h>
+
+/* GTEST DISABLED */
+#if 0
 
 using namespace std;
 
@@ -54,3 +56,4 @@ TEST(strcatv, many_params)
     EXPECT_STREQ("foobar!", str);
     free(str);
 }
+#endif

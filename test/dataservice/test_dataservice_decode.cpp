@@ -9,9 +9,11 @@
 #include <agentd/inet.h>
 #include <agentd/dataservice/async_api.h>
 #include <agentd/status_codes.h>
-#include <gtest/gtest.h>
 #include <vpr/allocator/malloc_allocator.h>
 #include <vpr/disposable.h>
+
+/* GTEST DISABLED */
+#if 0
 
 #include "../../src/dataservice/dataservice_protocol_internal.h"
 
@@ -2502,3 +2504,4 @@ TEST(dataservice_decode_test,
     /* the data pointer should be correct. */
     ASSERT_EQ(resp + 84, dresp.data);
 }
+#endif

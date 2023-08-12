@@ -6,10 +6,12 @@
  * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
  */
 
-#include <gtest/gtest.h>
 #include <agentd/commandline.h>
 #include <agentd/command.h>
 #include <vpr/disposable.h>
+
+/* GTEST DISABLED */
+#if 0
 
 using namespace std;
 
@@ -360,3 +362,4 @@ TEST(parse_commandline_options_test, supervisor_private_command)
 
     dispose((disposable_t*)&bconf);
 }
+#endif

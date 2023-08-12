@@ -6,9 +6,11 @@
  * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
  */
 
-#include <gtest/gtest.h>
 #include <agentd/bootstrap_config.h>
 #include <vpr/disposable.h>
+
+/* GTEST DISABLED */
+#if 0
 
 using namespace std;
 
@@ -188,3 +190,4 @@ TEST(bootstrap_config_test, bootstrap_config_set_binary_bad_binary)
 
     dispose((disposable_t*)&bconf);
 }
+#endif

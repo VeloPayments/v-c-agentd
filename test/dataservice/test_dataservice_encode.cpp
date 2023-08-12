@@ -8,8 +8,10 @@
 
 #include <agentd/dataservice/async_api.h>
 #include <agentd/status_codes.h>
-#include <gtest/gtest.h>
 #include <vpr/allocator/malloc_allocator.h>
+
+/* GTEST DISABLED */
+#if 0
 
 #include "../../src/dataservice/dataservice_protocol_internal.h"
 
@@ -1532,3 +1534,4 @@ TEST(dataservice_encode_test, request_transaction_submit_decoded)
     dispose((disposable_t*)&req);
     dispose((disposable_t*)&alloc_opts);
 }
+#endif

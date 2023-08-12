@@ -11,11 +11,13 @@
 #include <agentd/status_codes.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <gtest/gtest.h>
 #include <stdint.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <vpr/disposable.h>
+
+/* GTEST DISABLED */
+#if 0
 
 #include "test_ipc.h"
 
@@ -1803,3 +1805,4 @@ TEST_F(ipc_test, ipc_timer)
     close(rhs);
     dispose((disposable_t*)&timer);
 }
+#endif

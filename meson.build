@@ -52,6 +52,11 @@ test_src = run_command(
     check : true
 ).stdout().strip().split('\n')
 
+minunit = dependency(
+    'minunit',
+    main : true, required : true,
+    fallback : ['minunit', 'minunit_dep'])
+
 vcblockchain = dependency(
     'vcblockchain',
     required : true,
@@ -105,7 +110,7 @@ agentd_test = executable(
     src_not_main, test_src, lfiles, pfiles,
     include_directories : [
         agentd_include, vcblockchain_include_directories, event_include],
-    dependencies : [threads, vcblockchain, gtest],
+    dependencies : [threads, vcblockchain, minunit],
     link_with : [event_lib]
 )
 

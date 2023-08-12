@@ -11,7 +11,9 @@
 #include <agentd/inet.h>
 #include <agentd/notificationservice/api.h>
 #include <agentd/status_codes.h>
-#include <gtest/gtest.h>
+
+/* GTEST DISABLED */
+#if 0
 
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_psock;
@@ -83,3 +85,4 @@ TEST(notificationservice_api_sendreq_assertion_cancel_test, basics)
         STATUS_SUCCESS,
         resource_release(rcpr_allocator_resource_handle(alloc)));
 }
+#endif

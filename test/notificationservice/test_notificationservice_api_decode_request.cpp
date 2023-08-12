@@ -7,10 +7,12 @@
  * \copyright 2022 Velo-Payments, Inc.  All rights reserved.
  */
 
-#include <gtest/gtest.h>
 #include <agentd/inet.h>
 #include <agentd/notificationservice/api.h>
 #include <agentd/status_codes.h>
+
+/* GTEST DISABLED */
+#if 0
 
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_resource;
@@ -195,3 +197,4 @@ TEST(notificationservice_api_decode_request_test, encode_decode_with_payload)
         STATUS_SUCCESS,
         resource_release(rcpr_allocator_resource_handle(alloc)));
 }
+#endif

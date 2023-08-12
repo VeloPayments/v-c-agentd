@@ -10,6 +10,9 @@
 #include <agentd/status_codes.h>
 #include <vccert/certificate_types.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_dataservice.h"
 
 using namespace std;
@@ -4125,3 +4128,4 @@ TEST_F(dataservice_test, transaction_empty_root_next_block_id)
     free(foo_block_cert);
     free(block_txn_bytes);
 }
+#endif

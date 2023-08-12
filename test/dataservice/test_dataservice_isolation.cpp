@@ -16,6 +16,9 @@
 #include <vccert/certificate_types.h>
 #include <vpr/disposable.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "../../src/dataservice/dataservice_internal.h"
 #include "test_dataservice_isolation.h"
 
@@ -5220,3 +5223,4 @@ TEST_F(dataservice_isolation_test, no_context_leak_old)
     EXPECT_EQ(0, recvresp_status);
     ASSERT_EQ(0U, status);
 }
+#endif

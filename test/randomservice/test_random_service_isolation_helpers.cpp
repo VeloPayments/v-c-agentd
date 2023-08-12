@@ -12,6 +12,9 @@
 #include <sys/wait.h>
 #include <vpr/allocator/malloc_allocator.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_random_service_isolation.h"
 
 using namespace std;
@@ -156,3 +159,4 @@ void random_service_isolation_test::nonblock_write(
 
     that->onWrite();
 }
+#endif

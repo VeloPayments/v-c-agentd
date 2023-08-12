@@ -16,6 +16,9 @@
 #include <vccrypt/compare.h>
 #include <vpr/disposable.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_canonizationservice_isolation.h"
 
 /**
@@ -1302,3 +1305,4 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_multiple_blocks)
         dataservice->request_matches_child_context_close(
             EXPECTED_CHILD_INDEX));
 }
+#endif

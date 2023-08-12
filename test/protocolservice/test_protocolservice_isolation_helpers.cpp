@@ -16,6 +16,8 @@
 #include <sys/wait.h>
 #include <vpr/allocator/malloc_allocator.h>
 
+/* GTEST DISABLED */
+#if 0
 #include "test_protocolservice_isolation.h"
 
 using namespace std;
@@ -780,3 +782,4 @@ cleanup_agent_enc_pubkey:
 done:
     return retval;
 }
+#endif

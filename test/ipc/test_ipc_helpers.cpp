@@ -8,6 +8,9 @@
 
 #include <vpr/allocator/malloc_allocator.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_ipc.h"
 
 using namespace std;
@@ -155,3 +158,4 @@ void ipc_test::timermode_teardown()
         nonblockdatasock_configured = false;
     }
 }
+#endif
