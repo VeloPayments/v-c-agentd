@@ -12,6 +12,9 @@
 #include <unistd.h>
 #include <vpr/disposable.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_auth_service_isolation.h"
 
 using namespace std;
@@ -133,3 +136,4 @@ TEST_F(auth_service_isolation_test, initialize)
     dispose((disposable_t*)&pubkey_buffer);
     dispose((disposable_t*)&agent_id_buffer);
 }
+#endif

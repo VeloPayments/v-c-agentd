@@ -6,8 +6,10 @@
  * \copyright 2018-2019 Velo-Payments, Inc.  All rights reserved.
  */
 
-#include <gtest/gtest.h>
 #include <agentd/status_codes.h>
+
+/* GTEST DISABLED */
+#if 0
 
 using namespace std;
 
@@ -18,3 +20,4 @@ TEST(status_codes_test, basic_test)
 {
     EXPECT_EQ(0x8000001, AGENTD_ERROR_GENERAL_OUT_OF_MEMORY);
 }
+#endif

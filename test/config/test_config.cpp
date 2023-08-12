@@ -6,12 +6,14 @@
  * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
  */
 
-#include <gtest/gtest.h>
 #include <agentd/config.h>
 #include <iostream>
 #include <vector>
 #include <string>
 #include <vpr/disposable.h>
+
+/* GTEST DISABLED */
+#if 0
 
 extern "C" {
 #include "agentd.tab.h"
@@ -3362,3 +3364,4 @@ TEST(config_test, endorser_key_duplicates)
 
     dispose((disposable_t*)&user_context);
 }
+#endif

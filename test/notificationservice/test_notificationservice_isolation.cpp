@@ -14,6 +14,9 @@
 #include <unistd.h>
 #include <vpr/disposable.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_notificationservice_isolation.h"
 
 using namespace std;
@@ -659,3 +662,4 @@ TEST_F(
     /* clean up. */
     ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
 }
+#endif

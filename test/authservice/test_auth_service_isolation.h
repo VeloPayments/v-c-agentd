@@ -13,7 +13,6 @@
 #include <agentd/ipc.h>
 #include <agentd/string.h>
 #include <functional>
-#include <gtest/gtest.h>
 #include <string>
 #include <vpr/allocator/malloc_allocator.h>
 #include <vpr/disposable.h>

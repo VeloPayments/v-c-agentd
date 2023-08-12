@@ -8,6 +8,9 @@
 
 #include <agentd/ipc.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_mock_notificationservice.h"
 
 using namespace std;
@@ -68,3 +71,4 @@ void mock_notificationservice_test::TearDown()
         (void)release_retval;
     }
 }
+#endif

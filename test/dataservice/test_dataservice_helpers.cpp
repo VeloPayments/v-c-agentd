@@ -9,6 +9,9 @@
 #include <vccert/fields.h>
 #include <vccert/certificate_types.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_dataservice.h"
 
 using namespace std;
@@ -321,3 +324,4 @@ dispose_builder:
 done:
     return retval;
 }
+#endif

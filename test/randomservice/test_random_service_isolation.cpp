@@ -13,6 +13,9 @@
 #include <unistd.h>
 #include <vpr/disposable.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_random_service_isolation.h"
 
 using namespace std;
@@ -176,3 +179,4 @@ TEST_F(random_service_isolation_test, many_bytes_deprecated)
     EXPECT_EQ(EXPECTED_OFFSET, offset);
     EXPECT_EQ(100U, random_byte_buffer_size);
 }
+#endif

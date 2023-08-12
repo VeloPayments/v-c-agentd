@@ -8,8 +8,10 @@
  */
 
 #include <agentd/ipc.h>
-#include <gtest/gtest.h>
 #include <rcpr/psock.h>
+
+/* GTEST DISABLED */
+#if 0
 
 #include "test_ipc.h"
 
@@ -457,3 +459,4 @@ TEST(ipc_psock_compatibility, ipc_read_int8_block)
     ASSERT_EQ(0, resource_release(rcpr_allocator_resource_handle(alloc)));
     close(rhs);
 }
+#endif

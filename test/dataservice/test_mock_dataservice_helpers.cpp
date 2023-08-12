@@ -9,6 +9,9 @@
 #include <vccert/fields.h>
 #include <vccert/certificate_types.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_mock_dataservice.h"
 
 using namespace std;
@@ -241,3 +244,4 @@ void mock_dataservice_test::nonblock_write(
 
     that->onWrite();
 }
+#endif

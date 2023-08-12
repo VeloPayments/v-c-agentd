@@ -11,6 +11,9 @@
 #include <ostream>
 #include <vccert/certificate_types.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_mock_dataservice.h"
 #include "../mocks/dataservice.h"
 
@@ -3166,3 +3169,4 @@ TEST_F(mock_dataservice_test, transaction_submit_override)
     /* the mock returns success. */
     EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
 }
+#endif

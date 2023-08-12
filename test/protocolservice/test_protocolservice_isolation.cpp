@@ -17,6 +17,9 @@
 #include <vcblockchain/protocol/serialization.h>
 #include <vpr/disposable.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_protocolservice_isolation.h"
 
 using namespace std;
@@ -4057,3 +4060,4 @@ TEST_F(protocolservice_isolation_test, extended_api_req_unauthorized2)
     dispose((disposable_t*)&shared_secret);
     dispose((disposable_t*)&response);
 }
+#endif

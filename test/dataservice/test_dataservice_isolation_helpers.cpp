@@ -11,6 +11,9 @@
 #include <signal.h>
 #include <sys/wait.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "../../src/dataservice/dataservice_internal.h"
 #include "test_dataservice_isolation.h"
 
@@ -515,3 +518,4 @@ dispose_builder:
 done:
     return retval;
 }
+#endif

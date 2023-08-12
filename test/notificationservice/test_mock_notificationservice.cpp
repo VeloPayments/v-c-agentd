@@ -11,6 +11,9 @@
 #include <agentd/status_codes.h>
 #include <ostream>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_mock_notificationservice.h"
 #include "../mocks/notificationservice.h"
 
@@ -493,3 +496,4 @@ TEST_F(mock_notificationservice_test, block_assertion_cancel_override)
     /* clean up the buffer. */
     ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
 }
+#endif

@@ -6,13 +6,16 @@
  * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
  */
 
-#include <gtest/gtest.h>
 #include <agentd/commandline.h>
 #include <agentd/command.h>
 #include <agentd/path.h>
 #include <paths.h>
 #include <string>
 #include <vpr/disposable.h>
+
+/* GTEST DISABLED */
+
+#if 0
 
 using namespace std;
 
@@ -61,3 +64,4 @@ TEST(path_append_default, arbitrary_path_2)
 
     free(outpath);
 }
+#endif

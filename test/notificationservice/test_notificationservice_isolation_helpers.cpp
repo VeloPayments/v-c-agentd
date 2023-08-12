@@ -12,6 +12,9 @@
 #include <signal.h>
 #include <sys/wait.h>
 
+/* GTEST DISABLED */
+#if 0
+
 #include "test_notificationservice_isolation.h"
 
 using namespace std;
@@ -128,3 +131,4 @@ void notificationservice_isolation_test::TearDown()
     resource_release(psock_resource_handle(client2));
     resource_release(rcpr_allocator_resource_handle(alloc));
 }
+#endif

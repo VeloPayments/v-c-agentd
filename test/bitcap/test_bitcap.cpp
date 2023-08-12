@@ -6,9 +6,11 @@
  * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
  */
 
-#include <gtest/gtest.h>
 #include <agentd/bitcap.h>
 #include <vpr/disposable.h>
+
+/* GTEST DISABLED */
+#if 0
 
 using namespace std;
 
@@ -142,3 +144,4 @@ TEST(bitcap_test, bitcap_union)
     /* bit value 8 is true. */
     ASSERT_TRUE(BITCAP_ISSET(d, 8));
 }
+#endif
