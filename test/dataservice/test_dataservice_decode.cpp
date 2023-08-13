@@ -9,20 +9,21 @@
 #include <agentd/inet.h>
 #include <agentd/dataservice/async_api.h>
 #include <agentd/status_codes.h>
+#include <cstring>
+#include <minunit/minunit.h>
 #include <vpr/allocator/malloc_allocator.h>
 #include <vpr/disposable.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "../../src/dataservice/dataservice_protocol_internal.h"
 
 using namespace std;
 
+TEST_SUITE(dataservice_decode_test);
+
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, request_root_context_init_bad_sizes)
+TEST(request_root_context_init_bad_sizes)
 {
     uint8_t req[100] = { 0 };
     dataservice_request_payload_root_context_init_t dreq;
@@ -31,15 +32,17 @@ TEST(dataservice_decode_test, request_root_context_init_bad_sizes)
     malloc_allocator_options_init(&alloc_opts);
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE,
-        dataservice_decode_request_root_context_init(
-            req, &alloc_opts, 0, &dreq));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE
+            == dataservice_decode_request_root_context_init(
+                    req, &alloc_opts, 0, &dreq));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE,
-        dataservice_decode_request_root_context_init(
-            req, &alloc_opts,
-            8 /* must have at least one byte for data dir. */, &dreq));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE
+            == dataservice_decode_request_root_context_init(
+                    req, &alloc_opts,
+                    8 /* must have at least one byte for data dir. */, &dreq));
 
     dispose((disposable_t*)&alloc_opts);
 }
@@ -47,7 +50,7 @@ TEST(dataservice_decode_test, request_root_context_init_bad_sizes)
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, request_root_context_init_null_checks)
+TEST(request_root_context_init_null_checks)
 {
     uint8_t req[100] = { 0 };
     dataservice_request_payload_root_context_init_t dreq;
@@ -56,19 +59,22 @@ TEST(dataservice_decode_test, request_root_context_init_null_checks)
     malloc_allocator_options_init(&alloc_opts);
 
     /* a null request packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
-        dataservice_decode_request_root_context_init(
-            nullptr, &alloc_opts, 25, &dreq));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER
+            == dataservice_decode_request_root_context_init(
+                    nullptr, &alloc_opts, 25, &dreq));
 
     /* a null allocator pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
-        dataservice_decode_request_root_context_init(
-            req, nullptr, 25, &dreq));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER
+            == dataservice_decode_request_root_context_init(
+                    req, nullptr, 25, &dreq));
 
     /* a null decoded request structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
-        dataservice_decode_request_root_context_init(
-            req, &alloc_opts, 25, nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER
+            == dataservice_decode_request_root_context_init(
+                    req, &alloc_opts, 25, nullptr));
 
     dispose((disposable_t*)&alloc_opts);
 }
@@ -76,7 +82,7 @@ TEST(dataservice_decode_test, request_root_context_init_null_checks)
 /**
  * Test that a request packet payload is successfully decoded.
  */
-TEST(dataservice_decode_test, request_root_context_init_decoded)
+TEST(request_root_context_init_decoded)
 {
     uint8_t req[13] = {
         /* size == 16383 */
@@ -91,14 +97,15 @@ TEST(dataservice_decode_test, request_root_context_init_decoded)
     malloc_allocator_options_init(&alloc_opts);
 
     /* a valid request is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_request_root_context_init(
-            req, &alloc_opts, sizeof(req), &dreq));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_request_root_context_init(
+                    req, &alloc_opts, sizeof(req), &dreq));
 
     /* the size is correct. */
-    ASSERT_EQ(16383UL, dreq.max_database_size);
+    TEST_ASSERT(16383UL == dreq.max_database_size);
     /* the data directory is correct. */
-    ASSERT_STREQ("/data", dreq.datadir);
+    TEST_ASSERT(!strcmp("/data",dreq.datadir));
 
     dispose((disposable_t*)&dreq);
     dispose((disposable_t*)&alloc_opts);
@@ -107,45 +114,49 @@ TEST(dataservice_decode_test, request_root_context_init_decoded)
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, request_root_context_reduce_caps_sizes)
+TEST(request_root_context_reduce_caps_sizes)
 {
     uint8_t req[100] = { 0 };
     dataservice_request_payload_root_context_reduce_caps_t dreq;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE,
-        dataservice_decode_request_root_context_reduce_caps(
-            req, 0, &dreq));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE
+            == dataservice_decode_request_root_context_reduce_caps(
+                    req, 0, &dreq));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE,
-        dataservice_decode_request_root_context_reduce_caps(
-            req, 2, &dreq));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_REQUEST_PACKET_INVALID_SIZE
+            == dataservice_decode_request_root_context_reduce_caps(
+                    req, 2, &dreq));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, request_root_context_reduce_caps_null_checks)
+TEST(request_root_context_reduce_caps_null_checks)
 {
     uint8_t req[100] = { 0 };
     dataservice_request_payload_root_context_reduce_caps_t dreq;
 
     /* a null request packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
-        dataservice_decode_request_root_context_reduce_caps(
-            nullptr, sizeof(dreq.caps), &dreq));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER
+            == dataservice_decode_request_root_context_reduce_caps(
+                    nullptr, sizeof(dreq.caps), &dreq));
 
     /* a null decoded request structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER,
-        dataservice_decode_request_root_context_reduce_caps(
-            req, sizeof(dreq.caps), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_INVALID_PARAMETER
+            == dataservice_decode_request_root_context_reduce_caps(
+                    req, sizeof(dreq.caps), nullptr));
 }
 
 /**
  * Test that a request packet payload is successfully decoded.
  */
-TEST(dataservice_decode_test, request_root_context_reduce_caps_decoded)
+TEST(request_root_context_reduce_caps_decoded)
 {
     BITCAP(caps, DATASERVICE_API_CAP_BITS_MAX);
     dataservice_request_payload_root_context_reduce_caps_t dreq;
@@ -153,12 +164,13 @@ TEST(dataservice_decode_test, request_root_context_reduce_caps_decoded)
     BITCAP_INIT_TRUE(caps);
 
     /* a valid request is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_request_root_context_reduce_caps(
-            &caps, sizeof(caps), &dreq));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_request_root_context_reduce_caps(
+                    &caps, sizeof(caps), &dreq));
 
     /* the caps match. */
-    EXPECT_EQ(0, memcmp(&caps, &dreq.caps, sizeof(caps)));
+    TEST_EXPECT(0 == memcmp(&caps, &dreq.caps, sizeof(caps)));
 
     /* clean up. */
     dispose((disposable_t*)&dreq);
@@ -167,50 +179,54 @@ TEST(dataservice_decode_test, request_root_context_reduce_caps_decoded)
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_root_context_init_bad_sizes)
+TEST(response_root_context_init_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_root_context_init_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_root_context_init(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_root_context_init(resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_root_context_init(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_root_context_init(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 
     /* a "too large" size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_root_context_init(
-            resp, 4 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_root_context_init(
+                    resp, 4 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_root_context_init_null_checks)
+TEST(response_root_context_init_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_root_context_init_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_root_context_init(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_root_context_init(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_root_context_init(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_root_context_init(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_root_context_init_bad_method_code)
+TEST(response_root_context_init_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -225,15 +241,16 @@ TEST(dataservice_decode_test, response_root_context_init_bad_method_code)
     dataservice_response_root_context_init_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_root_context_init(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_root_context_init(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_root_context_init_decoded)
+TEST(response_root_context_init_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -248,71 +265,77 @@ TEST(dataservice_decode_test, response_root_context_init_decoded)
     dataservice_response_root_context_init_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_root_context_init(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_root_context_init(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_LL_ROOT_CONTEXT_CREATE,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_LL_ROOT_CONTEXT_CREATE == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_root_context_reduce_caps_bad_sizes)
+TEST(response_root_context_reduce_caps_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_root_context_reduce_caps_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_root_context_reduce_caps(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_root_context_reduce_caps(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_root_context_reduce_caps(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_root_context_reduce_caps(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 
     /* a "too large" size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_root_context_reduce_caps(
-            resp, 4 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_root_context_reduce_caps(
+                    resp, 4 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_root_context_reduce_caps_null_checks)
+TEST(response_root_context_reduce_caps_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_root_context_reduce_caps_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_root_context_reduce_caps(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_root_context_reduce_caps(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_root_context_reduce_caps(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_root_context_reduce_caps(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_root_context_reduce_caps_bad_method_code)
+TEST(response_root_context_reduce_caps_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -327,15 +350,16 @@ TEST(dataservice_decode_test, response_root_context_reduce_caps_bad_method_code)
     dataservice_response_root_context_reduce_caps_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_root_context_reduce_caps(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_root_context_reduce_caps(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_root_context_reduce_caps_decoded)
+TEST(response_root_context_reduce_caps_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -350,28 +374,30 @@ TEST(dataservice_decode_test, response_root_context_reduce_caps_decoded)
     dataservice_response_root_context_reduce_caps_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_root_context_reduce_caps(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_root_context_reduce_caps(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer ==  dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_LL_ROOT_CONTEXT_REDUCE_CAPS,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_LL_ROOT_CONTEXT_REDUCE_CAPS
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_child_context_create_bad_sizes)
+TEST(response_child_context_create_bad_sizes)
 {
     uint8_t resp[100] = {
         /* method code. */
@@ -386,39 +412,43 @@ TEST(dataservice_decode_test, response_child_context_create_bad_sizes)
     dataservice_response_child_context_create_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_child_context_create(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_child_context_create(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_DATA_PACKET_SIZE,
-        dataservice_decode_response_child_context_create(
-            resp, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_DATA_PACKET_SIZE
+            == dataservice_decode_response_child_context_create(
+                    resp, 3 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_child_context_create_null_checks)
+TEST(response_child_context_create_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_child_context_create_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_child_context_create(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_child_context_create(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_child_context_create(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_child_context_create(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_child_context_create_bad_method_code)
+TEST(response_child_context_create_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -433,15 +463,16 @@ TEST(dataservice_decode_test, response_child_context_create_bad_method_code)
     dataservice_response_child_context_create_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_child_context_create(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_child_context_create(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_child_context_create_decoded)
+TEST(response_child_context_create_decoded)
 {
     uint8_t resp[16] = {
         /* method code. */
@@ -459,73 +490,80 @@ TEST(dataservice_decode_test, response_child_context_create_decoded)
     dataservice_response_child_context_create_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_child_context_create(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_child_context_create(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_LL_CHILD_CONTEXT_CREATE,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_LL_CHILD_CONTEXT_CREATE
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status code is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the child index is correct. */
-    ASSERT_EQ(0x12345678U, dresp.child);
+    TEST_ASSERT(0x12345678U == dresp.child);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_child_context_close_bad_sizes)
+TEST(response_child_context_close_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_child_context_close_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_child_context_close(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_child_context_close(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_child_context_close(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_child_context_close(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 
     /* a "too large" size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_child_context_close(
-            resp, 4 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_child_context_close(
+                    resp, 4 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_child_context_close_null_checks)
+TEST(response_child_context_close_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_child_context_close_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_child_context_close(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_child_context_close(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_child_context_close(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_child_context_close(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_child_context_close_bad_method_code)
+TEST(response_child_context_close_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -540,15 +578,16 @@ TEST(dataservice_decode_test, response_child_context_close_bad_method_code)
     dataservice_response_child_context_close_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_child_context_close(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_child_context_close(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_child_context_close_decoded)
+TEST(response_child_context_close_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -563,66 +602,72 @@ TEST(dataservice_decode_test, response_child_context_close_decoded)
     dataservice_response_child_context_close_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_child_context_close(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_child_context_close(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_LL_CHILD_CONTEXT_CLOSE,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_LL_CHILD_CONTEXT_CLOSE
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_global_settings_get_bad_sizes)
+TEST(response_global_settings_get_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_global_settings_get_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_global_settings_get(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_global_settings_get(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_global_settings_get(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_global_settings_get(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_global_settings_get_null_checks)
+TEST(response_global_settings_get_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_global_settings_get_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_global_settings_get(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_global_settings_get(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_global_settings_get(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_global_settings_get(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_child_global_settings_get_bad_method_code)
+TEST(response_child_global_settings_get_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -637,15 +682,16 @@ TEST(dataservice_decode_test, response_child_global_settings_get_bad_method_code
     dataservice_response_global_settings_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_global_settings_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_global_settings_get(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_global_settings_get_decoded)
+TEST(response_global_settings_get_decoded)
 {
     uint8_t resp[15] = {
         /* method code. */
@@ -663,75 +709,82 @@ TEST(dataservice_decode_test, response_global_settings_get_decoded)
     dataservice_response_global_settings_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_global_settings_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_global_settings_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_GLOBAL_SETTING_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_GLOBAL_SETTING_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
     /* the data pointer should be set correctly. */
-    ASSERT_EQ(resp + 12, dresp.data);
+    TEST_ASSERT(resp + 12 == dresp.data);
     /* the data_size should be correct. */
-    ASSERT_EQ(3U, dresp.data_size);
+    TEST_ASSERT(3U == dresp.data_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_global_settings_set_bad_sizes)
+TEST(response_global_settings_set_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_global_settings_set_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_global_settings_set(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_global_settings_set(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_global_settings_set(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_global_settings_set(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 
     /* a "too large" size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_global_settings_set(
-            resp, 4 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_global_settings_set(
+                    resp, 4 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_global_settings_set_null_checks)
+TEST(response_global_settings_set_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_global_settings_set_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_global_settings_set(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_global_settings_set(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_global_settings_set(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_global_settings_set(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_global_settings_set_bad_method_code)
+TEST(response_global_settings_set_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -746,15 +799,16 @@ TEST(dataservice_decode_test, response_global_settings_set_bad_method_code)
     dataservice_response_global_settings_set_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_global_settings_set(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_global_settings_set(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_global_settings_set_decoded)
+TEST(response_global_settings_set_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -769,71 +823,78 @@ TEST(dataservice_decode_test, response_global_settings_set_decoded)
     dataservice_response_global_settings_set_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_global_settings_set(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_global_settings_set(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_GLOBAL_SETTING_WRITE,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_GLOBAL_SETTING_WRITE
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_transaction_submit_bad_sizes)
+TEST(response_transaction_submit_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_submit_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_submit(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_submit(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_submit(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_submit(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 
     /* a "too large" size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_submit(
-            resp, 4 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_submit(
+                    resp, 4 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_transaction_submit_null_checks)
+TEST(response_transaction_submit_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_submit_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_submit(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_submit(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_submit(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_submit(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_transaction_submit_bad_method_code)
+TEST(response_transaction_submit_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -848,15 +909,16 @@ TEST(dataservice_decode_test, response_transaction_submit_bad_method_code)
     dataservice_response_transaction_submit_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_transaction_submit(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_transaction_submit(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_transaction_submit_decoded)
+TEST(response_transaction_submit_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -871,66 +933,72 @@ TEST(dataservice_decode_test, response_transaction_submit_decoded)
     dataservice_response_transaction_submit_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_transaction_submit(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_transaction_submit(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_SUBMIT,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_SUBMIT
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_transaction_get_first_bad_sizes)
+TEST(response_transaction_get_first_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_get_first_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_get_first(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_get_first(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_get_first(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_get_first(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_transaction_get_first_null_checks)
+TEST(response_transaction_get_first_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_get_first_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_get_first(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_get_first(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_get_first(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_get_first(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_transaction_get_first_bad_method_code)
+TEST(response_transaction_get_first_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -945,15 +1013,16 @@ TEST(dataservice_decode_test, response_transaction_get_first_bad_method_code)
     dataservice_response_transaction_get_first_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_transaction_get_first(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_transaction_get_first(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_transaction_get_first_decoded)
+TEST(response_transaction_get_first_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -968,29 +1037,30 @@ TEST(dataservice_decode_test, response_transaction_get_first_decoded)
     dataservice_response_transaction_get_first_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_transaction_get_first(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_transaction_get_first(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_FIRST_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_FIRST_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that a response packet is successfully decoded with a complete payload.
  */
-TEST(dataservice_decode_test,
-    response_transaction_get_first_decoded_full_payload)
+TEST(response_transaction_get_first_decoded_full_payload)
 {
     const uint8_t EXPECTED_NODE_KEY[] = {
         0x37, 0xfb, 0x38, 0xd3, 0xfe, 0x6b, 0x4e, 0x9c,
@@ -1047,82 +1117,89 @@ TEST(dataservice_decode_test,
     dataservice_response_transaction_get_first_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_transaction_get_first(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_transaction_get_first(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_FIRST_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_FIRST_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
     /* the node key should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_KEY, dresp.node.key, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_KEY, dresp.node.key, 16));
     /* the node prev should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_PREV, dresp.node.prev, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_PREV, dresp.node.prev, 16));
     /* the node next should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_NEXT, dresp.node.next, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_NEXT, dresp.node.next, 16));
     /* the node artifact_id should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_ARTIFACT_ID, dresp.node.artifact_id, 16));
+    TEST_ASSERT(
+        0 == memcmp(EXPECTED_NODE_ARTIFACT_ID, dresp.node.artifact_id, 16));
     /* the node net size should match */
-    ASSERT_EQ(dresp.data_size, (size_t)ntohll(dresp.node.net_txn_cert_size));
+    TEST_ASSERT(
+        dresp.data_size == (size_t)ntohll(dresp.node.net_txn_cert_size));
     /* the node net state should match */
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(dresp.node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(dresp.node.net_txn_state));
     /* the data pointer should be correct. */
-    ASSERT_EQ(resp + 80, dresp.data);
+    TEST_ASSERT(resp + 80 == dresp.data);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_transaction_get_bad_sizes)
+TEST(response_transaction_get_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_get_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_get(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_get(resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_get(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_get(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_transaction_get_null_checks)
+TEST(response_transaction_get_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_get_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_get(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_get(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_get(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_get(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_transaction_get_bad_method_code)
+TEST(response_transaction_get_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -1137,15 +1214,16 @@ TEST(dataservice_decode_test, response_transaction_get_bad_method_code)
     dataservice_response_transaction_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_transaction_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_transaction_get(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_transaction_get_decoded)
+TEST(response_transaction_get_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -1160,29 +1238,30 @@ TEST(dataservice_decode_test, response_transaction_get_decoded)
     dataservice_response_transaction_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_transaction_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_transaction_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that a response packet is successfully decoded with a complete payload.
  */
-TEST(dataservice_decode_test,
-    response_transaction_get_decoded_full_payload)
+TEST(response_transaction_get_decoded_full_payload)
 {
     const uint8_t EXPECTED_NODE_KEY[] = {
         0x37, 0xfb, 0x38, 0xd3, 0xfe, 0x6b, 0x4e, 0x9c,
@@ -1239,83 +1318,90 @@ TEST(dataservice_decode_test,
     dataservice_response_transaction_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_transaction_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_transaction_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
     /* the node key should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_KEY, dresp.node.key, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_KEY, dresp.node.key, 16));
     /* the node prev should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_PREV, dresp.node.prev, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_PREV, dresp.node.prev, 16));
     /* the node next should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_NEXT, dresp.node.next, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_NEXT, dresp.node.next, 16));
     /* the node artifact_id should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_ARTIFACT_ID, dresp.node.artifact_id, 16));
+    TEST_ASSERT(
+        0 == memcmp(EXPECTED_NODE_ARTIFACT_ID, dresp.node.artifact_id, 16));
     /* the node state should match. */
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(dresp.node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(dresp.node.net_txn_state));
     /* the node net size should match */
-    ASSERT_EQ(dresp.data_size, (size_t)ntohll(dresp.node.net_txn_cert_size));
+    TEST_ASSERT(
+        dresp.data_size == (size_t)ntohll(dresp.node.net_txn_cert_size));
     /* the data pointer should be correct. */
-    ASSERT_EQ(resp + 80, dresp.data);
+    TEST_ASSERT(resp + 80 == dresp.data);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_canonized_transaction_get_bad_sizes)
+TEST(response_canonized_transaction_get_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_canonized_transaction_get_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_canonized_transaction_get(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_canonized_transaction_get(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_canonized_transaction_get(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_canonized_transaction_get(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_canonized_transaction_get_null_checks)
+TEST(response_canonized_transaction_get_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_canonized_transaction_get_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_canonized_transaction_get(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_canonized_transaction_get(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_canonized_transaction_get(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_canonized_transaction_get(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test,
-    response_canonized_transaction_get_bad_method_code)
+TEST(response_canonized_transaction_get_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -1330,15 +1416,16 @@ TEST(dataservice_decode_test,
     dataservice_response_canonized_transaction_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_canonized_transaction_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_canonized_transaction_get(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_canonized_transaction_get_decoded)
+TEST(response_canonized_transaction_get_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -1353,29 +1440,29 @@ TEST(dataservice_decode_test, response_canonized_transaction_get_decoded)
     dataservice_response_canonized_transaction_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_canonized_transaction_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_canonized_transaction_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_TRANSACTION_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_TRANSACTION_READ == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that a response packet is successfully decoded with a complete payload.
  */
-TEST(dataservice_decode_test,
-    response_canonized_transaction_get_decoded_full_payload)
+TEST(response_canonized_transaction_get_decoded_full_payload)
 {
     const uint8_t EXPECTED_NODE_KEY[] = {
         0x37, 0xfb, 0x38, 0xd3, 0xfe, 0x6b, 0x4e, 0x9c,
@@ -1441,89 +1528,96 @@ TEST(dataservice_decode_test,
     dataservice_response_canonized_transaction_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_canonized_transaction_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_canonized_transaction_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_TRANSACTION_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_TRANSACTION_READ == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
     /* the node key should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_KEY, dresp.node.key, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_KEY, dresp.node.key, 16));
     /* the node prev should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_PREV, dresp.node.prev, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_PREV, dresp.node.prev, 16));
     /* the node next should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_NEXT, dresp.node.next, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_NEXT, dresp.node.next, 16));
     /* the node artifact_id should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_ARTIFACT_ID, dresp.node.artifact_id, 16));
+    TEST_ASSERT(
+        0 == memcmp(EXPECTED_NODE_ARTIFACT_ID, dresp.node.artifact_id, 16));
     /* the node block_id should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_BLOCK_ID, dresp.node.block_id, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_BLOCK_ID, dresp.node.block_id, 16));
     /* the node net size should match */
-    ASSERT_EQ(dresp.data_size, (size_t)ntohll(dresp.node.net_txn_cert_size));
+    TEST_ASSERT(
+        dresp.data_size == (size_t)ntohll(dresp.node.net_txn_cert_size));
     /* the node state should match. */
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(dresp.node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(dresp.node.net_txn_state));
     /* the data pointer should be correct. */
-    ASSERT_EQ(resp + 96, dresp.data);
+    TEST_ASSERT(resp + 96 == dresp.data);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_transaction_drop_bad_sizes)
+TEST(response_transaction_drop_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_drop_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_drop(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_drop(resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_drop(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_drop(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 
     /* a "too large" size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_drop(
-            resp, 4 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_drop(
+                    resp, 4 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_transaction_drop_null_checks)
+TEST(response_transaction_drop_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_drop_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_drop(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_drop(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_drop(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_drop(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_transaction_drop_bad_method_code)
+TEST(response_transaction_drop_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -1538,15 +1632,16 @@ TEST(dataservice_decode_test, response_transaction_drop_bad_method_code)
     dataservice_response_transaction_drop_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_transaction_drop(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_transaction_drop(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_transaction_drop_decoded)
+TEST(response_transaction_drop_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -1561,71 +1656,78 @@ TEST(dataservice_decode_test, response_transaction_drop_decoded)
     dataservice_response_transaction_drop_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_transaction_drop(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_transaction_drop(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_DROP,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_DROP
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_transaction_promote_bad_sizes)
+TEST(response_transaction_promote_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_promote_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_promote(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_promote(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_promote(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_promote(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 
     /* a "too large" size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_transaction_promote(
-            resp, 4 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_transaction_promote(
+                    resp, 4 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_transaction_promote_null_checks)
+TEST(response_transaction_promote_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_transaction_promote_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_promote(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_promote(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_transaction_promote(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_transaction_promote(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_transaction_promote_bad_method_code)
+TEST(response_transaction_promote_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -1640,15 +1742,16 @@ TEST(dataservice_decode_test, response_transaction_promote_bad_method_code)
     dataservice_response_transaction_promote_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_transaction_promote(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_transaction_promote(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_transaction_promote_decoded)
+TEST(response_transaction_promote_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -1663,71 +1766,78 @@ TEST(dataservice_decode_test, response_transaction_promote_decoded)
     dataservice_response_transaction_promote_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_transaction_promote(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_transaction_promote(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_PROMOTE,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_PQ_TRANSACTION_PROMOTE
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_block_make_bad_sizes)
+TEST(response_block_make_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_block_make_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_block_make(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_block_make(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_block_make(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_block_make(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 
     /* a "too large" size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_block_make(
-            resp, 4 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_block_make(
+                    resp, 4 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_block_make_null_checks)
+TEST(response_block_make_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_block_make_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_block_make(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_block_make(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_block_make(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_block_make(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_block_make_bad_method_code)
+TEST(response_block_make_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -1742,15 +1852,16 @@ TEST(dataservice_decode_test, response_block_make_bad_method_code)
     dataservice_response_block_make_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_block_make(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_block_make(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_block_make_decoded)
+TEST(response_block_make_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -1765,66 +1876,71 @@ TEST(dataservice_decode_test, response_block_make_decoded)
     dataservice_response_block_make_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_block_make(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_block_make(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_BLOCK_WRITE,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_BLOCK_WRITE == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_block_id_by_height_get_bad_sizes)
+TEST(response_block_id_by_height_get_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_block_id_by_height_get_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_block_id_by_height_get(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_block_id_by_height_get(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_block_id_by_height_get(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_block_id_by_height_get(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_block_id_by_height_get_null_checks)
+TEST(response_block_id_by_height_get_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_block_id_by_height_get_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_block_id_by_height_get(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_block_id_by_height_get(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_block_id_by_height_get(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_block_id_by_height_get(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_block_id_by_height_get_bad_method_code)
+TEST(response_block_id_by_height_get_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -1839,15 +1955,16 @@ TEST(dataservice_decode_test, response_block_id_by_height_get_bad_method_code)
     dataservice_response_block_id_by_height_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_block_id_by_height_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_block_id_by_height_get(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_block_id_by_height_get_decoded)
+TEST(response_block_id_by_height_get_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -1862,29 +1979,30 @@ TEST(dataservice_decode_test, response_block_id_by_height_get_decoded)
     dataservice_response_block_id_by_height_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_block_id_by_height_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_block_id_by_height_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_BLOCK_ID_BY_HEIGHT_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_BLOCK_ID_BY_HEIGHT_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
 }
 
 /**
  * Test that a response packet is successfully decoded with a complete payload.
  */
-TEST(dataservice_decode_test,
-    response_block_id_by_height_get_decoded_full_payload)
+TEST(response_block_id_by_height_get_decoded_full_payload)
 {
     const uint8_t EXPECTED_BLOCK_ID[] = {
         0x37, 0xfb, 0x38, 0xd3, 0xfe, 0x6b, 0x4e, 0x9c,
@@ -1931,68 +2049,74 @@ TEST(dataservice_decode_test,
     dataservice_response_block_id_by_height_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_block_id_by_height_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_block_id_by_height_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_BLOCK_ID_BY_HEIGHT_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_BLOCK_ID_BY_HEIGHT_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
     /* the node key should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_BLOCK_ID, dresp.block_id, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_BLOCK_ID, dresp.block_id, 16));
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_latest_block_id_get_bad_sizes)
+TEST(response_latest_block_id_get_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_latest_block_id_get_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_latest_block_id_get(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_latest_block_id_get(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_latest_block_id_get(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_latest_block_id_get(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_latest_block_id_get_null_checks)
+TEST(response_latest_block_id_get_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_latest_block_id_get_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_latest_block_id_get(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_latest_block_id_get(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_latest_block_id_get(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_latest_block_id_get(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_latest_block_id_get_bad_method_code)
+TEST(response_latest_block_id_get_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -2007,15 +2131,16 @@ TEST(dataservice_decode_test, response_latest_block_id_get_bad_method_code)
     dataservice_response_latest_block_id_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_latest_block_id_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_latest_block_id_get(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_latest_block_id_get_decoded)
+TEST(response_latest_block_id_get_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -2030,29 +2155,30 @@ TEST(dataservice_decode_test, response_latest_block_id_get_decoded)
     dataservice_response_latest_block_id_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_latest_block_id_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_latest_block_id_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_BLOCK_ID_LATEST_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_BLOCK_ID_LATEST_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
 }
 
 /**
  * Test that a response packet is successfully decoded with a complete payload.
  */
-TEST(dataservice_decode_test,
-    response_latest_block_id_get_decoded_full_payload)
+TEST(response_latest_block_id_get_decoded_full_payload)
 {
     const uint8_t EXPECTED_BLOCK_ID[] = {
         0x37, 0xfb, 0x38, 0xd3, 0xfe, 0x6b, 0x4e, 0x9c,
@@ -2099,68 +2225,74 @@ TEST(dataservice_decode_test,
     dataservice_response_latest_block_id_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_latest_block_id_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_latest_block_id_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_BLOCK_ID_LATEST_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_BLOCK_ID_LATEST_READ
+            == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
     /* the node key should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_BLOCK_ID, dresp.block_id, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_BLOCK_ID, dresp.block_id, 16));
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_artifact_get_bad_sizes)
+TEST(response_artifact_get_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_artifact_get_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_artifact_get(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_artifact_get(
+                    resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_artifact_get(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_artifact_get(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_artifact_get_null_checks)
+TEST(response_artifact_get_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_artifact_get_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_artifact_get(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_artifact_get(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_artifact_get(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_artifact_get(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_artifact_get_bad_method_code)
+TEST(response_artifact_get_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -2175,15 +2307,16 @@ TEST(dataservice_decode_test, response_artifact_get_bad_method_code)
     dataservice_response_artifact_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_artifact_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_artifact_get(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_artifact_get_decoded)
+TEST(response_artifact_get_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -2198,29 +2331,29 @@ TEST(dataservice_decode_test, response_artifact_get_decoded)
     dataservice_response_artifact_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_artifact_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_artifact_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_ARTIFACT_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_ARTIFACT_READ == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that a response packet is successfully decoded with a complete payload.
  */
-TEST(dataservice_decode_test,
-    response_artifact_get_decoded_full_payload)
+TEST(response_artifact_get_decoded_full_payload)
 {
     const uint8_t EXPECTED_RECORD_KEY[] = {
         0x66, 0x60, 0x2f, 0x1e, 0x39, 0x71, 0x44, 0xd3,
@@ -2277,81 +2410,87 @@ TEST(dataservice_decode_test,
     dataservice_response_artifact_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_artifact_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_artifact_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_ARTIFACT_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_ARTIFACT_READ == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
     /* the record key should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_RECORD_KEY, dresp.record.key, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_RECORD_KEY, dresp.record.key, 16));
     /* the record txn first should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_RECORD_TXN_FIRST, dresp.record.txn_first, 16));
+    TEST_ASSERT(
+        0 == memcmp(EXPECTED_RECORD_TXN_FIRST, dresp.record.txn_first, 16));
     /* the record txn latest should match. */
-    ASSERT_EQ(
-        0, memcmp(EXPECTED_RECORD_TXN_LATEST, dresp.record.txn_latest, 16));
+    TEST_ASSERT(
+        0 == memcmp(EXPECTED_RECORD_TXN_LATEST, dresp.record.txn_latest, 16));
     /* the record net height first should match. */
-    ASSERT_EQ(EXPECTED_RECORD_NET_HEIGHT_FIRST, dresp.record.net_height_first);
+    TEST_ASSERT(
+        EXPECTED_RECORD_NET_HEIGHT_FIRST == dresp.record.net_height_first);
     /* the record net height latest should match. */
-    ASSERT_EQ(
-        EXPECTED_RECORD_NET_HEIGHT_LATEST, dresp.record.net_height_latest);
+    TEST_ASSERT(
+        EXPECTED_RECORD_NET_HEIGHT_LATEST == dresp.record.net_height_latest);
     /* the record net state latest should match. */
-    ASSERT_EQ(
-        EXPECTED_RECORD_NET_STATE_LATEST, dresp.record.net_state_latest);
+    TEST_ASSERT(
+        EXPECTED_RECORD_NET_STATE_LATEST == dresp.record.net_state_latest);
 }
 
 /**
  * Test that we check for sizes when decoding.
  */
-TEST(dataservice_decode_test, response_block_get_bad_sizes)
+TEST(response_block_get_bad_sizes)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_block_get_t dresp;
 
     /* a zero size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_block_get(
-            resp, 0, &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_block_get(resp, 0, &dresp));
 
     /* a truncated size is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE,
-        dataservice_decode_response_block_get(
-            resp, 2 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_PACKET_INVALID_SIZE
+            == dataservice_decode_response_block_get(
+                    resp, 2 * sizeof(uint32_t), &dresp));
 }
 
 /**
  * Test that we perform null checks in the decode.
  */
-TEST(dataservice_decode_test, response_block_get_null_checks)
+TEST(response_block_get_null_checks)
 {
     uint8_t resp[100] = { 0 };
     dataservice_response_block_get_t dresp;
 
     /* a null response packet pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_block_get(
-            nullptr, 3 * sizeof(uint32_t), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_block_get(
+                    nullptr, 3 * sizeof(uint32_t), &dresp));
 
     /* a null decoded response structure pointer is invalid. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER,
-        dataservice_decode_response_block_get(
-            resp, 3 * sizeof(uint32_t), nullptr));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RESPONSE_INVALID_PARAMETER
+            == dataservice_decode_response_block_get(
+                    resp, 3 * sizeof(uint32_t), nullptr));
 }
 
 /**
  * Test that a response packet with an invalid method code returns an error.
  */
-TEST(dataservice_decode_test, response_block_get_bad_method_code)
+TEST(response_block_get_bad_method_code)
 {
     uint8_t resp[12] = {
         /* bad method code. */
@@ -2366,15 +2505,16 @@ TEST(dataservice_decode_test, response_block_get_bad_method_code)
     dataservice_response_block_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE,
-        dataservice_decode_response_block_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_RECVRESP_UNEXPECTED_METHOD_CODE
+            == dataservice_decode_response_block_get(
+                    resp, sizeof(resp), &dresp));
 }
 
 /**
  * Test that a response packet is successfully decoded.
  */
-TEST(dataservice_decode_test, response_block_get_decoded)
+TEST(response_block_get_decoded)
 {
     uint8_t resp[12] = {
         /* method code. */
@@ -2389,29 +2529,29 @@ TEST(dataservice_decode_test, response_block_get_decoded)
     dataservice_response_block_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_block_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_block_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_BLOCK_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_BLOCK_READ == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(0x12345678U, dresp.hdr.status);
+    TEST_ASSERT(0x12345678U == dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(0U, dresp.hdr.payload_size);
+    TEST_ASSERT(0U == dresp.hdr.payload_size);
 }
 
 /**
  * Test that a response packet is successfully decoded with a complete payload.
  */
-TEST(dataservice_decode_test,
-    response_block_get_decoded_full_payload)
+TEST(response_block_get_decoded_full_payload)
 {
     const uint8_t EXPECTED_NODE_KEY[] = {
         0x37, 0xfb, 0x38, 0xd3, 0xfe, 0x6b, 0x4e, 0x9c,
@@ -2470,38 +2610,39 @@ TEST(dataservice_decode_test,
     dataservice_response_block_get_t dresp;
 
     /* a valid response is successfully decoded. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_decode_response_block_get(
-            resp, sizeof(resp), &dresp));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_decode_response_block_get(
+                    resp, sizeof(resp), &dresp));
 
     /* the disposer is set to the memset disposer. */
-    ASSERT_EQ(&dataservice_decode_response_memset_disposer,
-        dresp.hdr.hdr.dispose);
+    TEST_ASSERT(
+        &dataservice_decode_response_memset_disposer == dresp.hdr.hdr.dispose);
     /* the method code is correct. */
-    ASSERT_EQ(DATASERVICE_API_METHOD_APP_BLOCK_READ,
-        dresp.hdr.method_code);
+    TEST_ASSERT(
+        DATASERVICE_API_METHOD_APP_BLOCK_READ == dresp.hdr.method_code);
     /* the offset is correct. */
-    ASSERT_EQ(1023U, dresp.hdr.offset);
+    TEST_ASSERT(1023U == dresp.hdr.offset);
     /* the status is correct. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)dresp.hdr.status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)dresp.hdr.status);
     /* the payload size is correct. */
-    ASSERT_EQ(sizeof(dresp) - sizeof(dresp.hdr), dresp.hdr.payload_size);
+    TEST_ASSERT(sizeof(dresp) - sizeof(dresp.hdr) == dresp.hdr.payload_size);
     /* the node key should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_KEY, dresp.node.key, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_KEY, dresp.node.key, 16));
     /* the node prev should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_PREV, dresp.node.prev, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_PREV, dresp.node.prev, 16));
     /* the node next should match. */
-    ASSERT_EQ(0, memcmp(EXPECTED_NODE_NEXT, dresp.node.next, 16));
+    TEST_ASSERT(0 == memcmp(EXPECTED_NODE_NEXT, dresp.node.next, 16));
     /* the node artifact_id should match. */
-    ASSERT_EQ(0,
-        memcmp(
-            EXPECTED_NODE_FIRST_TRANSACTION_ID,
-            dresp.node.first_transaction_id, 16));
+    TEST_ASSERT(
+        0
+            == memcmp(
+                    EXPECTED_NODE_FIRST_TRANSACTION_ID,
+                    dresp.node.first_transaction_id, 16));
     /* the node block height is correct. */
-    ASSERT_EQ(EXPECTED_NODE_NET_BLOCK_HEIGHT, dresp.node.net_block_height);
+    TEST_ASSERT(EXPECTED_NODE_NET_BLOCK_HEIGHT == dresp.node.net_block_height);
     /* the node net size should match */
-    ASSERT_EQ(4U, dresp.data_size);
+    TEST_ASSERT(4U == dresp.data_size);
     /* the data pointer should be correct. */
-    ASSERT_EQ(resp + 84, dresp.data);
+    TEST_ASSERT(resp + 84 == dresp.data);
 }
-#endif
