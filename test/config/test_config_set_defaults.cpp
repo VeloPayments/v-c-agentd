@@ -3,17 +3,15 @@
  *
  * Test that we can set reasonable defaults for config data.
  *
- * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/config.h>
 #include <iostream>
-#include <vector>
+#include <minunit/minunit.h>
 #include <string>
+#include <vector>
 #include <vpr/disposable.h>
-
-/* GTEST DISABLED */
-#if 0
 
 extern "C" {
 #include "agentd.tab.h"
@@ -21,6 +19,8 @@ extern "C" {
 }
 
 using namespace std;
+
+TEST_SUITE(config_set_defaults_test);
 
 /**
  * \brief Simple user context structure for testing.
@@ -75,7 +75,7 @@ static void config_callback(config_context_t* context, agent_config_t* config)
 /**
  * Test that all defaults are set.
  */
-TEST(config_set_defaults_test, empty_config)
+TEST(empty_config)
 {
     int64_t DEFAULT_MAX_DATABASE_SIZE = 16L * 1024L * 1024L * 1024L * 1024L;
     YY_BUFFER_STATE state;
@@ -91,57 +91,56 @@ TEST(config_set_defaults_test, empty_config)
     bootstrap_config_t bconf;
 
     /* set up parse of empty config. */
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* initialize bootstrap config. */
     bootstrap_config_init(&bconf);
     bconf.prefix_dir = strdup("build/isolation");
-    ASSERT_EQ(0, system("mkdir -p build/isolation"));
+    TEST_ASSERT(0 == system("mkdir -p build/isolation"));
 
     /* PRECONDITIONS: all config values are unset. */
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_FALSE(user_context.config->block_max_milliseconds_set);
-    ASSERT_FALSE(user_context.config->block_max_transactions_set);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(!user_context.config->block_max_milliseconds_set);
+    TEST_ASSERT(!user_context.config->block_max_transactions_set);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
 
     /* set the defaults for this config. */
-    ASSERT_EQ(0, config_set_defaults(user_context.config, &bconf));
+    TEST_ASSERT(0 == config_set_defaults(user_context.config, &bconf));
 
     /* POSTCONDITIONS: all config values have their defaults. */
-    ASSERT_STREQ("log", user_context.config->logdir);
-    ASSERT_TRUE(user_context.config->loglevel_set);
-    ASSERT_EQ(4, user_context.config->loglevel);
-    ASSERT_EQ(
-        DEFAULT_MAX_DATABASE_SIZE, user_context.config->database_max_size);
-    ASSERT_TRUE(user_context.config->block_max_milliseconds_set);
-    ASSERT_EQ(5000, user_context.config->block_max_milliseconds);
-    ASSERT_TRUE(user_context.config->block_max_transactions_set);
-    ASSERT_EQ(500, user_context.config->block_max_transactions);
-    ASSERT_STREQ("root/secret.cert", user_context.config->secret);
-    ASSERT_STREQ("root/root.cert", user_context.config->rootblock);
-    ASSERT_STREQ("data", user_context.config->datastore);
-    ASSERT_NE(nullptr, user_context.config->listen_head);
-    ASSERT_STREQ(bconf.prefix_dir, user_context.config->chroot);
-    ASSERT_NE(nullptr, user_context.config->usergroup);
-    ASSERT_STREQ("veloagent", user_context.config->usergroup->user);
-    ASSERT_STREQ("veloagent", user_context.config->usergroup->group);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
+    TEST_ASSERT(!strcmp("log", user_context.config->logdir));
+    TEST_ASSERT(user_context.config->loglevel_set);
+    TEST_ASSERT(4 == user_context.config->loglevel);
+    TEST_ASSERT(
+        DEFAULT_MAX_DATABASE_SIZE == user_context.config->database_max_size);
+    TEST_ASSERT(user_context.config->block_max_milliseconds_set);
+    TEST_ASSERT(5000 == user_context.config->block_max_milliseconds);
+    TEST_ASSERT(user_context.config->block_max_transactions_set);
+    TEST_ASSERT(500 == user_context.config->block_max_transactions);
+    TEST_ASSERT(!strcmp("root/secret.cert", user_context.config->secret));
+    TEST_ASSERT(!strcmp("root/root.cert", user_context.config->rootblock));
+    TEST_ASSERT(!strcmp("data", user_context.config->datastore));
+    TEST_ASSERT(nullptr != user_context.config->listen_head);
+    TEST_ASSERT(!strcmp(bconf.prefix_dir, user_context.config->chroot));
+    TEST_ASSERT(nullptr != user_context.config->usergroup);
+    TEST_ASSERT(!strcmp("veloagent", user_context.config->usergroup->user));
+    TEST_ASSERT(!strcmp("veloagent", user_context.config->usergroup->group));
+    TEST_ASSERT(nullptr == user_context.config->view_head);
 
     /* clean up. */
     dispose((disposable_t*)&user_context);
     dispose((disposable_t*)&bconf);
 }
-#endif
