@@ -3,17 +3,15 @@
  *
  * Test the config parser.
  *
- * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/config.h>
 #include <iostream>
-#include <vector>
+#include <minunit/minunit.h>
 #include <string>
+#include <vector>
 #include <vpr/disposable.h>
-
-/* GTEST DISABLED */
-#if 0
 
 extern "C" {
 #include "agentd.tab.h"
@@ -21,6 +19,8 @@ extern "C" {
 }
 
 using namespace std;
+
+TEST_SUITE(config_test);
 
 /**
  * \brief Simple user context structure for testing.
@@ -75,7 +75,7 @@ static void config_callback(config_context_t* context, agent_config_t* config)
 /**
  * Test that an empty config file produces a blank config.
  */
-TEST(config_test, empty_config)
+TEST(empty_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -88,31 +88,31 @@ TEST(config_test, empty_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -120,7 +120,7 @@ TEST(config_test, empty_config)
 /**
  * Test that a logdir setting adds this data to the config.
  */
-TEST(config_test, logdir_config)
+TEST(logdir_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -133,31 +133,31 @@ TEST(config_test, logdir_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("logdir log", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("logdir log", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_STREQ("log", user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(!strcmp("log", user_context.config->logdir));
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -165,7 +165,7 @@ TEST(config_test, logdir_config)
 /**
  * Test that a dot path logdir setting adds this data to the config.
  */
-TEST(config_test, logdir_dotpath_config)
+TEST(logdir_dotpath_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -178,31 +178,31 @@ TEST(config_test, logdir_dotpath_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("logdir ./log", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("logdir ./log", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_STREQ("./log", user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(!strcmp("./log", user_context.config->logdir));
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -210,7 +210,7 @@ TEST(config_test, logdir_dotpath_config)
 /**
  * Test that an absolute path for log is not accepted.
  */
-TEST(config_test, logdir_no_absolute)
+TEST(logdir_no_absolute)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -223,9 +223,9 @@ TEST(config_test, logdir_no_absolute)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("logdir /log", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("logdir /log", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -235,7 +235,7 @@ TEST(config_test, logdir_no_absolute)
 /**
  * Test that a relative path starting with .. for log is not accepted.
  */
-TEST(config_test, logdir_no_dotdot)
+TEST(logdir_no_dotdot)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -248,9 +248,9 @@ TEST(config_test, logdir_no_dotdot)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("logdir ../log", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("logdir ../log", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -260,7 +260,7 @@ TEST(config_test, logdir_no_dotdot)
 /**
  * Test that a loglevel setting adds this data to the config.
  */
-TEST(config_test, loglevel_config)
+TEST(loglevel_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -273,31 +273,31 @@ TEST(config_test, loglevel_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("loglevel 7", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("loglevel 7", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_TRUE(user_context.config->loglevel_set);
-    ASSERT_EQ(7L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(user_context.config->loglevel_set);
+    TEST_ASSERT(7L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -305,7 +305,7 @@ TEST(config_test, loglevel_config)
 /**
  * Test that bad loglevel ranges raise an error.
  */
-TEST(config_test, loglevel_bad_range)
+TEST(loglevel_bad_range)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -318,14 +318,14 @@ TEST(config_test, loglevel_bad_range)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("loglevel 15", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("loglevel 15", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there is one error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -333,7 +333,7 @@ TEST(config_test, loglevel_bad_range)
 /**
  * Test that the secret parameter adds data to the config.
  */
-TEST(config_test, secret_config)
+TEST(secret_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -346,31 +346,31 @@ TEST(config_test, secret_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("secret dir", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("secret dir", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_STREQ("dir", user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(!strcmp("dir", user_context.config->secret));
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -378,7 +378,7 @@ TEST(config_test, secret_config)
 /**
  * Test that the secret parameter can be a dot path.
  */
-TEST(config_test, secret_dotpath_config)
+TEST(secret_dotpath_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -391,31 +391,31 @@ TEST(config_test, secret_dotpath_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("secret ./dir", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("secret ./dir", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_STREQ("./dir", user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(!strcmp("./dir", user_context.config->secret));
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -423,7 +423,7 @@ TEST(config_test, secret_dotpath_config)
 /**
  * Test that the secret parameter can't be absolute.
  */
-TEST(config_test, secret_no_absolute)
+TEST(secret_no_absolute)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -436,9 +436,9 @@ TEST(config_test, secret_no_absolute)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("secret /dir", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("secret /dir", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -448,7 +448,7 @@ TEST(config_test, secret_no_absolute)
 /**
  * Test that the secret parameter can't be a dotdot relative path.
  */
-TEST(config_test, secret_no_dotdot)
+TEST(secret_no_dotdot)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -461,9 +461,9 @@ TEST(config_test, secret_no_dotdot)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("secret ../dir", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("secret ../dir", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -473,7 +473,7 @@ TEST(config_test, secret_no_dotdot)
 /**
  * Test that the rootblock parameter adds data to the config.
  */
-TEST(config_test, rootblock_conf)
+TEST(rootblock_conf)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -486,33 +486,33 @@ TEST(config_test, rootblock_conf)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state = yy_scan_string("rootblock root", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state = yy_scan_string("rootblock root", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_STREQ("root", user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(!strcmp("root", user_context.config->rootblock));
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -520,7 +520,7 @@ TEST(config_test, rootblock_conf)
 /**
  * Test that a rootblock path can be parsed.
  */
-TEST(config_test, rootblock_path_conf)
+TEST(rootblock_path_conf)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -533,33 +533,33 @@ TEST(config_test, rootblock_path_conf)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state = yy_scan_string("rootblock root/root.cert", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state = yy_scan_string("rootblock root/root.cert", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_STREQ("root/root.cert", user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(!strcmp("root/root.cert", user_context.config->rootblock));
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -567,7 +567,7 @@ TEST(config_test, rootblock_path_conf)
 /**
  * Test that a rootblock dot path can be parsed.
  */
-TEST(config_test, rootblock_dot_path_conf)
+TEST(rootblock_dot_path_conf)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -580,33 +580,33 @@ TEST(config_test, rootblock_dot_path_conf)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state = yy_scan_string("rootblock ./root/root.cert", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state = yy_scan_string("rootblock ./root/root.cert", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_STREQ("./root/root.cert", user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(!strcmp("./root/root.cert", user_context.config->rootblock));
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -614,7 +614,7 @@ TEST(config_test, rootblock_dot_path_conf)
 /**
  * Test that relative paths starting with .. are not allowed.
  */
-TEST(config_test, rootblock_no_dotdot)
+TEST(rootblock_no_dotdot)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -627,11 +627,12 @@ TEST(config_test, rootblock_no_dotdot)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state = yy_scan_string("rootblock ../root/root.cert", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state
+                    = yy_scan_string("rootblock ../root/root.cert", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -641,7 +642,7 @@ TEST(config_test, rootblock_no_dotdot)
 /**
  * Test that no absolute paths are allowed in rootblock.
  */
-TEST(config_test, rootblock_no_absolute)
+TEST(rootblock_no_absolute)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -654,11 +655,11 @@ TEST(config_test, rootblock_no_absolute)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state = yy_scan_string("rootblock /root/root.cert", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state = yy_scan_string("rootblock /root/root.cert", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -668,7 +669,7 @@ TEST(config_test, rootblock_no_absolute)
 /**
  * Test that the datastore parameter adds data to the config.
  */
-TEST(config_test, datastore_config)
+TEST(datastore_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -681,31 +682,31 @@ TEST(config_test, datastore_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("datastore data", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("datastore data", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_STREQ("data", user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(!strcmp("data", user_context.config->datastore));
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -713,7 +714,7 @@ TEST(config_test, datastore_config)
 /**
  * Test that the datastore parameter can be a dot path.
  */
-TEST(config_test, datastore_dotpath)
+TEST(datastore_dotpath)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -726,31 +727,31 @@ TEST(config_test, datastore_dotpath)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("datastore ./data", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("datastore ./data", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_STREQ("./data", user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(!strcmp("./data", user_context.config->datastore));
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -758,7 +759,7 @@ TEST(config_test, datastore_dotpath)
 /**
  * Test that the datastore parameter can't be absolute.
  */
-TEST(config_test, datastore_no_absolute)
+TEST(datastore_no_absolute)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -771,9 +772,9 @@ TEST(config_test, datastore_no_absolute)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("datastore /data", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("datastore /data", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -783,7 +784,7 @@ TEST(config_test, datastore_no_absolute)
 /**
  * Test that the datastore parameter can't be a dotdot relative path.
  */
-TEST(config_test, datastore_no_dotdot)
+TEST(datastore_no_dotdot)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -796,9 +797,9 @@ TEST(config_test, datastore_no_dotdot)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("datastore ../data", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("datastore ../data", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -808,7 +809,7 @@ TEST(config_test, datastore_no_dotdot)
 /**
  * Test that a single listen parameter is added to the config.
  */
-TEST(config_test, listen_single)
+TEST(listen_single)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -821,36 +822,37 @@ TEST(config_test, listen_single)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("listen 0.0.0.0:1234", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr != (state = yy_scan_string("listen 0.0.0.0:1234", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* check listeners. */
-    ASSERT_NE(nullptr, user_context.config->listen_head);
-    EXPECT_EQ(0UL, user_context.config->listen_head->addr->s_addr);
-    EXPECT_EQ(1234, user_context.config->listen_head->port);
-    ASSERT_EQ(nullptr, user_context.config->listen_head->hdr.next);
+    TEST_ASSERT(nullptr != user_context.config->listen_head);
+    TEST_EXPECT(0UL == user_context.config->listen_head->addr->s_addr);
+    TEST_EXPECT(1234 == user_context.config->listen_head->port);
+    TEST_ASSERT(nullptr == user_context.config->listen_head->hdr.next);
 
     dispose((disposable_t*)&user_context);
 }
@@ -858,7 +860,7 @@ TEST(config_test, listen_single)
 /**
  * Test that multiple config parameters are added to the config.
  */
-TEST(config_test, listen_double)
+TEST(listen_double)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -871,45 +873,46 @@ TEST(config_test, listen_double)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state = yy_scan_string(
-            "listen 0.0.0.0:1234\n"
-            "listen 1.2.3.4:4321\n",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state
+                    = yy_scan_string(
+                        "listen 0.0.0.0:1234\n"
+                        "listen 1.2.3.4:4321\n",
+                        scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* check listeners. */
     config_listen_address_t* listen = user_context.config->listen_head;
-    ASSERT_NE(nullptr, listen);
-    EXPECT_EQ(0x04030201UL, listen->addr->s_addr);
-    EXPECT_EQ(4321, listen->port);
+    TEST_ASSERT(nullptr != listen);
+    TEST_EXPECT(0x04030201UL == listen->addr->s_addr);
+    TEST_EXPECT(4321 == listen->port);
     listen = (config_listen_address_t*)listen->hdr.next;
-    ASSERT_NE(nullptr, listen);
-    EXPECT_EQ(0UL, listen->addr->s_addr);
-    EXPECT_EQ(1234, listen->port);
+    TEST_ASSERT(nullptr != listen);
+    TEST_EXPECT(0UL == listen->addr->s_addr);
+    TEST_EXPECT(1234 == listen->port);
 
     dispose((disposable_t*)&user_context);
 }
@@ -917,7 +920,7 @@ TEST(config_test, listen_double)
 /**
  * Test that a chroot parameter is added to the config.
  */
-TEST(config_test, chroot_config)
+TEST(chroot_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -930,31 +933,31 @@ TEST(config_test, chroot_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("chroot root", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("chroot root", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_STREQ("root", user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(!strcmp("root", user_context.config->chroot));
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -962,7 +965,7 @@ TEST(config_test, chroot_config)
 /**
  * Test that a chroot parameter can be a dot relative path.
  */
-TEST(config_test, chroot_dot)
+TEST(chroot_dot)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -975,31 +978,31 @@ TEST(config_test, chroot_dot)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("chroot ./root", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("chroot ./root", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_STREQ("./root", user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(!strcmp("./root", user_context.config->chroot));
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1007,7 +1010,7 @@ TEST(config_test, chroot_dot)
 /**
  * Test that a chroot parameter can't be an absolute path.
  */
-TEST(config_test, chroot_no_absolute)
+TEST(chroot_no_absolute)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1020,9 +1023,9 @@ TEST(config_test, chroot_no_absolute)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("chroot /root", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("chroot /root", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -1032,7 +1035,7 @@ TEST(config_test, chroot_no_absolute)
 /**
  * Test that a chroot parameter can't be a dotdot relative path.
  */
-TEST(config_test, chroot_no_dotdot)
+TEST(chroot_no_dotdot)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1045,9 +1048,9 @@ TEST(config_test, chroot_no_dotdot)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("chroot ../root", scanner));
-    ASSERT_EQ(1, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("chroot ../root", scanner)));
+    TEST_ASSERT(1 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -1057,7 +1060,7 @@ TEST(config_test, chroot_no_dotdot)
 /**
  * Test that a usergroup parameter is added to the config.
  */
-TEST(config_test, usergroup_config)
+TEST(usergroup_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1070,33 +1073,33 @@ TEST(config_test, usergroup_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("usergroup foo:bar", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("usergroup foo:bar", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
-    ASSERT_NE(nullptr, user_context.config->usergroup);
-    ASSERT_STREQ("foo", user_context.config->usergroup->user);
-    ASSERT_STREQ("bar", user_context.config->usergroup->group);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config->usergroup);
+    TEST_ASSERT(!strcmp("foo", user_context.config->usergroup->user));
+    TEST_ASSERT(!strcmp("bar", user_context.config->usergroup->group));
 
     dispose((disposable_t*)&user_context);
 }
@@ -1104,7 +1107,7 @@ TEST(config_test, usergroup_config)
 /**
  * Test that a canonization block parameter is accepted.
  */
-TEST(config_test, empty_canonization_block)
+TEST(empty_canonization_block)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1117,33 +1120,33 @@ TEST(config_test, empty_canonization_block)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("canonization { }", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("canonization { }", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_FALSE(user_context.config->block_max_milliseconds_set);
-    ASSERT_FALSE(user_context.config->block_max_transactions_set);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(!user_context.config->block_max_milliseconds_set);
+    TEST_ASSERT(!user_context.config->block_max_transactions_set);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1151,7 +1154,7 @@ TEST(config_test, empty_canonization_block)
 /**
  * Test that the block max milliseconds can be overridden.
  */
-TEST(config_test, block_max_milliseconds)
+TEST(block_max_milliseconds)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1164,36 +1167,36 @@ TEST(config_test, block_max_milliseconds)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state =
-            yy_scan_string("canonization { max milliseconds 995 }", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state =
+            yy_scan_string("canonization { max milliseconds 995 }", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_TRUE(user_context.config->block_max_milliseconds_set);
-    ASSERT_EQ(995, user_context.config->block_max_milliseconds);
-    ASSERT_FALSE(user_context.config->block_max_transactions_set);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(user_context.config->block_max_milliseconds_set);
+    TEST_ASSERT(995 == user_context.config->block_max_milliseconds);
+    TEST_ASSERT(!user_context.config->block_max_transactions_set);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1201,7 +1204,7 @@ TEST(config_test, block_max_milliseconds)
 /**
  * Test that a negative block max milliseconds is invalid.
  */
-TEST(config_test, block_max_milliseconds_negative)
+TEST(block_max_milliseconds_negative)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1214,16 +1217,16 @@ TEST(config_test, block_max_milliseconds_negative)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state =
-            yy_scan_string("canonization { max milliseconds -7 }", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state =
+            yy_scan_string("canonization { max milliseconds -7 }", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there is one error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -1231,7 +1234,7 @@ TEST(config_test, block_max_milliseconds_negative)
 /**
  * Test that too large of a block max milliseconds is invalid.
  */
-TEST(config_test, block_max_milliseconds_large)
+TEST(block_max_milliseconds_large)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1244,17 +1247,17 @@ TEST(config_test, block_max_milliseconds_large)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state =
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state =
             yy_scan_string(
-                "canonization { max milliseconds 9999999999 }", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+                "canonization { max milliseconds 9999999999 }", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there is one error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -1262,7 +1265,7 @@ TEST(config_test, block_max_milliseconds_large)
 /**
  * Test that the block max transactions can be overridden.
  */
-TEST(config_test, block_max_transactions)
+TEST(block_max_transactions)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1275,36 +1278,36 @@ TEST(config_test, block_max_transactions)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state =
-            yy_scan_string("canonization { max transactions 17 }", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state =
+            yy_scan_string("canonization { max transactions 17 }", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_FALSE(user_context.config->block_max_milliseconds_set);
-    ASSERT_TRUE(user_context.config->block_max_transactions_set);
-    ASSERT_EQ(17, user_context.config->block_max_transactions);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(!user_context.config->block_max_milliseconds_set);
+    TEST_ASSERT(user_context.config->block_max_transactions_set);
+    TEST_ASSERT(17 == user_context.config->block_max_transactions);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1312,7 +1315,7 @@ TEST(config_test, block_max_transactions)
 /**
  * Test that a negative block max transactions is invalid.
  */
-TEST(config_test, block_max_milliseconds_transactions)
+TEST(block_max_milliseconds_transactions)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1325,16 +1328,16 @@ TEST(config_test, block_max_milliseconds_transactions)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state =
-            yy_scan_string("canonization { max transactions -19 }", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state =
+            yy_scan_string("canonization { max transactions -19 }", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there is one error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -1342,7 +1345,7 @@ TEST(config_test, block_max_milliseconds_transactions)
 /**
  * Test that too large of a block max transactions is invalid.
  */
-TEST(config_test, block_max_transactions_large)
+TEST(block_max_transactions_large)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1355,17 +1358,17 @@ TEST(config_test, block_max_transactions_large)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state =
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state =
             yy_scan_string(
-                "canonization { max transactions 9999999 }", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+                "canonization { max transactions 9999999 }", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there is one error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -1373,7 +1376,7 @@ TEST(config_test, block_max_transactions_large)
 /**
  * Test that we can add a materialized view section.
  */
-TEST(config_test, empty_materialized_view)
+TEST(empty_materialized_view)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1386,41 +1389,41 @@ TEST(config_test, empty_materialized_view)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state =
-            yy_scan_string("materialized view auth { }", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state =
+            yy_scan_string("materialized view auth { }", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
     /* there should be no artifact types set. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->artifact_head);
+    TEST_EXPECT(nullptr == user_context.config->view_head->artifact_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1428,7 +1431,7 @@ TEST(config_test, empty_materialized_view)
 /**
  * Test that duplicate view names causes an error.
  */
-TEST(config_test, duplicate_materialized_view)
+TEST(duplicate_materialized_view)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1441,19 +1444,19 @@ TEST(config_test, duplicate_materialized_view)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state =
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state =
             yy_scan_string(
                 "materialized view auth { } "
                 "materialized view auth { }",
-                scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+                scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there is one error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -1461,7 +1464,7 @@ TEST(config_test, duplicate_materialized_view)
 /**
  * Test that we can add an artifact type section.
  */
-TEST(config_test, empty_artifact_type)
+TEST(empty_artifact_type)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1475,57 +1478,60 @@ TEST(config_test, empty_artifact_type)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
     /* there should be no transaction types. */
-    ASSERT_EQ(nullptr, artifact->transaction_head);
+    TEST_ASSERT(nullptr == artifact->transaction_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1533,7 +1539,7 @@ TEST(config_test, empty_artifact_type)
 /**
  * Test that duplicate artifact types cause an error.
  */
-TEST(config_test, duplicate_artifact_type)
+TEST(duplicate_artifact_type)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1546,20 +1552,20 @@ TEST(config_test, duplicate_artifact_type)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { } "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { } "
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there is one error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -1567,7 +1573,7 @@ TEST(config_test, duplicate_artifact_type)
 /**
  * Test that we can add a transaction type section.
  */
-TEST(config_test, empty_transaction_type)
+TEST(empty_transaction_type)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1582,75 +1588,80 @@ TEST(config_test, empty_transaction_type)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the crud flags should be 0. */
-    EXPECT_EQ(0U, transaction->artifact_crud_flags);
+    TEST_EXPECT(0U == transaction->artifact_crud_flags);
     /* it should have no fields. */
-    EXPECT_EQ(nullptr, transaction->field_head);
+    TEST_EXPECT(nullptr == transaction->field_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1658,7 +1669,7 @@ TEST(config_test, empty_transaction_type)
 /**
  * Test that duplicate transaction types cause an error.
  */
-TEST(config_test, duplicate_transaction_type)
+TEST(duplicate_transaction_type)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1671,22 +1682,22 @@ TEST(config_test, duplicate_transaction_type)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { } "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { } "
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there should be 1 error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -1694,7 +1705,7 @@ TEST(config_test, duplicate_transaction_type)
 /**
  * Test that we can add an artifact create crud flag.
  */
-TEST(config_test, artifact_create_crud_flag)
+TEST(artifact_create_crud_flag)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1709,17 +1720,17 @@ TEST(config_test, artifact_create_crud_flag)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -1727,59 +1738,65 @@ TEST(config_test, artifact_create_crud_flag)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the CREATE crud flag should be set. */
-    EXPECT_EQ(MATERIALIZED_VIEW_CRUD_CREATE, transaction->artifact_crud_flags);
+    TEST_EXPECT(
+        MATERIALIZED_VIEW_CRUD_CREATE == transaction->artifact_crud_flags);
     /* it should have no fields. */
-    EXPECT_EQ(nullptr, transaction->field_head);
+    TEST_EXPECT(nullptr == transaction->field_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1787,7 +1804,7 @@ TEST(config_test, artifact_create_crud_flag)
 /**
  * Test that we can add an artifact update crud flag.
  */
-TEST(config_test, artifact_update_crud_flag)
+TEST(artifact_update_crud_flag)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1802,17 +1819,17 @@ TEST(config_test, artifact_update_crud_flag)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -1820,59 +1837,65 @@ TEST(config_test, artifact_update_crud_flag)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the UPDATE crud flag should be set. */
-    EXPECT_EQ(MATERIALIZED_VIEW_CRUD_UPDATE, transaction->artifact_crud_flags);
+    TEST_EXPECT(
+        MATERIALIZED_VIEW_CRUD_UPDATE == transaction->artifact_crud_flags);
     /* it should have no fields. */
-    EXPECT_EQ(nullptr, transaction->field_head);
+    TEST_EXPECT(nullptr == transaction->field_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1880,7 +1903,7 @@ TEST(config_test, artifact_update_crud_flag)
 /**
  * Test that we can add an artifact append crud flag.
  */
-TEST(config_test, artifact_append_crud_flag)
+TEST(artifact_append_crud_flag)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1895,17 +1918,17 @@ TEST(config_test, artifact_append_crud_flag)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -1913,59 +1936,65 @@ TEST(config_test, artifact_append_crud_flag)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the APPEND crud flag should be set. */
-    EXPECT_EQ(MATERIALIZED_VIEW_CRUD_APPEND, transaction->artifact_crud_flags);
+    TEST_EXPECT(
+        MATERIALIZED_VIEW_CRUD_APPEND == transaction->artifact_crud_flags);
     /* it should have no fields. */
-    EXPECT_EQ(nullptr, transaction->field_head);
+    TEST_EXPECT(nullptr == transaction->field_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -1973,7 +2002,7 @@ TEST(config_test, artifact_append_crud_flag)
 /**
  * Test that we can add an artifact delete crud flag.
  */
-TEST(config_test, artifact_delete_crud_flag)
+TEST(artifact_delete_crud_flag)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -1988,17 +2017,17 @@ TEST(config_test, artifact_delete_crud_flag)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2006,59 +2035,65 @@ TEST(config_test, artifact_delete_crud_flag)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the DELETE crud flag should be set. */
-    EXPECT_EQ(MATERIALIZED_VIEW_CRUD_DELETE, transaction->artifact_crud_flags);
+    TEST_EXPECT(
+        MATERIALIZED_VIEW_CRUD_DELETE == transaction->artifact_crud_flags);
     /* it should have no fields. */
-    EXPECT_EQ(nullptr, transaction->field_head);
+    TEST_EXPECT(nullptr == transaction->field_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2066,7 +2101,7 @@ TEST(config_test, artifact_delete_crud_flag)
 /**
  * Test that we can mix artifact crud flags.
  */
-TEST(config_test, artifact_mix_crud_flags)
+TEST(artifact_mix_crud_flags)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2081,17 +2116,17 @@ TEST(config_test, artifact_mix_crud_flags)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2099,62 +2134,67 @@ TEST(config_test, artifact_mix_crud_flags)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the CREATE UPDATE APPEND and DELETE crud flags should be set. */
-    EXPECT_EQ(
-          MATERIALIZED_VIEW_CRUD_CREATE | MATERIALIZED_VIEW_CRUD_UPDATE
-        | MATERIALIZED_VIEW_CRUD_APPEND | MATERIALIZED_VIEW_CRUD_DELETE,
-        transaction->artifact_crud_flags);
+    TEST_EXPECT(
+        (  MATERIALIZED_VIEW_CRUD_CREATE | MATERIALIZED_VIEW_CRUD_UPDATE
+           | MATERIALIZED_VIEW_CRUD_APPEND | MATERIALIZED_VIEW_CRUD_DELETE)
+            == transaction->artifact_crud_flags);
     /* it should have no fields. */
-    EXPECT_EQ(nullptr, transaction->field_head);
+    TEST_EXPECT(nullptr == transaction->field_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2162,7 +2202,7 @@ TEST(config_test, artifact_mix_crud_flags)
 /**
  * Test that we can add a field type section.
  */
-TEST(config_test, empty_field_type)
+TEST(empty_field_type)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2178,21 +2218,21 @@ TEST(config_test, empty_field_type)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2200,70 +2240,76 @@ TEST(config_test, empty_field_type)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the crud flags should be 0. */
-    EXPECT_EQ(0U, transaction->artifact_crud_flags);
+    TEST_EXPECT(0U == transaction->artifact_crud_flags);
 
     /* a field type should be populated. */
     auto field = transaction->field_head;
-    ASSERT_NE(nullptr, field);
+    TEST_ASSERT(nullptr != field);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, field->hdr.next);
+    TEST_EXPECT(nullptr == field->hdr.next);
     /* the field code should be set. */
-    EXPECT_EQ(0,
-        memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
     /* the short code should be 0. */
-    EXPECT_EQ(0U, field->short_code);
+    TEST_EXPECT(0U == field->short_code);
     /* the crud flags should be 0. */
-    EXPECT_EQ(0U, field->field_crud_flags);
+    TEST_EXPECT(0U == field->field_crud_flags);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2271,7 +2317,7 @@ TEST(config_test, empty_field_type)
 /**
  * A duplicate field type should cause an error.
  */
-TEST(config_test, duplicate_field_type)
+TEST(duplicate_field_type)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2284,9 +2330,9 @@ TEST(config_test, duplicate_field_type)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2295,13 +2341,13 @@ TEST(config_test, duplicate_field_type)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there should be one error. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -2309,7 +2355,7 @@ TEST(config_test, duplicate_field_type)
 /**
  * Test that we can add a field create crud flag.
  */
-TEST(config_test, field_create_crud)
+TEST(field_create_crud)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2325,21 +2371,21 @@ TEST(config_test, field_create_crud)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2349,70 +2395,76 @@ TEST(config_test, field_create_crud)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the crud flags should be 0. */
-    EXPECT_EQ(0U, transaction->artifact_crud_flags);
+    TEST_EXPECT(0U == transaction->artifact_crud_flags);
 
     /* a field type should be populated. */
     auto field = transaction->field_head;
-    ASSERT_NE(nullptr, field);
+    TEST_ASSERT(nullptr != field);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, field->hdr.next);
+    TEST_EXPECT(nullptr == field->hdr.next);
     /* the field code should be set. */
-    EXPECT_EQ(0,
-        memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
     /* the short code should be 0. */
-    EXPECT_EQ(0U, field->short_code);
+    TEST_EXPECT(0U == field->short_code);
     /* the CREATE crud flag should be set. */
-    EXPECT_EQ(MATERIALIZED_VIEW_CRUD_CREATE, field->field_crud_flags);
+    TEST_EXPECT(MATERIALIZED_VIEW_CRUD_CREATE == field->field_crud_flags);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2420,7 +2472,7 @@ TEST(config_test, field_create_crud)
 /**
  * Test that we can add a field update crud flag.
  */
-TEST(config_test, field_update_crud)
+TEST(field_update_crud)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2436,21 +2488,21 @@ TEST(config_test, field_update_crud)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2460,70 +2512,76 @@ TEST(config_test, field_update_crud)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the crud flags should be 0. */
-    EXPECT_EQ(0U, transaction->artifact_crud_flags);
+    TEST_EXPECT(0U == transaction->artifact_crud_flags);
 
     /* a field type should be populated. */
     auto field = transaction->field_head;
-    ASSERT_NE(nullptr, field);
+    TEST_ASSERT(nullptr != field);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, field->hdr.next);
+    TEST_EXPECT(nullptr == field->hdr.next);
     /* the field code should be set. */
-    EXPECT_EQ(0,
-        memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
     /* the short code should be 0. */
-    EXPECT_EQ(0U, field->short_code);
+    TEST_EXPECT(0U == field->short_code);
     /* the UPDATE crud flag should be set. */
-    EXPECT_EQ(MATERIALIZED_VIEW_CRUD_UPDATE, field->field_crud_flags);
+    TEST_EXPECT(MATERIALIZED_VIEW_CRUD_UPDATE == field->field_crud_flags);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2531,7 +2589,7 @@ TEST(config_test, field_update_crud)
 /**
  * Test that we can add a field append crud flag.
  */
-TEST(config_test, field_append_crud)
+TEST(field_append_crud)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2547,21 +2605,21 @@ TEST(config_test, field_append_crud)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2571,70 +2629,76 @@ TEST(config_test, field_append_crud)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the crud flags should be 0. */
-    EXPECT_EQ(0U, transaction->artifact_crud_flags);
+    TEST_EXPECT(0U == transaction->artifact_crud_flags);
 
     /* a field type should be populated. */
     auto field = transaction->field_head;
-    ASSERT_NE(nullptr, field);
+    TEST_ASSERT(nullptr != field);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, field->hdr.next);
+    TEST_EXPECT(nullptr == field->hdr.next);
     /* the field code should be set. */
-    EXPECT_EQ(0,
-        memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
     /* the short code should be 0. */
-    EXPECT_EQ(0U, field->short_code);
+    TEST_EXPECT(0U == field->short_code);
     /* the APPEND crud flag should be set. */
-    EXPECT_EQ(MATERIALIZED_VIEW_CRUD_APPEND, field->field_crud_flags);
+    TEST_EXPECT(MATERIALIZED_VIEW_CRUD_APPEND == field->field_crud_flags);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2642,7 +2706,7 @@ TEST(config_test, field_append_crud)
 /**
  * Test that we can add a field delete crud flag.
  */
-TEST(config_test, field_delete_crud)
+TEST(field_delete_crud)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2658,21 +2722,21 @@ TEST(config_test, field_delete_crud)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2682,70 +2746,76 @@ TEST(config_test, field_delete_crud)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the crud flags should be 0. */
-    EXPECT_EQ(0U, transaction->artifact_crud_flags);
+    TEST_EXPECT(0U == transaction->artifact_crud_flags);
 
     /* a field type should be populated. */
     auto field = transaction->field_head;
-    ASSERT_NE(nullptr, field);
+    TEST_ASSERT(nullptr != field);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, field->hdr.next);
+    TEST_EXPECT(nullptr == field->hdr.next);
     /* the field code should be set. */
-    EXPECT_EQ(0,
-        memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
     /* the short code should be 0. */
-    EXPECT_EQ(0U, field->short_code);
+    TEST_EXPECT(0U == field->short_code);
     /* the DELETE crud flag should be set. */
-    EXPECT_EQ(MATERIALIZED_VIEW_CRUD_DELETE, field->field_crud_flags);
+    TEST_EXPECT(MATERIALIZED_VIEW_CRUD_DELETE == field->field_crud_flags);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2753,7 +2823,7 @@ TEST(config_test, field_delete_crud)
 /**
  * Test that we can mix field crud flags.
  */
-TEST(config_test, field_mix_crud_flags)
+TEST(field_mix_crud_flags)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2769,21 +2839,21 @@ TEST(config_test, field_mix_crud_flags)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
-    ASSERT_EQ(
-        0,
-        vpr_uuid_from_string(
-            &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &ARTIFACT_TYPE, "b0f827ae-6d2f-4f69-b4e4-e13659c6ac44"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &TRANSACTION_TYPE, "323cdc42-3cf1-40f8-bfb9-e6daecf57689"));
+    TEST_ASSERT(
+        0
+            == vpr_uuid_from_string(
+                    &FIELD_TYPE, "ba23438b-59b9-4816-83fd-63fa6f936668"));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "materialized view auth { "
                 "artifact type b0f827ae-6d2f-4f69-b4e4-e13659c6ac44 { "
                     "transaction type 323cdc42-3cf1-40f8-bfb9-e6daecf57689 { "
@@ -2793,73 +2863,79 @@ TEST(config_test, field_mix_crud_flags)
                     " }"
                 " }"
             " }",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* a view entry should be populated. */
-    ASSERT_NE(nullptr, user_context.config->view_head);
+    TEST_ASSERT(nullptr != user_context.config->view_head);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->view_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->view_head->hdr.next);
     /* the name should be set. */
-    EXPECT_STREQ("auth", user_context.config->view_head->name);
+    TEST_EXPECT(!strcmp("auth", user_context.config->view_head->name));
 
     /* an artifact entry should be populated. */
     auto artifact = user_context.config->view_head->artifact_head;
-    ASSERT_NE(nullptr, artifact);
+    TEST_ASSERT(nullptr != artifact);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, artifact->hdr.next);
+    TEST_EXPECT(nullptr == artifact->hdr.next);
     /* the type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&artifact->artifact_type, &ARTIFACT_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &artifact->artifact_type, &ARTIFACT_TYPE,
+                    sizeof(vpr_uuid)));
 
     /* a transaction type should be populated. */
     auto transaction = artifact->transaction_head;
-    ASSERT_NE(nullptr, transaction);
+    TEST_ASSERT(nullptr != transaction);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, transaction->hdr.next);
+    TEST_EXPECT(nullptr == transaction->hdr.next);
     /* the transaction type should be set. */
-    EXPECT_EQ(0,
-        memcmp(&transaction->transaction_type, &TRANSACTION_TYPE,
-               sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    &transaction->transaction_type, &TRANSACTION_TYPE,
+                    sizeof(vpr_uuid)));
     /* the crud flags should be 0. */
-    EXPECT_EQ(0U, transaction->artifact_crud_flags);
+    TEST_EXPECT(0U == transaction->artifact_crud_flags);
 
     /* a field type should be populated. */
     auto field = transaction->field_head;
-    ASSERT_NE(nullptr, field);
+    TEST_ASSERT(nullptr != field);
     /* it should be the only entry. */
-    EXPECT_EQ(nullptr, field->hdr.next);
+    TEST_EXPECT(nullptr == field->hdr.next);
     /* the field code should be set. */
-    EXPECT_EQ(0,
-        memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
+    TEST_EXPECT(
+        0
+            == memcmp(&field->field_code, &FIELD_TYPE, sizeof(vpr_uuid)));
     /* the short code should be 0. */
-    EXPECT_EQ(0U, field->short_code);
+    TEST_EXPECT(0U == field->short_code);
     /* the CREATE UPDATE APPEND and DELETE crud flags should be set. */
-    EXPECT_EQ(
-          MATERIALIZED_VIEW_CRUD_CREATE | MATERIALIZED_VIEW_CRUD_UPDATE
-        | MATERIALIZED_VIEW_CRUD_APPEND | MATERIALIZED_VIEW_CRUD_DELETE,
-        field->field_crud_flags);
+    TEST_EXPECT(
+        (  MATERIALIZED_VIEW_CRUD_CREATE | MATERIALIZED_VIEW_CRUD_UPDATE
+          | MATERIALIZED_VIEW_CRUD_APPEND | MATERIALIZED_VIEW_CRUD_DELETE)
+            == field->field_crud_flags);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2867,7 +2943,7 @@ TEST(config_test, field_mix_crud_flags)
 /**
  * Test that, by default, the private key is NOT set.
  */
-TEST(config_test, private_key_empty_config)
+TEST(private_key_empty_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2880,33 +2956,33 @@ TEST(config_test, private_key_empty_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* the private key is NULL. */
-    ASSERT_EQ(nullptr, user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
 
     dispose((disposable_t*)&user_context);
 }
@@ -2914,7 +2990,7 @@ TEST(config_test, private_key_empty_config)
 /**
  * Test that we can set a private key.
  */
-TEST(config_test, private_key_config)
+TEST(private_key_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2927,40 +3003,43 @@ TEST(config_test, private_key_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("private key private/123.cert", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state
+                    = yy_scan_string("private key private/123.cert", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* the private key is NOT NULL. */
-    ASSERT_NE(nullptr, user_context.config->private_key);
+    TEST_ASSERT(nullptr != user_context.config->private_key);
 
     /* the private key file is set. */
-    ASSERT_NE(nullptr, user_context.config->private_key->filename);
+    TEST_ASSERT(nullptr != user_context.config->private_key->filename);
     /* the filename is what we set above. */
-    EXPECT_EQ(
-        0,
-        strcmp("private/123.cert", user_context.config->private_key->filename));
+    TEST_EXPECT(
+        !strcmp(
+            "private/123.cert", user_context.config->private_key->filename));
 
     dispose((disposable_t*)&user_context);
 }
@@ -2968,7 +3047,7 @@ TEST(config_test, private_key_config)
 /**
  * Test that duplicate private key entries fail.
  */
-TEST(config_test, private_key_duplicates)
+TEST(private_key_duplicates)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -2981,18 +3060,18 @@ TEST(config_test, private_key_duplicates)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "private key private/123.cert "
             "private key private/456.cert ",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are errors. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
@@ -3000,7 +3079,7 @@ TEST(config_test, private_key_duplicates)
 /**
  * Test that an empty authorized entity block has no effect on the config.
  */
-TEST(config_test, empty_authorized_entities)
+TEST(empty_authorized_entities)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -3013,36 +3092,36 @@ TEST(config_test, empty_authorized_entities)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state =
-            yy_scan_string(
-                "authorized entities { }",
-                scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state 
+                    = yy_scan_string(
+                        "authorized entities { }",
+                        scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -3050,7 +3129,7 @@ TEST(config_test, empty_authorized_entities)
 /**
  * Test that we can add an authorized entity.
  */
-TEST(config_test, authorized_entity_single)
+TEST(authorized_entity_single)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -3063,50 +3142,48 @@ TEST(config_test, authorized_entity_single)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state =
-            yy_scan_string(
-                "authorized entities { "
-                    "public/foo.cert }",
-                scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state
+                    = yy_scan_string(
+                        "authorized entities { "
+                            "public/foo.cert }",
+                        scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
 
     /* the public key list is NOT NULL. */
-    ASSERT_NE(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config->public_key_head);
 
     /* the public key file is set. */
-    ASSERT_NE(nullptr, user_context.config->public_key_head->filename);
+    TEST_ASSERT(nullptr != user_context.config->public_key_head->filename);
     /* the filename is what we set above. */
-    EXPECT_EQ(
-        0,
-        strcmp(
-            "public/foo.cert",
-            user_context.config->public_key_head->filename));
+    TEST_EXPECT(
+        !strcmp(
+            "public/foo.cert", user_context.config->public_key_head->filename));
     /* this is the only entry. */
-    EXPECT_EQ(nullptr, user_context.config->public_key_head->hdr.next);
+    TEST_EXPECT(nullptr == user_context.config->public_key_head->hdr.next);
 
     dispose((disposable_t*)&user_context);
 }
@@ -3114,7 +3191,7 @@ TEST(config_test, authorized_entity_single)
 /**
  * Test that we can add multiple authorized entities.
  */
-TEST(config_test, authorized_entities)
+TEST(authorized_entities)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -3127,61 +3204,61 @@ TEST(config_test, authorized_entities)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(
-        nullptr,
-        state =
-            yy_scan_string(
-                "authorized entities { "
-                    "public/foo.cert "
-                    "public/bar.cert "
-                    "public/baz.cert }",
-                scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state
+                    = yy_scan_string(
+                        "authorized entities { "
+                            "public/foo.cert "
+                            "public/bar.cert "
+                            "public/baz.cert }",
+                        scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
 
     /* the public key list is NOT NULL. */
-    ASSERT_NE(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config->public_key_head);
     config_public_key_entry_t* pub = user_context.config->public_key_head;
 
     /* the public key file is set. */
-    ASSERT_NE(nullptr, pub->filename);
+    TEST_ASSERT(nullptr != pub->filename);
     /* the last filename appears first. */
-    EXPECT_EQ(0, strcmp( "public/baz.cert", pub->filename));
+    TEST_EXPECT(!strcmp( "public/baz.cert", pub->filename));
     /* this is the first entry. */
-    ASSERT_NE(nullptr, pub->hdr.next);
+    TEST_ASSERT(nullptr != pub->hdr.next);
     pub = (config_public_key_entry_t*)pub->hdr.next;
 
     /* it's the second filename. */
-    EXPECT_EQ(0, strcmp( "public/bar.cert", pub->filename));
+    TEST_EXPECT(!strcmp( "public/bar.cert", pub->filename));
     /* there is one more entry. */
-    ASSERT_NE(nullptr, pub->hdr.next);
+    TEST_ASSERT(nullptr != pub->hdr.next);
     pub = (config_public_key_entry_t*)pub->hdr.next;
 
     /* it's the first filename. */
-    EXPECT_EQ(0, strcmp( "public/foo.cert", pub->filename));
+    TEST_EXPECT(!strcmp( "public/foo.cert", pub->filename));
     /* there are no more entries. */
-    EXPECT_EQ(nullptr, pub->hdr.next);
+    TEST_EXPECT(nullptr == pub->hdr.next);
 
     dispose((disposable_t*)&user_context);
 }
@@ -3189,7 +3266,7 @@ TEST(config_test, authorized_entities)
 /**
  * Test that a max database size setting adds this setting to the config.
  */
-TEST(config_test, max_database_size)
+TEST(max_database_size)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -3202,32 +3279,32 @@ TEST(config_test, max_database_size)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string("max datastore size 1024", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string("max datastore size 1024", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_TRUE(user_context.config->database_max_size_set);
-    ASSERT_EQ(1024L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->private_key);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(user_context.config->database_max_size_set);
+    TEST_ASSERT(1024L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->private_key);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     dispose((disposable_t*)&user_context);
 }
@@ -3235,7 +3312,7 @@ TEST(config_test, max_database_size)
 /**
  * Test that, by default, the endorser key is NOT set.
  */
-TEST(config_test, endorser_key_empty_config)
+TEST(endorser_key_empty_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -3248,33 +3325,33 @@ TEST(config_test, endorser_key_empty_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr != (state = yy_scan_string("", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* the endorser key is NULL. */
-    ASSERT_EQ(nullptr, user_context.config->endorser_key);
+    TEST_ASSERT(nullptr == user_context.config->endorser_key);
 
     dispose((disposable_t*)&user_context);
 }
@@ -3282,7 +3359,7 @@ TEST(config_test, endorser_key_empty_config)
 /**
  * Test that we can set the endorser key.
  */
-TEST(config_test, endorser_key_config)
+TEST(endorser_key_config)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -3295,40 +3372,42 @@ TEST(config_test, endorser_key_config)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr, state = yy_scan_string("endorser key public/123.pub", scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(
+        nullptr
+            != (state
+                    = yy_scan_string("endorser key public/123.pub", scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are no errors. */
-    ASSERT_EQ(0U, user_context.errors.size());
+    TEST_ASSERT(0U == user_context.errors.size());
 
     /* verify user config. */
-    ASSERT_NE(nullptr, user_context.config);
-    ASSERT_EQ(nullptr, user_context.config->logdir);
-    ASSERT_FALSE(user_context.config->loglevel_set);
-    ASSERT_EQ(0L, user_context.config->loglevel);
-    ASSERT_FALSE(user_context.config->database_max_size_set);
-    ASSERT_EQ(0L, user_context.config->database_max_size);
-    ASSERT_EQ(nullptr, user_context.config->secret);
-    ASSERT_EQ(nullptr, user_context.config->rootblock);
-    ASSERT_EQ(nullptr, user_context.config->datastore);
-    ASSERT_EQ(nullptr, user_context.config->listen_head);
-    ASSERT_EQ(nullptr, user_context.config->chroot);
-    ASSERT_EQ(nullptr, user_context.config->usergroup);
-    ASSERT_EQ(nullptr, user_context.config->view_head);
-    ASSERT_EQ(nullptr, user_context.config->public_key_head);
+    TEST_ASSERT(nullptr != user_context.config);
+    TEST_ASSERT(nullptr == user_context.config->logdir);
+    TEST_ASSERT(!user_context.config->loglevel_set);
+    TEST_ASSERT(0L == user_context.config->loglevel);
+    TEST_ASSERT(!user_context.config->database_max_size_set);
+    TEST_ASSERT(0L == user_context.config->database_max_size);
+    TEST_ASSERT(nullptr == user_context.config->secret);
+    TEST_ASSERT(nullptr == user_context.config->rootblock);
+    TEST_ASSERT(nullptr == user_context.config->datastore);
+    TEST_ASSERT(nullptr == user_context.config->listen_head);
+    TEST_ASSERT(nullptr == user_context.config->chroot);
+    TEST_ASSERT(nullptr == user_context.config->usergroup);
+    TEST_ASSERT(nullptr == user_context.config->view_head);
+    TEST_ASSERT(nullptr == user_context.config->public_key_head);
 
     /* the endorser key is NOT NULL. */
-    ASSERT_NE(nullptr, user_context.config->endorser_key);
+    TEST_ASSERT(nullptr != user_context.config->endorser_key);
 
     /* the endorser key file is set. */
-    ASSERT_NE(nullptr, user_context.config->endorser_key->filename);
+    TEST_ASSERT(nullptr != user_context.config->endorser_key->filename);
     /* the filename is what we set above. */
-    EXPECT_EQ(
-        0,
-        strcmp("public/123.pub", user_context.config->endorser_key->filename));
+    TEST_EXPECT(
+        !strcmp("public/123.pub", user_context.config->endorser_key->filename));
 
     dispose((disposable_t*)&user_context);
 }
@@ -3336,7 +3415,7 @@ TEST(config_test, endorser_key_config)
 /**
  * Test that duplicate endorser key entries fail.
  */
-TEST(config_test, endorser_key_duplicates)
+TEST(endorser_key_duplicates)
 {
     YY_BUFFER_STATE state;
     yyscan_t scanner;
@@ -3349,19 +3428,18 @@ TEST(config_test, endorser_key_duplicates)
     context.val_callback = &config_callback;
     context.user_context = &user_context;
 
-    ASSERT_EQ(0, yylex_init(&scanner));
-    ASSERT_NE(nullptr,
-        state = yy_scan_string(
+    TEST_ASSERT(0 == yylex_init(&scanner));
+    TEST_ASSERT(nullptr !=
+        (state = yy_scan_string(
             "endorser key public/123.pub "
             "endorser key public/456.pub ",
-            scanner));
-    ASSERT_EQ(0, yyparse(scanner, &context));
+            scanner)));
+    TEST_ASSERT(0 == yyparse(scanner, &context));
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
     /* there are errors. */
-    ASSERT_EQ(1U, user_context.errors.size());
+    TEST_ASSERT(1U == user_context.errors.size());
 
     dispose((disposable_t*)&user_context);
 }
-#endif
