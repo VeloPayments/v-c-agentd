@@ -11,9 +11,6 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-/* GTEST DISABLED */
-#if 0
-
 #include "../../src/dataservice/dataservice_internal.h"
 #include "test_dataservice_isolation.h"
 
@@ -87,7 +84,7 @@ void dataservice_isolation_test::config_callback(
     ctx->config = config;
 }
 
-void dataservice_isolation_test::SetUp()
+void dataservice_isolation_test::setUp()
 {
     /* register vccrypt stuff. */
     vccrypt_suite_register_velo_v1();
@@ -156,12 +153,12 @@ void dataservice_isolation_test::SetUp()
     /* set up directory test helper. */
     string dbpath(wd);
     dbpath += "/build/test/isolation/databases/";
-    directory_test_helper::SetUp(dir_key, dbpath.c_str());
+    directory_test_helper::setUp(dir_key, dbpath.c_str());
 }
 
-void dataservice_isolation_test::TearDown()
+void dataservice_isolation_test::tearDown()
 {
-    directory_test_helper::TearDown();
+    directory_test_helper::tearDown();
 
     if (builder_opts_init_result == 0)
     {
@@ -518,4 +515,3 @@ dispose_builder:
 done:
     return retval;
 }
-#endif
