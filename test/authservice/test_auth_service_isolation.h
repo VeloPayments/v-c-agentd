@@ -3,7 +3,7 @@
  *
  * Private header for the auth service isolation tests.
  *
- * \copyright 2019 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_AUTH_SERVICE_ISOLATION_HEADER_GUARD
@@ -23,11 +23,12 @@
 #endif /*! defined(__cplusplus)*/
 
 
-class auth_service_isolation_test : public ::testing::Test {
-protected:
-    /* Google Test overrides. */
-    void SetUp() override;
-    void TearDown() override;
+class auth_service_isolation_test
+{
+public:
+    /* setup and teardown methods. */
+    void setUp();
+    void tearDown();
 
     static const uint8_t agent_id[16];
     static const uint8_t agent_pubkey[32];

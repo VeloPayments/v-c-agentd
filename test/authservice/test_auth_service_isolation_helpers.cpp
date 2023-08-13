@@ -3,14 +3,11 @@
  *
  * Helpers for the authservice isolation tests.
  *
- * \copyright 2019 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <signal.h>
 #include <sys/wait.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "../../src/authservice/auth_service_private.h"
 #include "test_auth_service_isolation.h"
@@ -36,7 +33,7 @@ const uint8_t auth_service_isolation_test::agent_pubkey[] = {
     0xeb, 0xa4, 0xa9, 0x8e, 0xaa, 0x9b, 0x4e, 0x6a
 };
 
-void auth_service_isolation_test::SetUp()
+void auth_service_isolation_test::setUp()
 {
     /* register vccrypt stuff. */
     vccrypt_suite_register_velo_v1();
@@ -90,7 +87,7 @@ void auth_service_isolation_test::SetUp()
     nonblockauthsock_configured = false;
 }
 
-void auth_service_isolation_test::TearDown()
+void auth_service_isolation_test::tearDown()
 {
     if (suite_init_result == 0)
     {
@@ -157,4 +154,3 @@ void auth_service_isolation_test::nonblock_write(
 
     that->onWrite();
 }
-#endif
