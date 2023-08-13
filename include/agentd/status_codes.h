@@ -24,6 +24,7 @@
 #include <agentd/status_codes/randomservice.h>
 #include <agentd/status_codes/reader.h>
 #include <agentd/status_codes/supervisor.h>
+#include <stdint.h>
 
 /* make this header C++ friendly. */
 #ifdef __cplusplus
