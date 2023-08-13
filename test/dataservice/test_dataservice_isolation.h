@@ -3,7 +3,7 @@
  *
  * Private header for the dataservice isolation tests.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_DATASERVICE_ISOLATION_HEADER_GUARD
@@ -15,7 +15,6 @@
 #include <agentd/ipc.h>
 #include <agentd/string.h>
 #include <functional>
-#include <gtest/gtest.h>
 #include <rcpr/psock.h>
 #include <string>
 #include <vector>
@@ -50,11 +49,10 @@ struct test_context
  * with the data service.  It provides a registration mechanism so that
  * data can be sent to the data service and received from the data service.
  */
-class dataservice_isolation_test : public ::testing::Test, public directory_test_helper {
-protected:
-    /* Google Test overrides. */
-    void SetUp() override;
-    void TearDown() override;
+class dataservice_isolation_test : public directory_test_helper {
+public:
+    void setUp();
+    void tearDown();
     int create_dummy_transaction(
         const uint8_t* txn_id, const uint8_t* prev_txn_id,
         const uint8_t* artifact_id, uint8_t** cert, size_t* cert_length);
