@@ -3,7 +3,7 @@
  *
  * Private header for the dataservice unit tests.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_DATASERVICE_HEADER_GUARD
@@ -16,7 +16,6 @@
 
 #include <agentd/dataservice/private/dataservice.h>
 #include <agentd/inet.h>
-#include <gtest/gtest.h>
 #include <lmdb.h>
 #include <string>
 #include <vccert/builder.h>
@@ -28,10 +27,10 @@
 #include "../../src/dataservice/dataservice_internal.h"
 #include "../directory_test_helper.h"
 
-class dataservice_test : public ::testing::Test, public directory_test_helper {
-protected:
-    void SetUp() override;
-    void TearDown() override;
+class dataservice_test : public directory_test_helper {
+public:
+    void setUp();
+    void tearDown();
     int create_dummy_transaction(
         const uint8_t* txn_id, const uint8_t* prev_txn_id,
         const uint8_t* artifact_id, uint8_t** cert, size_t* cert_length);

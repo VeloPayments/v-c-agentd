@@ -3,15 +3,13 @@
  *
  * Test the data service private API.
  *
- * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
 #include <agentd/status_codes.h>
+#include <minunit/minunit.h>
 #include <vccert/certificate_types.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_dataservice.h"
 
@@ -19,16 +17,27 @@ using namespace std;
 
 static const uint64_t DEFAULT_DATABASE_SIZE = 1024 * 1024;
 
+TEST_SUITE(dataservice_test);
+
+#define BEGIN_TEST_F(name) \
+TEST(name) \
+{ \
+    dataservice_test fixture; \
+    fixture.setUp();
+
+#define END_TEST_F() \
+    fixture.tearDown(); \
+}
+
 /**
  * Test that the data service root context can be initialized.
  */
-TEST_F(dataservice_test, root_context_init)
-{
+BEGIN_TEST_F(root_context_init)
     dataservice_root_context_t ctx;
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     /* precondition: ctx is invalid. */
     memset(&ctx, 0xFF, sizeof(ctx));
@@ -39,73 +48,72 @@ TEST_F(dataservice_test, root_context_init)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* We can't create a root context again. */
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE));
 
     /* All other capabilities are set by default. */
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_REDUCE_CAPS));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_BACKUP));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_RESTORE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_UPGRADE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_GLOBAL_SETTING_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_GLOBAL_SETTING_WRITE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_LATEST_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_NEXT_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_PREV_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_WITH_TRANSACTION_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_SUBMIT));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_FIRST_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_DROP));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_PROMOTE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_WRITE));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that without the root create capability, we cannot create a root
  * context.
  */
-TEST_F(dataservice_test, root_context_init_no_permission)
-{
+BEGIN_TEST_F(root_context_init_no_permission)
     dataservice_root_context_t ctx;
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     /* precondition: ctx is invalid. */
     memset(&ctx, 0xFF, sizeof(ctx));
@@ -116,11 +124,11 @@ TEST_F(dataservice_test, root_context_init_no_permission)
     BITCAP_SET_FALSE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialization should fail. */
-    ASSERT_NE(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
-}
+    TEST_ASSERT(
+        0
+            != dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+END_TEST_F()
 
 /**
  * Test that we can reduce the capabilities in the root context -- in this case,
@@ -128,13 +136,12 @@ TEST_F(dataservice_test, root_context_init_no_permission)
  * eliminate that capability and demonstrate that it is no longer possible to
  * further reduce capabilities.
  */
-TEST_F(dataservice_test, root_context_reduce_capabilities)
-{
+BEGIN_TEST_F(root_context_reduce_capabilities)
     dataservice_root_context_t ctx;
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -147,53 +154,53 @@ TEST_F(dataservice_test, root_context_reduce_capabilities)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialization should succeed. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* We can't create a root context again. */
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE));
 
     /* All other capabilities are set by default. */
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_REDUCE_CAPS));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_BACKUP));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_RESTORE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_UPGRADE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_GLOBAL_SETTING_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_GLOBAL_SETTING_WRITE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_LATEST_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_NEXT_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_PREV_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_WITH_TRANSACTION_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_SUBMIT));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_FIRST_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_READ));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_DROP));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_PROMOTE));
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_WRITE));
 
     /* reduce the capabilites to only allow the capabilities to be further
@@ -203,121 +210,123 @@ TEST_F(dataservice_test, root_context_reduce_capabilities)
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_REDUCE_CAPS);
 
     /* the call to reduce capabilities should succeed. */
-    ASSERT_EQ(0,
-        dataservice_root_context_reduce_capabilities(&ctx, reducedcaps));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_reduce_capabilities(&ctx, reducedcaps));
 
     /* We can further reduce capabilities. */
-    EXPECT_TRUE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_REDUCE_CAPS));
 
     /* All other capabilities are disabled. */
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_BACKUP));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_RESTORE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_UPGRADE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_GLOBAL_SETTING_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_GLOBAL_SETTING_WRITE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_LATEST_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_NEXT_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_PREV_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_WITH_TRANSACTION_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_SUBMIT));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_FIRST_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_DROP));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_PROMOTE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_WRITE));
 
     /* reduce the capabilites to nothing. */
     BITCAP_INIT_FALSE(reducedcaps);
 
     /* the call to reduce capabilities should succeed. */
-    ASSERT_EQ(0,
-        dataservice_root_context_reduce_capabilities(&ctx, reducedcaps));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_reduce_capabilities(&ctx, reducedcaps));
 
     /* All capabilities are disabled. */
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_ROOT_CONTEXT_REDUCE_CAPS));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_BACKUP));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_RESTORE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_LL_DATABASE_UPGRADE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_GLOBAL_SETTING_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_GLOBAL_SETTING_WRITE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_LATEST_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_NEXT_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_PREV_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_ID_WITH_TRANSACTION_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_SUBMIT));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_FIRST_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_READ));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_DROP));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_PQ_TRANSACTION_PROMOTE));
-    EXPECT_FALSE(BITCAP_ISSET(ctx.apicaps,
+    TEST_EXPECT(!BITCAP_ISSET(ctx.apicaps,
         DATASERVICE_API_CAP_APP_BLOCK_WRITE));
 
     /* the call to reduce capabilities will now fail. */
-    ASSERT_NE(0,
-        dataservice_root_context_reduce_capabilities(&ctx, reducedcaps));
+    TEST_ASSERT(
+        0
+            != dataservice_root_context_reduce_capabilities(&ctx, reducedcaps));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that a child context can be created from a root context.
  */
-TEST_F(dataservice_test, child_context_create)
-{
+BEGIN_TEST_F(child_context_create)
     dataservice_root_context_t ctx;
     dataservice_child_context_t child;
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -330,13 +339,13 @@ TEST_F(dataservice_test, child_context_create)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -356,47 +365,48 @@ TEST_F(dataservice_test, child_context_create)
         child.childcaps, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* the child context cannot create other child contexts. */
-    EXPECT_FALSE(
+    TEST_EXPECT(!
         BITCAP_ISSET(
             child.childcaps, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE));
 
     /* the child context can close itself. */
-    EXPECT_TRUE(
+    TEST_EXPECT(
         BITCAP_ISSET(
             child.childcaps, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE));
 
     /* verify that this child context can read transactions. */
-    EXPECT_TRUE(
+    TEST_EXPECT(
         BITCAP_ISSET(
             child.childcaps, DATASERVICE_API_CAP_APP_TRANSACTION_READ));
 
     /* verify that other capabilities, like database backup, are disabled. */
-    EXPECT_FALSE(
+    TEST_EXPECT(!
         BITCAP_ISSET(
             child.childcaps, DATASERVICE_API_CAP_LL_DATABASE_BACKUP));
 
     /* verify that trying to create the child context a second time fails. */
-    ASSERT_NE(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 != dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that a child context cannot be created from a root context if the root
  * context does not have the create child context capability.
  */
-TEST_F(dataservice_test, child_context_create_denied)
-{
+BEGIN_TEST_F(child_context_create_denied)
     dataservice_root_context_t ctx;
     dataservice_child_context_t child;
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -409,13 +419,13 @@ TEST_F(dataservice_test, child_context_create_denied)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* explicitly deny child context creation in the parent context. */
     BITCAP_SET_FALSE(ctx.apicaps,
@@ -439,23 +449,23 @@ TEST_F(dataservice_test, child_context_create_denied)
         child.childcaps, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* creating a child fails because root cannot create child contexts. */
-    ASSERT_NE(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 != dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that a child context can be closed.
  */
-TEST_F(dataservice_test, child_context_close)
-{
+BEGIN_TEST_F(child_context_close)
     dataservice_root_context_t ctx;
     dataservice_child_context_t child;
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -468,13 +478,13 @@ TEST_F(dataservice_test, child_context_close)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -494,26 +504,26 @@ TEST_F(dataservice_test, child_context_close)
         child.childcaps, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* closing the child context succeeds. */
-    ASSERT_EQ(0, dataservice_child_context_close(&child));
+    TEST_ASSERT(0 == dataservice_child_context_close(&child));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that closing a child context fails if it lacks the close cap.
  */
-TEST_F(dataservice_test, child_context_close_denied)
-{
+BEGIN_TEST_F(child_context_close_denied)
     dataservice_root_context_t ctx;
     dataservice_child_context_t child;
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -526,13 +536,13 @@ TEST_F(dataservice_test, child_context_close_denied)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -555,21 +565,21 @@ TEST_F(dataservice_test, child_context_close_denied)
         child.childcaps, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* closing the child context fails. */
-    ASSERT_NE(0, dataservice_child_context_close(&child));
+    TEST_ASSERT(0 != dataservice_child_context_close(&child));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we can query a global setting that is already saved in the
  * database.
  */
-TEST_F(dataservice_test, global_settings_get)
-{
+BEGIN_TEST_F(global_settings_get)
     char SCHEMA_VERSION[16] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
     };
@@ -580,7 +590,7 @@ TEST_F(dataservice_test, global_settings_get)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -593,13 +603,13 @@ TEST_F(dataservice_test, global_settings_get)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -613,7 +623,8 @@ TEST_F(dataservice_test, global_settings_get)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* hard-set the schema version UUID. */
     dataservice_database_details_t* details =
@@ -626,35 +637,34 @@ TEST_F(dataservice_test, global_settings_get)
     MDB_val val;
     val.mv_size = sizeof(SCHEMA_VERSION);
     val.mv_data = SCHEMA_VERSION;
-    ASSERT_EQ(0, mdb_txn_begin(details->env, NULL, 0, &txn));
-    ASSERT_EQ(0, mdb_put(txn, details->global_db, &key, &val, 0));
-    ASSERT_EQ(0, mdb_txn_commit(txn));
+    TEST_ASSERT(0 == mdb_txn_begin(details->env, NULL, 0, &txn));
+    TEST_ASSERT(0 == mdb_put(txn, details->global_db, &key, &val, 0));
+    TEST_ASSERT(0 == mdb_txn_commit(txn));
 
     /* precondition: schema data is null. */
     memset(schema_buffer, 0, sizeof(schema_buffer));
 
     /* querying the global data should succeed. */
-    ASSERT_EQ(0,
-        dataservice_global_settings_get(
-            &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION, schema_buffer,
-            &schema_buffer_sz));
+    TEST_ASSERT(0
+            == dataservice_global_settings_get(
+                    &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION,
+                    schema_buffer, &schema_buffer_sz));
 
     /* the buffer size should be the size of the schema UUID. */
-    ASSERT_EQ(sizeof(SCHEMA_VERSION), schema_buffer_sz);
+    TEST_ASSERT(sizeof(SCHEMA_VERSION) == schema_buffer_sz);
 
     /* the schema buffer should match the schema UUID. */
-    EXPECT_EQ(0, memcmp(schema_buffer, SCHEMA_VERSION, schema_buffer_sz));
+    TEST_EXPECT(0 == memcmp(schema_buffer, SCHEMA_VERSION, schema_buffer_sz));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that if we are not allowed to query a global setting, the API call
  * fails.
  */
-TEST_F(dataservice_test, global_settings_get_denied)
-{
+BEGIN_TEST_F(global_settings_get_denied)
     char SCHEMA_VERSION[16] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
     };
@@ -665,7 +675,7 @@ TEST_F(dataservice_test, global_settings_get_denied)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -678,13 +688,13 @@ TEST_F(dataservice_test, global_settings_get_denied)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     /* don't allow it to query global settings. */
@@ -696,7 +706,8 @@ TEST_F(dataservice_test, global_settings_get_denied)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* hard-set the schema version UUID. */
     dataservice_database_details_t* details =
@@ -709,29 +720,29 @@ TEST_F(dataservice_test, global_settings_get_denied)
     MDB_val val;
     val.mv_size = sizeof(SCHEMA_VERSION);
     val.mv_data = SCHEMA_VERSION;
-    ASSERT_EQ(0, mdb_txn_begin(details->env, NULL, 0, &txn));
-    ASSERT_EQ(0, mdb_put(txn, details->global_db, &key, &val, 0));
-    ASSERT_EQ(0, mdb_txn_commit(txn));
+    TEST_ASSERT(0 == mdb_txn_begin(details->env, NULL, 0, &txn));
+    TEST_ASSERT(0 == mdb_put(txn, details->global_db, &key, &val, 0));
+    TEST_ASSERT(0 == mdb_txn_commit(txn));
 
     /* precondition: schema data is null. */
     memset(schema_buffer, 0, sizeof(schema_buffer));
 
     /* querying the global data should fail. */
-    ASSERT_NE(0,
-        dataservice_global_settings_get(
-            &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION, schema_buffer,
-            &schema_buffer_sz));
+    TEST_ASSERT(
+        0
+            != dataservice_global_settings_get(
+                    &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION,
+                    schema_buffer, &schema_buffer_sz));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we get a truncation error if attempting to query a value with too
  * small of a buffer.
  */
-TEST_F(dataservice_test, global_settings_get_would_truncate)
-{
+BEGIN_TEST_F(global_settings_get_would_truncate)
     char SCHEMA_VERSION[16] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
     };
@@ -742,7 +753,7 @@ TEST_F(dataservice_test, global_settings_get_would_truncate)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -755,13 +766,13 @@ TEST_F(dataservice_test, global_settings_get_would_truncate)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -775,7 +786,8 @@ TEST_F(dataservice_test, global_settings_get_would_truncate)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* hard-set the schema version UUID. */
     dataservice_database_details_t* details =
@@ -788,29 +800,29 @@ TEST_F(dataservice_test, global_settings_get_would_truncate)
     MDB_val val;
     val.mv_size = sizeof(SCHEMA_VERSION);
     val.mv_data = SCHEMA_VERSION;
-    ASSERT_EQ(0, mdb_txn_begin(details->env, NULL, 0, &txn));
-    ASSERT_EQ(0, mdb_put(txn, details->global_db, &key, &val, 0));
-    ASSERT_EQ(0, mdb_txn_commit(txn));
+    TEST_ASSERT(0 == mdb_txn_begin(details->env, NULL, 0, &txn));
+    TEST_ASSERT(0 == mdb_put(txn, details->global_db, &key, &val, 0));
+    TEST_ASSERT(0 == mdb_txn_commit(txn));
 
     /* precondition: schema data is null. */
     memset(schema_buffer, 0, sizeof(schema_buffer));
 
     /* querying the global data should fail due to truncation. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_WOULD_TRUNCATE,
-        dataservice_global_settings_get(
-            &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION, schema_buffer,
-            &schema_buffer_sz));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_WOULD_TRUNCATE
+            == dataservice_global_settings_get(
+                    &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION,
+                    schema_buffer, &schema_buffer_sz));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we get a value not found error when querying for a value not in the
  * database.
  */
-TEST_F(dataservice_test, global_settings_get_not_found)
-{
+BEGIN_TEST_F(global_settings_get_not_found)
     char schema_buffer[20];
     size_t schema_buffer_sz = sizeof(schema_buffer);
     dataservice_root_context_t ctx;
@@ -818,7 +830,7 @@ TEST_F(dataservice_test, global_settings_get_not_found)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -831,13 +843,13 @@ TEST_F(dataservice_test, global_settings_get_not_found)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -851,26 +863,27 @@ TEST_F(dataservice_test, global_settings_get_not_found)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* precondition: schema data is null. */
     memset(schema_buffer, 0, sizeof(schema_buffer));
 
     /* querying the global data should fail due to the value not being faund. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_global_settings_get(
-            &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION, schema_buffer,
-            &schema_buffer_sz));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_global_settings_get(
+                    &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION,
+                    schema_buffer, &schema_buffer_sz));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we can set a global setting and then get it.
  */
-TEST_F(dataservice_test, global_settings_set_get)
-{
+BEGIN_TEST_F(global_settings_set_get)
     char SCHEMA_VERSION[16] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
     };
@@ -881,7 +894,7 @@ TEST_F(dataservice_test, global_settings_set_get)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -894,13 +907,13 @@ TEST_F(dataservice_test, global_settings_set_get)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -916,38 +929,40 @@ TEST_F(dataservice_test, global_settings_set_get)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* setting the global setting should succeed. */
-    ASSERT_EQ(0,
-        dataservice_global_settings_set(
-            &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION, SCHEMA_VERSION,
-            sizeof(SCHEMA_VERSION)));
+    TEST_ASSERT(
+        0
+            == dataservice_global_settings_set(
+                    &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION,
+                    SCHEMA_VERSION, sizeof(SCHEMA_VERSION)));
 
     /* precondition: schema data is null. */
     memset(schema_buffer, 0, sizeof(schema_buffer));
 
     /* querying the global data should succeed. */
-    ASSERT_EQ(0,
-        dataservice_global_settings_get(
-            &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION, schema_buffer,
-            &schema_buffer_sz));
+    TEST_ASSERT(
+        0
+            == dataservice_global_settings_get(
+                    &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION,
+                    schema_buffer, &schema_buffer_sz));
 
     /* the buffer size should be the size of the schema UUID. */
-    ASSERT_EQ(sizeof(SCHEMA_VERSION), schema_buffer_sz);
+    TEST_ASSERT(sizeof(SCHEMA_VERSION) == schema_buffer_sz);
 
     /* the schema buffer should match the schema UUID from the set call. */
-    EXPECT_EQ(0, memcmp(schema_buffer, SCHEMA_VERSION, schema_buffer_sz));
+    TEST_EXPECT(0 == memcmp(schema_buffer, SCHEMA_VERSION, schema_buffer_sz));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that global settings set respects the global settings write capability.
  */
-TEST_F(dataservice_test, global_settings_set_denied)
-{
+BEGIN_TEST_F(global_settings_set_denied)
     char SCHEMA_VERSION[16] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
     };
@@ -956,7 +971,7 @@ TEST_F(dataservice_test, global_settings_set_denied)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -969,13 +984,13 @@ TEST_F(dataservice_test, global_settings_set_denied)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* there should be a disposer set. */
-    ASSERT_NE(nullptr, ctx.hdr.dispose);
+    TEST_ASSERT(nullptr != ctx.hdr.dispose);
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -986,24 +1001,25 @@ TEST_F(dataservice_test, global_settings_set_denied)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* setting the global setting should fail. */
-    ASSERT_NE(0,
-        dataservice_global_settings_set(
-            &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION, SCHEMA_VERSION,
-            sizeof(SCHEMA_VERSION)));
+    TEST_ASSERT(
+        0
+            != dataservice_global_settings_set(
+                    &child, DATASERVICE_GLOBAL_SETTING_SCHEMA_VERSION,
+                    SCHEMA_VERSION, sizeof(SCHEMA_VERSION)));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we transaction_get_first indicates that no transaction is found
  * when the transaction queue is empty.
  */
-TEST_F(dataservice_test, transaction_get_first_empty)
-{
+BEGIN_TEST_F(transaction_get_first_empty)
     uint8_t* txn_bytes = NULL;
     size_t txn_size = 0;
     dataservice_root_context_t ctx;
@@ -1011,7 +1027,7 @@ TEST_F(dataservice_test, transaction_get_first_empty)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1024,10 +1040,10 @@ TEST_F(dataservice_test, transaction_get_first_empty)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1041,26 +1057,27 @@ TEST_F(dataservice_test, transaction_get_first_empty)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* getting the first transaction should return a "not found" result. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_get_first(
-            &child, nullptr, nullptr, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_get_first(
+                    &child, nullptr, nullptr, &txn_bytes, &txn_size));
 
     /* the transaction buffer should be set to NULL. */
-    ASSERT_EQ(nullptr, txn_bytes);
+    TEST_ASSERT(nullptr == txn_bytes);
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we transaction_get_first indicates that no transaction is found
  * when the transaction queue exists and is empty.
  */
-TEST_F(dataservice_test, transaction_get_first_empty_with_start_end)
-{
+BEGIN_TEST_F(transaction_get_first_empty_with_start_end)
     uint8_t* txn_bytes = NULL;
     size_t txn_size = 0;
     MDB_txn* txn;
@@ -1069,7 +1086,7 @@ TEST_F(dataservice_test, transaction_get_first_empty_with_start_end)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1082,10 +1099,10 @@ TEST_F(dataservice_test, transaction_get_first_empty_with_start_end)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1099,7 +1116,8 @@ TEST_F(dataservice_test, transaction_get_first_empty_with_start_end)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create the start and end transactions. */
     data_transaction_node_t start, end;
@@ -1117,7 +1135,7 @@ TEST_F(dataservice_test, transaction_get_first_empty_with_start_end)
         (dataservice_database_details_t*)ctx.details;
 
     /* create an insert transaction. */
-    ASSERT_EQ(0, mdb_txn_begin(details->env, NULL, 0, &txn));
+    TEST_ASSERT(0 == mdb_txn_begin(details->env, NULL, 0, &txn));
 
     /* insert start. */
     MDB_val lkey;
@@ -1126,36 +1144,36 @@ TEST_F(dataservice_test, transaction_get_first_empty_with_start_end)
     MDB_val lval;
     lval.mv_size = sizeof(start);
     lval.mv_data = &start;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* insert end. */
     lkey.mv_size = sizeof(end.key);
     lkey.mv_data = end.key;
     lval.mv_size = sizeof(end);
     lval.mv_data = &end;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* commit. */
-    ASSERT_EQ(0, mdb_txn_commit(txn));
+    TEST_ASSERT(0 == mdb_txn_commit(txn));
 
     /* getting the first transaction should return a "not found" result. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_get_first(
-            &child, nullptr, nullptr, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_get_first(
+                    &child, nullptr, nullptr, &txn_bytes, &txn_size));
 
     /* the transaction buffer should be set to NULL. */
-    ASSERT_EQ(nullptr, txn_bytes);
+    TEST_ASSERT(nullptr == txn_bytes);
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we transaction_get_first fails when called without the appropriate
  * capability being set.
  */
-TEST_F(dataservice_test, transaction_get_first_no_capability)
-{
+BEGIN_TEST_F(transaction_get_first_no_capability)
     uint8_t* txn_bytes = NULL;
     size_t txn_size = 0;
     dataservice_root_context_t ctx;
@@ -1163,7 +1181,7 @@ TEST_F(dataservice_test, transaction_get_first_no_capability)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1176,10 +1194,10 @@ TEST_F(dataservice_test, transaction_get_first_no_capability)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1191,25 +1209,26 @@ TEST_F(dataservice_test, transaction_get_first_no_capability)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* getting the first transaction should fail due to missing caps. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED,
-        dataservice_transaction_get_first(
-            &child, nullptr, nullptr, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED
+            == dataservice_transaction_get_first(
+                    &child, nullptr, nullptr, &txn_bytes, &txn_size));
 
     /* the transaction buffer should be set to NULL. */
-    ASSERT_EQ(nullptr, txn_bytes);
+    TEST_ASSERT(nullptr == txn_bytes);
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we transaction_get_first retrieves the first found transaction.
  */
-TEST_F(dataservice_test, transaction_get_first_happy_path)
-{
+BEGIN_TEST_F(transaction_get_first_happy_path)
     uint8_t foo_key[16] = { 0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f };
     uint8_t bar_key[16] = { 0xb5, 0x3e, 0x42, 0x83, 0xc7, 0x76, 0x43, 0x81,
@@ -1222,7 +1241,7 @@ TEST_F(dataservice_test, transaction_get_first_happy_path)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1235,10 +1254,10 @@ TEST_F(dataservice_test, transaction_get_first_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1252,7 +1271,8 @@ TEST_F(dataservice_test, transaction_get_first_happy_path)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create the start and end transactions. */
     data_transaction_node_t start, end;
@@ -1270,7 +1290,7 @@ TEST_F(dataservice_test, transaction_get_first_happy_path)
         (dataservice_database_details_t*)ctx.details;
 
     /* create an insert transaction. */
-    ASSERT_EQ(0, mdb_txn_begin(details->env, NULL, 0, &txn));
+    TEST_ASSERT(0 == mdb_txn_begin(details->env, NULL, 0, &txn));
 
     /* insert start. */
     MDB_val lkey;
@@ -1279,14 +1299,14 @@ TEST_F(dataservice_test, transaction_get_first_happy_path)
     MDB_val lval;
     lval.mv_size = sizeof(start);
     lval.mv_data = &start;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* insert end. */
     lkey.mv_size = sizeof(end.key);
     lkey.mv_data = end.key;
     lval.mv_size = sizeof(end);
     lval.mv_data = &end;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* create foo and bar transactions. */
     uint8_t foo_data[5] = { 0xFA, 0x12, 0x22, 0x13, 0x99 };
@@ -1315,27 +1335,28 @@ TEST_F(dataservice_test, transaction_get_first_happy_path)
     lkey.mv_data = foo->key;
     lval.mv_size = sizeof(data_transaction_node_t) + sizeof(foo_data);
     lval.mv_data = foo;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* insert bar. */
     lkey.mv_size = sizeof(bar->key);
     lkey.mv_data = bar->key;
     lval.mv_size = sizeof(data_transaction_node_t) + sizeof(bar_data);
     lval.mv_data = bar;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* commit. */
-    ASSERT_EQ(0, mdb_txn_commit(txn));
+    TEST_ASSERT(0 == mdb_txn_commit(txn));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, nullptr, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, nullptr, &txn_bytes, &txn_size));
 
     /* the data should match the foo packet exactly. */
     txn_size = sizeof(foo_data);
-    ASSERT_NE(nullptr, txn_bytes);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo_data, sizeof(foo_data)));
+    TEST_ASSERT(nullptr != txn_bytes);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo_data, sizeof(foo_data)));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
@@ -1344,14 +1365,13 @@ TEST_F(dataservice_test, transaction_get_first_happy_path)
     free(txn_bytes);
     free(foo);
     free(bar);
-}
+END_TEST_F()
 
 /**
  * Test that we transaction_get_first retrieves the first found transaction
  * while under a transaction.
  */
-TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
-{
+BEGIN_TEST_F(transaction_get_first_txn_happy_path)
     uint8_t foo_key[16] = { 0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f };
     uint8_t bar_key[16] = { 0xb5, 0x3e, 0x42, 0x83, 0xc7, 0x76, 0x43, 0x81,
@@ -1364,7 +1384,7 @@ TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1377,10 +1397,10 @@ TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1394,7 +1414,8 @@ TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create the start and end transactions. */
     data_transaction_node_t start, end;
@@ -1412,7 +1433,8 @@ TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
         (dataservice_database_details_t*)ctx.details;
 
     /* create an insert transaction. */
-    ASSERT_EQ(0, mdb_txn_begin(details->env, NULL, 0, &txn));
+    TEST_ASSERT(
+        0 == mdb_txn_begin(details->env, NULL, 0, &txn));
 
     /* insert start. */
     MDB_val lkey;
@@ -1421,14 +1443,14 @@ TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
     MDB_val lval;
     lval.mv_size = sizeof(start);
     lval.mv_data = &start;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* insert end. */
     lkey.mv_size = sizeof(end.key);
     lkey.mv_data = end.key;
     lval.mv_size = sizeof(end);
     lval.mv_data = &end;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* create foo and bar transactions. */
     uint8_t foo_data[5] = { 0xFA, 0x12, 0x22, 0x13, 0x99 };
@@ -1457,31 +1479,33 @@ TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
     lkey.mv_data = foo->key;
     lval.mv_size = sizeof(data_transaction_node_t) + sizeof(foo_data);
     lval.mv_data = foo;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* insert bar. */
     lkey.mv_size = sizeof(bar->key);
     lkey.mv_data = bar->key;
     lval.mv_size = sizeof(data_transaction_node_t) + sizeof(bar_data);
     lval.mv_data = bar;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* commit the transaction. */
     mdb_txn_commit(txn);
 
     /* create a transaction for use with this call. */
     dataservice_transaction_context_t txn_ctx;
-    ASSERT_EQ(0, dataservice_data_txn_begin(&child, &txn_ctx, nullptr, false));
+    TEST_ASSERT(
+        0 == dataservice_data_txn_begin(&child, &txn_ctx, nullptr, false));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, &txn_ctx, nullptr, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, &txn_ctx, nullptr, &txn_bytes, &txn_size));
 
     /* the data should match the foo packet exactly. */
     txn_size = sizeof(foo_data);
-    ASSERT_NE(nullptr, txn_bytes);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo_data, sizeof(foo_data)));
+    TEST_ASSERT(nullptr != txn_bytes);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo_data, sizeof(foo_data)));
 
     /* abort the transaction. */
     dataservice_data_txn_abort(&txn_ctx);
@@ -1492,14 +1516,13 @@ TEST_F(dataservice_test, transaction_get_first_txn_happy_path)
     /* clean up. */
     free(foo);
     free(bar);
-}
+END_TEST_F()
 
 /**
  * Test that we transaction_get_first retrieves the first found transaction and
  * populates the provided transaction node.
  */
-TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
-{
+BEGIN_TEST_F(transaction_get_first_with_node_happy_path)
     uint8_t foo_key[16] = { 0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f };
     uint8_t bar_key[16] = { 0xb5, 0x3e, 0x42, 0x83, 0xc7, 0x76, 0x43, 0x81,
@@ -1513,7 +1536,7 @@ TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1526,10 +1549,10 @@ TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1543,7 +1566,8 @@ TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create the start and end transactions. */
     data_transaction_node_t start, end;
@@ -1561,7 +1585,7 @@ TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
         (dataservice_database_details_t*)ctx.details;
 
     /* create an insert transaction. */
-    ASSERT_EQ(0, mdb_txn_begin(details->env, NULL, 0, &txn));
+    TEST_ASSERT(0 == mdb_txn_begin(details->env, NULL, 0, &txn));
 
     /* insert start. */
     MDB_val lkey;
@@ -1570,14 +1594,14 @@ TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
     MDB_val lval;
     lval.mv_size = sizeof(start);
     lval.mv_data = &start;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* insert end. */
     lkey.mv_size = sizeof(end.key);
     lkey.mv_data = end.key;
     lval.mv_size = sizeof(end);
     lval.mv_data = &end;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* create foo and bar transactions. */
     uint8_t foo_data[5] = { 0xFA, 0x12, 0x22, 0x13, 0x99 };
@@ -1616,47 +1640,48 @@ TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
     lkey.mv_data = foo->key;
     lval.mv_size = sizeof(data_transaction_node_t) + sizeof(foo_data);
     lval.mv_data = foo;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* insert bar. */
     lkey.mv_size = sizeof(bar->key);
     lkey.mv_data = bar->key;
     lval.mv_size = sizeof(data_transaction_node_t) + sizeof(bar_data);
     lval.mv_data = bar;
-    ASSERT_EQ(0, mdb_put(txn, details->pq_db, &lkey, &lval, 0));
+    TEST_ASSERT(0 == mdb_put(txn, details->pq_db, &lkey, &lval, 0));
 
     /* commit. */
-    ASSERT_EQ(0, mdb_txn_commit(txn));
+    TEST_ASSERT(0 == mdb_txn_commit(txn));
 
     /* PRECONDITION: node is cleared. */
     memset(&node, 0, sizeof(node));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* the data should match the foo packet exactly. */
     txn_size = sizeof(foo_data);
-    ASSERT_NE(nullptr, txn_bytes);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo_data, sizeof(foo_data)));
+    TEST_ASSERT(nullptr != txn_bytes);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo_data, sizeof(foo_data)));
 
     /* the node should match our expectations for foo_node, allowing us to
      * traverse the transaction queue. */
     uint8_t start_key[16];
     memset(start_key, 0, sizeof(start_key));
-    EXPECT_EQ(0, memcmp(node.key, foo_key, sizeof(node.key)));
-    EXPECT_EQ(0, memcmp(node.prev, start_key, sizeof(node.prev)));
-    EXPECT_EQ(0, memcmp(node.next, bar_key, sizeof(node.next)));
-    EXPECT_EQ(txn_size, (size_t)ntohll(node.net_txn_cert_size));
+    TEST_EXPECT(0 == memcmp(node.key, foo_key, sizeof(node.key)));
+    TEST_EXPECT(0 == memcmp(node.prev, start_key, sizeof(node.prev)));
+    TEST_EXPECT(0 == memcmp(node.next, bar_key, sizeof(node.next)));
+    TEST_EXPECT(txn_size == (size_t)ntohll(node.net_txn_cert_size));
 #if ATTESTATION == 1
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* dispose of the context. */
@@ -1666,14 +1691,13 @@ TEST_F(dataservice_test, transaction_get_first_with_node_happy_path)
     free(txn_bytes);
     free(foo);
     free(bar);
-}
+END_TEST_F()
 
 /**
  * Test that we can submit a transaction to the transaction queue and retrieve
  * it.
  */
-TEST_F(dataservice_test, transaction_submit_get_first_with_node_happy_path)
-{
+BEGIN_TEST_F(transaction_submit_get_first_with_node_happy_path)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -1693,7 +1717,7 @@ TEST_F(dataservice_test, transaction_submit_get_first_with_node_happy_path)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1706,10 +1730,10 @@ TEST_F(dataservice_test, transaction_submit_get_first_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1725,25 +1749,28 @@ TEST_F(dataservice_test, transaction_submit_get_first_with_node_happy_path)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* PRECONDITION: node is cleared. */
     memset(&node, 0, sizeof(node));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* the data should match the foo packet exactly. */
-    ASSERT_NE(nullptr, txn_bytes);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo_data, sizeof(foo_data)));
+    TEST_ASSERT(nullptr != txn_bytes);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo_data, sizeof(foo_data)));
 
     /* the node should match our expectations for foo_node, allowing us to
      * traverse the transaction queue. */
@@ -1751,18 +1778,18 @@ TEST_F(dataservice_test, transaction_submit_get_first_with_node_happy_path)
     memset(start_key, 0, sizeof(start_key));
     uint8_t end_key[16];
     memset(end_key, 0xFF, sizeof(end_key));
-    EXPECT_EQ(0, memcmp(node.key, foo_key, sizeof(node.key)));
-    EXPECT_EQ(0, memcmp(node.prev, start_key, sizeof(node.prev)));
-    EXPECT_EQ(0, memcmp(node.next, end_key, sizeof(node.next)));
-    EXPECT_EQ(sizeof(foo_data), (size_t)ntohll(node.net_txn_cert_size));
+    TEST_EXPECT(0 == memcmp(node.key, foo_key, sizeof(node.key)));
+    TEST_EXPECT(0 == memcmp(node.prev, start_key, sizeof(node.prev)));
+    TEST_EXPECT(0 == memcmp(node.next, end_key, sizeof(node.next)));
+    TEST_EXPECT(sizeof(foo_data) == (size_t)ntohll(node.net_txn_cert_size));
 #if ATTESTATION == 1
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* dispose of the context. */
@@ -1770,14 +1797,13 @@ TEST_F(dataservice_test, transaction_submit_get_first_with_node_happy_path)
 
     /* clean up. */
     free(txn_bytes);
-}
+END_TEST_F()
 
 /**
  * Test that we can submit a transaction to the transaction queue and retrieve
  * it, while under a transaction.
  */
-TEST_F(dataservice_test, transaction_submit_txn_get_first_with_node_happy_path)
-{
+BEGIN_TEST_F(transaction_submit_txn_get_first_with_node_happy_path)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -1797,7 +1823,7 @@ TEST_F(dataservice_test, transaction_submit_txn_get_first_with_node_happy_path)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1810,10 +1836,10 @@ TEST_F(dataservice_test, transaction_submit_txn_get_first_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1829,29 +1855,33 @@ TEST_F(dataservice_test, transaction_submit_txn_get_first_with_node_happy_path)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create a transaction for use with this call. */
     dataservice_transaction_context_t txn_ctx;
-    ASSERT_EQ(0, dataservice_data_txn_begin(&child, &txn_ctx, nullptr, false));
+    TEST_ASSERT(
+        0 == dataservice_data_txn_begin(&child, &txn_ctx, nullptr, false));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, &txn_ctx, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, &txn_ctx, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* PRECONDITION: node is cleared. */
     memset(&node, 0, sizeof(node));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, &txn_ctx, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, &txn_ctx, &node, &txn_bytes, &txn_size));
 
     /* the data should match the foo packet exactly. */
-    ASSERT_NE(nullptr, txn_bytes);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo_data, sizeof(foo_data)));
+    TEST_ASSERT(nullptr != txn_bytes);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo_data, sizeof(foo_data)));
 
     /* the node should match our expectations for foo_node, allowing us to
      * traverse the transaction queue. */
@@ -1859,18 +1889,18 @@ TEST_F(dataservice_test, transaction_submit_txn_get_first_with_node_happy_path)
     memset(start_key, 0, sizeof(start_key));
     uint8_t end_key[16];
     memset(end_key, 0xFF, sizeof(end_key));
-    EXPECT_EQ(0, memcmp(node.key, foo_key, sizeof(node.key)));
-    EXPECT_EQ(0, memcmp(node.prev, start_key, sizeof(node.prev)));
-    EXPECT_EQ(0, memcmp(node.next, end_key, sizeof(node.next)));
-    EXPECT_EQ(sizeof(foo_data), (size_t)ntohll(node.net_txn_cert_size));
+    TEST_EXPECT(0 == memcmp(node.key, foo_key, sizeof(node.key)));
+    TEST_EXPECT(0 == memcmp(node.prev, start_key, sizeof(node.prev)));
+    TEST_EXPECT(0 == memcmp(node.next, end_key, sizeof(node.next)));
+    TEST_EXPECT(sizeof(foo_data) == (size_t)ntohll(node.net_txn_cert_size));
 #if ATTESTATION == 1
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* abort the transaction. */
@@ -1878,14 +1908,13 @@ TEST_F(dataservice_test, transaction_submit_txn_get_first_with_node_happy_path)
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we can submit a transaction to the transaction queue and retrieve
  * it by id.
  */
-TEST_F(dataservice_test, transaction_submit_get_with_node_happy_path)
-{
+BEGIN_TEST_F(transaction_submit_get_with_node_happy_path)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -1905,7 +1934,7 @@ TEST_F(dataservice_test, transaction_submit_get_with_node_happy_path)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -1918,10 +1947,10 @@ TEST_F(dataservice_test, transaction_submit_get_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -1937,25 +1966,28 @@ TEST_F(dataservice_test, transaction_submit_get_with_node_happy_path)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* PRECONDITION: node is cleared. */
     memset(&node, 0, sizeof(node));
 
     /* getting the transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* the data should match the foo packet exactly. */
-    ASSERT_NE(nullptr, txn_bytes);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo_data, sizeof(foo_data)));
+    TEST_ASSERT(nullptr != txn_bytes);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo_data, sizeof(foo_data)));
 
     /* the node should match our expectations for foo_node, allowing us to
      * traverse the transaction queue. */
@@ -1963,18 +1995,18 @@ TEST_F(dataservice_test, transaction_submit_get_with_node_happy_path)
     memset(start_key, 0, sizeof(start_key));
     uint8_t end_key[16];
     memset(end_key, 0xFF, sizeof(end_key));
-    EXPECT_EQ(0, memcmp(node.key, foo_key, sizeof(node.key)));
-    EXPECT_EQ(0, memcmp(node.prev, start_key, sizeof(node.prev)));
-    EXPECT_EQ(0, memcmp(node.next, end_key, sizeof(node.next)));
-    EXPECT_EQ(sizeof(foo_data), (size_t)ntohll(node.net_txn_cert_size));
+    TEST_EXPECT(0 == memcmp(node.key, foo_key, sizeof(node.key)));
+    TEST_EXPECT(0 == memcmp(node.prev, start_key, sizeof(node.prev)));
+    TEST_EXPECT(0 == memcmp(node.next, end_key, sizeof(node.next)));
+    TEST_EXPECT(sizeof(foo_data) == (size_t)ntohll(node.net_txn_cert_size));
 #if ATTESTATION == 1
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* dispose of the context. */
@@ -1982,14 +2014,13 @@ TEST_F(dataservice_test, transaction_submit_get_with_node_happy_path)
 
     /* clean up. */
     free(txn_bytes);
-}
+END_TEST_F()
 
 /**
  * Test that we can submit a transaction to the transaction queue and retrieve
  * it by id, while under a transaction.
  */
-TEST_F(dataservice_test, transaction_submit_txn_get_with_node_happy_path)
-{
+BEGIN_TEST_F(transaction_submit_txn_get_with_node_happy_path)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -2009,7 +2040,7 @@ TEST_F(dataservice_test, transaction_submit_txn_get_with_node_happy_path)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -2022,10 +2053,10 @@ TEST_F(dataservice_test, transaction_submit_txn_get_with_node_happy_path)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2041,29 +2072,33 @@ TEST_F(dataservice_test, transaction_submit_txn_get_with_node_happy_path)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create a transaction for use with this call. */
     dataservice_transaction_context_t txn_ctx;
-    ASSERT_EQ(0, dataservice_data_txn_begin(&child, &txn_ctx, nullptr, false));
+    TEST_ASSERT(
+        0 == dataservice_data_txn_begin(&child, &txn_ctx, nullptr, false));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, &txn_ctx, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, &txn_ctx, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* PRECONDITION: node is cleared. */
     memset(&node, 0, sizeof(node));
 
     /* getting the transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, &txn_ctx, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, &txn_ctx, foo_key, &node, &txn_bytes, &txn_size));
 
     /* the data should match the foo packet exactly. */
-    ASSERT_NE(nullptr, txn_bytes);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo_data, sizeof(foo_data)));
+    TEST_ASSERT(nullptr != txn_bytes);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo_data, sizeof(foo_data)));
 
     /* the node should match our expectations for foo_node, allowing us to
      * traverse the transaction queue. */
@@ -2071,18 +2106,18 @@ TEST_F(dataservice_test, transaction_submit_txn_get_with_node_happy_path)
     memset(start_key, 0, sizeof(start_key));
     uint8_t end_key[16];
     memset(end_key, 0xFF, sizeof(end_key));
-    EXPECT_EQ(0, memcmp(node.key, foo_key, sizeof(node.key)));
-    EXPECT_EQ(0, memcmp(node.prev, start_key, sizeof(node.prev)));
-    EXPECT_EQ(0, memcmp(node.next, end_key, sizeof(node.next)));
-    EXPECT_EQ(sizeof(foo_data), (size_t)ntohll(node.net_txn_cert_size));
+    TEST_EXPECT(0 == memcmp(node.key, foo_key, sizeof(node.key)));
+    TEST_EXPECT(0 == memcmp(node.prev, start_key, sizeof(node.prev)));
+    TEST_EXPECT(0 == memcmp(node.next, end_key, sizeof(node.next)));
+    TEST_EXPECT(sizeof(foo_data) == (size_t)ntohll(node.net_txn_cert_size));
 #if ATTESTATION == 1
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    EXPECT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_EXPECT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* abort the transaction. */
@@ -2090,14 +2125,13 @@ TEST_F(dataservice_test, transaction_submit_txn_get_with_node_happy_path)
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that an ettempt to drop the all zeroes or all FFs transactions results
  * in a "not found" error, even after a transaction has been submitted.
  */
-TEST_F(dataservice_test, transaction_drop_00_ff)
-{
+BEGIN_TEST_F(transaction_drop_00_ff)
     uint8_t begin_key[16] = {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -2122,7 +2156,7 @@ TEST_F(dataservice_test, transaction_drop_00_ff)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -2135,10 +2169,10 @@ TEST_F(dataservice_test, transaction_drop_00_ff)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2156,44 +2190,48 @@ TEST_F(dataservice_test, transaction_drop_00_ff)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* attempt to drop the begin transaction. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_drop(
-            &child, nullptr, begin_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_drop(
+                    &child, nullptr, begin_key));
 
     /* attempt to drop the end transaction. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_drop(
-            &child, nullptr, end_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_drop(&child, nullptr, end_key));
 
     /* submit foo transaction. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* attempt to drop the begin transaction. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_drop(
-            &child, nullptr, begin_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_drop(
+                    &child, nullptr, begin_key));
 
     /* attempt to drop the end transaction. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_drop(
-            &child, nullptr, end_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_drop(
+                    &child, nullptr, end_key));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we can drop an entry in the transaction queue after submitting
  * it.
  */
-TEST_F(dataservice_test, transaction_drop)
-{
+BEGIN_TEST_F(transaction_drop)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -2213,7 +2251,7 @@ TEST_F(dataservice_test, transaction_drop)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -2226,10 +2264,10 @@ TEST_F(dataservice_test, transaction_drop)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2249,52 +2287,58 @@ TEST_F(dataservice_test, transaction_drop)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* this transaction id should be ours. */
-    ASSERT_EQ(0, memcmp(node.key, foo_key, 16));
+    TEST_ASSERT(0 == memcmp(node.key, foo_key, 16));
 
     /* getting the transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* attempt to drop foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_drop(
-            &child, nullptr, foo_key));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_drop(
+                    &child, nullptr, foo_key));
 
     /* getting the first transaction should fail. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* now if we try to get the transaction by id, this fails. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that other entries are preserved and updated when we drop an entry from
  * the queue.
  */
-TEST_F(dataservice_test, transaction_drop_ordering)
-{
+BEGIN_TEST_F(transaction_drop_ordering)
     uint8_t foo1_key[16] = {
         0x2a, 0x3d, 0xe3, 0x6f, 0x4f, 0x5f, 0x43, 0x75,
         0x8d, 0xaf, 0xb0, 0x74, 0x97, 0x8b, 0x51, 0x67
@@ -2339,7 +2383,7 @@ TEST_F(dataservice_test, transaction_drop_ordering)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -2352,10 +2396,10 @@ TEST_F(dataservice_test, transaction_drop_ordering)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2375,182 +2419,193 @@ TEST_F(dataservice_test, transaction_drop_ordering)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* submit foo1 transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo1_key, foo1_artifact, foo1_data,
-            sizeof(foo1_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo1_key, foo1_artifact, foo1_data,
+                    sizeof(foo1_data)));
 
     /* submit foo2 transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo2_key, foo2_artifact, foo2_data,
-            sizeof(foo2_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo2_key, foo2_artifact, foo2_data,
+                    sizeof(foo2_data)));
 
     /* submit foo3 transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo3_key, foo3_artifact, foo3_data,
-            sizeof(foo3_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo3_key, foo3_artifact, foo3_data,
+                    sizeof(foo3_data)));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* this should match foo1. */
     uint8_t begin_key[16];
     memset(begin_key, 0, sizeof(begin_key));
     uint8_t end_key[16];
     memset(end_key, 0xff, sizeof(end_key));
-    ASSERT_EQ(0, memcmp(node.key, foo1_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo1_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, begin_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, foo2_key, 16));
-    ASSERT_EQ(sizeof(foo1_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo1_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo1_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, begin_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, foo2_key, 16));
+    TEST_ASSERT(sizeof(foo1_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* getting the transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, foo1_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, foo1_key, &node, &txn_bytes, &txn_size));
 
     /* this should match foo1. */
-    ASSERT_EQ(0, memcmp(node.key, foo1_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo1_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, begin_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, foo2_key, 16));
-    ASSERT_EQ(sizeof(foo1_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo1_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo1_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, begin_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, foo2_key, 16));
+    TEST_ASSERT(sizeof(foo1_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* getting the next transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
 
     /* this should match foo2. */
-    ASSERT_EQ(0, memcmp(node.key, foo2_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo2_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, foo1_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, foo3_key, 16));
-    ASSERT_EQ(sizeof(foo2_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo2_data, sizeof(foo2_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo2_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo2_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, foo1_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, foo3_key, 16));
+    TEST_ASSERT(sizeof(foo2_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo2_data, sizeof(foo2_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* getting the next transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
 
     /* this should match foo3. */
-    ASSERT_EQ(0, memcmp(node.key, foo3_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo3_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, foo2_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, end_key, 16));
-    ASSERT_EQ(sizeof(foo3_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo3_data, sizeof(foo3_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo3_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo3_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, foo2_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, end_key, 16));
+    TEST_ASSERT(sizeof(foo3_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo3_data, sizeof(foo3_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* attempt to drop foo2 transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_drop(
-            &child, nullptr, foo2_key));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_drop(
+                    &child, nullptr, foo2_key));
 
     /* now if we try to get the transaction by id, this fails. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_get(
-            &child, nullptr, foo2_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_get(
+                    &child, nullptr, foo2_key, &node, &txn_bytes, &txn_size));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* this should match foo1. */
-    ASSERT_EQ(0, memcmp(node.key, foo1_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo1_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, begin_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, foo3_key, 16));
-    ASSERT_EQ(sizeof(foo1_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo1_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo1_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, begin_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, foo3_key, 16));
+    TEST_ASSERT(sizeof(foo1_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* getting the next transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
 
     /* this should match foo3. */
-    ASSERT_EQ(0, memcmp(node.key, foo3_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo3_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, foo1_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, end_key, 16));
-    ASSERT_EQ(sizeof(foo3_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo3_data, sizeof(foo3_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo3_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo3_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, foo1_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, end_key, 16));
+    TEST_ASSERT(sizeof(foo3_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo3_data, sizeof(foo3_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that other entries are preserved and updated when we drop the first
  * entry from the queue.
  */
-TEST_F(dataservice_test, transaction_drop_first_ordering)
-{
+BEGIN_TEST_F(transaction_drop_first_ordering)
     uint8_t foo1_key[16] = {
         0x2a, 0x3d, 0xe3, 0x6f, 0x4f, 0x5f, 0x43, 0x75,
         0x8d, 0xaf, 0xb0, 0x74, 0x97, 0x8b, 0x51, 0x67
@@ -2595,7 +2650,7 @@ TEST_F(dataservice_test, transaction_drop_first_ordering)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -2608,10 +2663,10 @@ TEST_F(dataservice_test, transaction_drop_first_ordering)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2631,182 +2686,193 @@ TEST_F(dataservice_test, transaction_drop_first_ordering)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* submit foo1 transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo1_key, foo1_artifact, foo1_data,
-            sizeof(foo1_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo1_key, foo1_artifact, foo1_data,
+                    sizeof(foo1_data)));
 
     /* submit foo2 transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo2_key, foo2_artifact, foo2_data,
-            sizeof(foo2_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo2_key, foo2_artifact, foo2_data,
+                    sizeof(foo2_data)));
 
     /* submit foo3 transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo3_key, foo3_artifact, foo3_data,
-            sizeof(foo3_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo3_key, foo3_artifact, foo3_data,
+                    sizeof(foo3_data)));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* this should match foo1. */
     uint8_t begin_key[16];
     memset(begin_key, 0, sizeof(begin_key));
     uint8_t end_key[16];
     memset(end_key, 0xff, sizeof(end_key));
-    ASSERT_EQ(0, memcmp(node.key, foo1_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo1_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, begin_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, foo2_key, 16));
-    ASSERT_EQ(sizeof(foo1_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo1_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo1_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, begin_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, foo2_key, 16));
+    TEST_ASSERT(sizeof(foo1_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* getting the transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, foo1_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, foo1_key, &node, &txn_bytes, &txn_size));
 
     /* this should match foo1. */
-    ASSERT_EQ(0, memcmp(node.key, foo1_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo1_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, begin_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, foo2_key, 16));
-    ASSERT_EQ(sizeof(foo1_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo1_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo1_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, begin_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, foo2_key, 16));
+    TEST_ASSERT(sizeof(foo1_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo1_data, sizeof(foo1_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* getting the next transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
 
     /* this should match foo2. */
-    ASSERT_EQ(0, memcmp(node.key, foo2_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo2_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, foo1_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, foo3_key, 16));
-    ASSERT_EQ(sizeof(foo2_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo2_data, sizeof(foo2_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo2_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo2_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, foo1_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, foo3_key, 16));
+    TEST_ASSERT(sizeof(foo2_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo2_data, sizeof(foo2_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* getting the next transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
 
     /* this should match foo3. */
-    ASSERT_EQ(0, memcmp(node.key, foo3_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo3_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, foo2_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, end_key, 16));
-    ASSERT_EQ(sizeof(foo3_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo3_data, sizeof(foo3_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo3_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo3_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, foo2_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, end_key, 16));
+    TEST_ASSERT(sizeof(foo3_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo3_data, sizeof(foo3_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* attempt to drop foo1 transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_drop(
-            &child, nullptr, foo1_key));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_drop(
+                    &child, nullptr, foo1_key));
 
     /* now if we try to get the transaction by id, this fails. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_get(
-            &child, nullptr, foo1_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_get(
+                    &child, nullptr, foo1_key, &node, &txn_bytes, &txn_size));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* this should match foo2. */
-    ASSERT_EQ(0, memcmp(node.key, foo2_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo2_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, begin_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, foo3_key, 16));
-    ASSERT_EQ(sizeof(foo2_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo2_data, sizeof(foo2_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo2_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo2_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, begin_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, foo3_key, 16));
+    TEST_ASSERT(sizeof(foo2_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo2_data, sizeof(foo2_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* getting the next transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, node.next, &node, &txn_bytes, &txn_size));
 
     /* this should match foo3. */
-    ASSERT_EQ(0, memcmp(node.key, foo3_key, 16));
-    ASSERT_EQ(0, memcmp(node.artifact_id, foo3_artifact, 16));
-    ASSERT_EQ(0, memcmp(node.prev, foo2_key, 16));
-    ASSERT_EQ(0, memcmp(node.next, end_key, 16));
-    ASSERT_EQ(sizeof(foo3_data), txn_size);
-    ASSERT_EQ(0, memcmp(txn_bytes, foo3_data, sizeof(foo3_data)));
+    TEST_ASSERT(0 == memcmp(node.key, foo3_key, 16));
+    TEST_ASSERT(0 == memcmp(node.artifact_id, foo3_artifact, 16));
+    TEST_ASSERT(0 == memcmp(node.prev, foo2_key, 16));
+    TEST_ASSERT(0 == memcmp(node.next, end_key, 16));
+    TEST_ASSERT(sizeof(foo3_data) == txn_size);
+    TEST_ASSERT(0 == memcmp(txn_bytes, foo3_data, sizeof(foo3_data)));
 #if ATTESTATION == 1
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_SUBMITTED
+            == ntohl(node.net_txn_state));
 #else
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 #endif
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that an ettempt to promote the all zeroes or all FFs transactions
  * results in a "not found" error, even after a transaction has been submitted.
  */
-TEST_F(dataservice_test, transaction_promote_00_ff)
-{
+BEGIN_TEST_F(transaction_promote_00_ff)
     uint8_t begin_key[16] = {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -2831,7 +2897,7 @@ TEST_F(dataservice_test, transaction_promote_00_ff)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -2844,10 +2910,10 @@ TEST_F(dataservice_test, transaction_promote_00_ff)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2865,44 +2931,49 @@ TEST_F(dataservice_test, transaction_promote_00_ff)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* attempt to promote the begin transaction. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_promote(
-            &child, nullptr, begin_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_promote(
+                    &child, nullptr, begin_key));
 
     /* attempt to promote the end transaction. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_promote(
-            &child, nullptr, end_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_promote(
+                    &child, nullptr, end_key));
 
     /* submit foo transaction. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* attempt to promote the begin transaction. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_promote(
-            &child, nullptr, begin_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_promote(
+                    &child, nullptr, begin_key));
 
     /* attempt to promote the end transaction. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_promote(
-            &child, nullptr, end_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_promote(
+                    &child, nullptr, end_key));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we can promote an entry in the transaction queue after submitting
  * it.
  */
-TEST_F(dataservice_test, transaction_promote)
-{
+BEGIN_TEST_F(transaction_promote)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -2922,7 +2993,7 @@ TEST_F(dataservice_test, transaction_promote)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -2935,10 +3006,10 @@ TEST_F(dataservice_test, transaction_promote)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -2958,51 +3029,56 @@ TEST_F(dataservice_test, transaction_promote)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* getting the first transaction should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* this transaction id should be ours. */
-    ASSERT_EQ(0, memcmp(node.key, foo_key, 16));
+    TEST_ASSERT(0 == memcmp(node.key, foo_key, 16));
 
     /* getting the transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* attempt to promote foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_promote(
-            &child, nullptr, foo_key));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_promote(
+                    &child, nullptr, foo_key));
 
     /* getting the first transaction should succeed. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* the node state should be updated. */
-    ASSERT_EQ(
-        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED,
-        ntohl(node.net_txn_state));
+    TEST_ASSERT(
+        DATASERVICE_TRANSACTION_NODE_STATE_ATTESTED
+            == ntohl(node.net_txn_state));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that dataservice_transaction_submit respects the bitcap for this action.
  */
-TEST_F(dataservice_test, transaction_submit_bitcap)
-{
+BEGIN_TEST_F(transaction_submit_bitcap)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3019,7 +3095,7 @@ TEST_F(dataservice_test, transaction_submit_bitcap)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3032,10 +3108,10 @@ TEST_F(dataservice_test, transaction_submit_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3049,24 +3125,25 @@ TEST_F(dataservice_test, transaction_submit_bitcap)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* submitting foo transaction fails. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_data,
-            sizeof(foo_data)));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_data,
+                    sizeof(foo_data)));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that dataservice_transaction_get_first respects the bitcap for this
  * action.
  */
-TEST_F(dataservice_test, transaction_get_first_bitcap)
-{
+BEGIN_TEST_F(transaction_get_first_bitcap)
     uint8_t* txn_bytes = NULL;
     size_t txn_size = 0;
     dataservice_root_context_t ctx;
@@ -3074,7 +3151,7 @@ TEST_F(dataservice_test, transaction_get_first_bitcap)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3087,10 +3164,10 @@ TEST_F(dataservice_test, transaction_get_first_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3101,23 +3178,24 @@ TEST_F(dataservice_test, transaction_get_first_bitcap)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* getting the first transaction fails due no capabilities. */
     data_transaction_node_t node;
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED,
-        dataservice_transaction_get_first(
-            &child, nullptr, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED
+            == dataservice_transaction_get_first(
+                    &child, nullptr, &node, &txn_bytes, &txn_size));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that dataservice_transaction_get respects the bitcap for this action.
  */
-TEST_F(dataservice_test, transaction_get_bitcap)
-{
+BEGIN_TEST_F(transaction_get_bitcap)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3129,7 +3207,7 @@ TEST_F(dataservice_test, transaction_get_bitcap)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3142,10 +3220,10 @@ TEST_F(dataservice_test, transaction_get_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3156,23 +3234,24 @@ TEST_F(dataservice_test, transaction_get_bitcap)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* getting the first transaction fails due no capabilities. */
     data_transaction_node_t node;
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that dataservice_transaction_drop respects the bitcap for this action.
  */
-TEST_F(dataservice_test, transaction_drop_bitcap)
-{
+BEGIN_TEST_F(transaction_drop_bitcap)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3182,7 +3261,7 @@ TEST_F(dataservice_test, transaction_drop_bitcap)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3195,10 +3274,10 @@ TEST_F(dataservice_test, transaction_drop_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3209,23 +3288,24 @@ TEST_F(dataservice_test, transaction_drop_bitcap)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* dropping a transaction fails due to no capability. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED,
-        dataservice_transaction_drop(
-            &child, nullptr, foo_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED
+            == dataservice_transaction_drop(
+                    &child, nullptr, foo_key));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that dataservice_transaction_promote respects the bitcap for this
  * action.
  */
-TEST_F(dataservice_test, transaction_promote_bitcap)
-{
+BEGIN_TEST_F(transaction_promote_bitcap)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3235,7 +3315,7 @@ TEST_F(dataservice_test, transaction_promote_bitcap)
     string DB_PATH;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3248,10 +3328,10 @@ TEST_F(dataservice_test, transaction_promote_bitcap)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3262,24 +3342,25 @@ TEST_F(dataservice_test, transaction_promote_bitcap)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* promoting a transaction fails due to no capability. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED,
-        dataservice_transaction_promote(
-            &child, nullptr, foo_key));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED
+            == dataservice_transaction_promote(
+                    &child, nullptr, foo_key));
 
     /* dispose of the context. */
     dispose((disposable_t*)&ctx);
-}
+END_TEST_F()
 
 /**
  * Test that we can add a transaction to the transaction queue, create a block
  * containing this transaction, and the dataservice_block_make API call
  * automatically drops this transaction.
  */
-TEST_F(dataservice_test, transaction_make_block_simple)
-{
+BEGIN_TEST_F(transaction_make_block_simple)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3314,7 +3395,7 @@ TEST_F(dataservice_test, transaction_make_block_simple)
     uint8_t latest_block_id[16];
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3327,10 +3408,10 @@ TEST_F(dataservice_test, transaction_make_block_simple)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3357,129 +3438,149 @@ TEST_F(dataservice_test, transaction_make_block_simple)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* verify that our block does not exist. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_block_get(
-            &child, nullptr, foo_block_id, &block_node,
-            &block_txn_bytes, &block_txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_block_get(
+                    &child, nullptr, foo_block_id, &block_node,
+                    &block_txn_bytes, &block_txn_size));
 
     /* verify that a block ID does not exist for block height 1. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_block_id_by_height_get(
-            &child, nullptr, 1, block_id_for_height_1));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_block_id_by_height_get(
+                    &child, nullptr, 1, block_id_for_height_1));
 
     /* verify that the latest block id get call returns the root UUID. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_latest_block_id_get(
-            &child, nullptr, latest_block_id));
-    ASSERT_EQ(0, memcmp(latest_block_id, vccert_certificate_type_uuid_root_block, 16));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_latest_block_id_get(
+                    &child, nullptr, latest_block_id));
+    TEST_ASSERT(
+        0
+            == memcmp(
+                    latest_block_id, vccert_certificate_type_uuid_root_block,
+                    16));
 
     /* verify that our artifact does not exist. */
     /* getting the artifact record by artifact id should return not found. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_artifact_get(
-            &child, nullptr, foo_artifact, &foo_artifact_record));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_artifact_get(
+                    &child, nullptr, foo_artifact, &foo_artifact_record));
 
     /* create foo transaction. */
-    ASSERT_EQ(0,
-        create_dummy_transaction(
-            foo_key, foo_prev, foo_artifact, &foo_cert, &foo_cert_length));
+    TEST_ASSERT(
+        0
+            == fixture.create_dummy_transaction(
+                    foo_key, foo_prev, foo_artifact, &foo_cert,
+                    &foo_cert_length));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_cert,
-            foo_cert_length));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_cert,
+                    foo_cert_length));
 
     /* getting the transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
     free(txn_bytes);
 
     /* create foo block. */
-    ASSERT_EQ(0,
-        create_dummy_block(
-            &builder_opts,
-            foo_block_id, vccert_certificate_type_uuid_root_block, 1,
-            &foo_block_cert, &foo_block_cert_length,
-            foo_cert, foo_cert_length,
-            nullptr));
+    TEST_ASSERT(
+        0
+            == create_dummy_block(
+                    &fixture.builder_opts, foo_block_id,
+                    vccert_certificate_type_uuid_root_block, 1, &foo_block_cert,
+                    &foo_block_cert_length, foo_cert, foo_cert_length,
+                    nullptr));
 
     /* getting the block transaction by id should return not found. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_block_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_block_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* make block. */
-    ASSERT_EQ(0,
-        dataservice_block_make(
-            &child, nullptr, foo_block_id,
-            foo_block_cert, foo_block_cert_length));
+    TEST_ASSERT(
+        0
+            == dataservice_block_make(
+                    &child, nullptr, foo_block_id,
+                    foo_block_cert, foo_block_cert_length));
 
     /* getting the transaction by id should return not found. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* getting the block transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_block_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_block_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
     free(txn_bytes);
 
     /* getting the block record by block id should return success. */
-    ASSERT_EQ(0,
-        dataservice_block_get(
-            &child, nullptr, foo_block_id, &block_node,
-            &block_txn_bytes, &block_txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_block_get(
+                    &child, nullptr, foo_block_id, &block_node,
+                    &block_txn_bytes, &block_txn_size));
     /* the key should match our block id. */
-    ASSERT_EQ(0, memcmp(block_node.key, foo_block_id, 16));
-    ASSERT_EQ(0, memcmp(block_node.first_transaction_id, foo_key, 16));
-    ASSERT_EQ(1U, ntohll(block_node.net_block_height));
+    TEST_ASSERT(0 == memcmp(block_node.key, foo_block_id, 16));
+    TEST_ASSERT(0 == memcmp(block_node.first_transaction_id, foo_key, 16));
+    TEST_ASSERT(1U == ntohll(block_node.net_block_height));
 
     /* verify that a block ID exists for block height 1. */
-    ASSERT_EQ(0,
-        dataservice_block_id_by_height_get(
-            &child, nullptr, 1, block_id_for_height_1));
+    TEST_ASSERT(
+        0
+            == dataservice_block_id_by_height_get(
+                    &child, nullptr, 1, block_id_for_height_1));
     /* this block ID matches our block ID. */
-    EXPECT_EQ(0, memcmp(foo_block_id, block_id_for_height_1, 16));
+    TEST_EXPECT(0 == memcmp(foo_block_id, block_id_for_height_1, 16));
 
     /* verify that the latest block id matches our block id. */
-    ASSERT_EQ(0,
-        dataservice_latest_block_id_get(
-            &child, nullptr, latest_block_id));
+    TEST_ASSERT(
+        0
+            == dataservice_latest_block_id_get(
+                    &child, nullptr, latest_block_id));
     /* this block ID matches our block ID. */
-    EXPECT_EQ(0, memcmp(foo_block_id, latest_block_id, 16));
+    TEST_EXPECT(0 == memcmp(foo_block_id, latest_block_id, 16));
 
     /* getting the artifact record by artifact id should return success. */
-    ASSERT_EQ(0,
-        dataservice_artifact_get(
-            &child, nullptr, foo_artifact, &foo_artifact_record));
+    TEST_ASSERT(
+        0
+            == dataservice_artifact_get(
+                    &child, nullptr, foo_artifact, &foo_artifact_record));
     /* the key should match the artifact ID. */
-    ASSERT_EQ(0, memcmp(foo_artifact_record.key, foo_artifact, 16));
+    TEST_ASSERT(0 == memcmp(foo_artifact_record.key, foo_artifact, 16));
     /* the first transaction should be the foo transaction. */
-    ASSERT_EQ(0, memcmp(foo_artifact_record.txn_first, foo_key, 16));
+    TEST_ASSERT(0 == memcmp(foo_artifact_record.txn_first, foo_key, 16));
     /* the latest transaction should be the foo transaction. */
-    ASSERT_EQ(0, memcmp(foo_artifact_record.txn_latest, foo_key, 16));
+    TEST_ASSERT(0 == memcmp(foo_artifact_record.txn_latest, foo_key, 16));
     /* the first height for this artifact should be 1. */
-    ASSERT_EQ(1U, ntohll(foo_artifact_record.net_height_first));
+    TEST_ASSERT(1U == ntohll(foo_artifact_record.net_height_first));
     /* the latest height for this artifact should be 1. */
-    ASSERT_EQ(1U, ntohll(foo_artifact_record.net_height_latest));
+    TEST_ASSERT(1U == ntohll(foo_artifact_record.net_height_latest));
 
     /* clean up. */
     dispose((disposable_t*)&ctx);
     free(foo_cert);
     free(foo_block_cert);
-}
+END_TEST_F()
 
 /**
  * Test that the bitset is enforced for making blocks.
  */
-TEST_F(dataservice_test, transaction_make_block_bitset)
-{
+BEGIN_TEST_F(transaction_make_block_bitset)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3505,7 +3606,7 @@ TEST_F(dataservice_test, transaction_make_block_bitset)
     dataservice_child_context_t child;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3518,10 +3619,10 @@ TEST_F(dataservice_test, transaction_make_block_bitset)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3541,45 +3642,49 @@ TEST_F(dataservice_test, transaction_make_block_bitset)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create foo transaction. */
-    ASSERT_EQ(0,
-        create_dummy_transaction(
-            foo_key, foo_prev, foo_artifact, &foo_cert, &foo_cert_length));
+    TEST_ASSERT(
+        0
+            == fixture.create_dummy_transaction(
+                    foo_key, foo_prev, foo_artifact, &foo_cert,
+                    &foo_cert_length));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_cert,
-            foo_cert_length));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_cert,
+                    foo_cert_length));
 
     /* create foo block. */
-    ASSERT_EQ(0,
-        create_dummy_block(
-            &builder_opts,
-            foo_block_id, vccert_certificate_type_uuid_root_block, 1,
-            &foo_block_cert, &foo_block_cert_length,
-            foo_cert, foo_cert_length,
-            nullptr));
+    TEST_ASSERT(
+        0
+            == create_dummy_block(
+                    &fixture.builder_opts, foo_block_id,
+                    vccert_certificate_type_uuid_root_block, 1, &foo_block_cert,
+                    &foo_block_cert_length, foo_cert, foo_cert_length,
+                    nullptr));
 
     /* make block should fail because of missing capability. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED,
-        dataservice_block_make(
-            &child, nullptr, foo_block_id,
-            foo_block_cert, foo_block_cert_length));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_AUTHORIZED
+            == dataservice_block_make(
+                    &child, nullptr, foo_block_id, foo_block_cert,
+                    foo_block_cert_length));
 
     /* clean up. */
     dispose((disposable_t*)&ctx);
     free(foo_cert);
     free(foo_block_cert);
-}
+END_TEST_F()
 
 /**
  * Test that appending a block with an invalid height will fail.
  */
-TEST_F(dataservice_test, transaction_make_block_bad_height)
-{
+BEGIN_TEST_F(transaction_make_block_bad_height)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3605,7 +3710,7 @@ TEST_F(dataservice_test, transaction_make_block_bad_height)
     dataservice_child_context_t child;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3618,10 +3723,10 @@ TEST_F(dataservice_test, transaction_make_block_bad_height)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3640,45 +3745,49 @@ TEST_F(dataservice_test, transaction_make_block_bad_height)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create foo transaction. */
-    ASSERT_EQ(0,
-        create_dummy_transaction(
-            foo_key, foo_prev, foo_artifact, &foo_cert, &foo_cert_length));
+    TEST_ASSERT(
+        0
+            == fixture.create_dummy_transaction(
+                    foo_key, foo_prev, foo_artifact, &foo_cert,
+                    &foo_cert_length));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_cert,
-            foo_cert_length));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_cert,
+                    foo_cert_length));
 
     /* create foo block with invalid 0 block height. */
-    ASSERT_EQ(0,
-        create_dummy_block(
-            &builder_opts,
-            foo_block_id, vccert_certificate_type_uuid_root_block, 0,
-            &foo_block_cert, &foo_block_cert_length,
-            foo_cert, foo_cert_length,
-            nullptr));
+    TEST_ASSERT(
+        0
+            == create_dummy_block(
+                    &fixture.builder_opts, foo_block_id,
+                    vccert_certificate_type_uuid_root_block, 0, &foo_block_cert,
+                    &foo_block_cert_length, foo_cert, foo_cert_length,
+                    nullptr));
 
     /* make block fails due to invalid block height. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_BLOCK_HEIGHT,
-        dataservice_block_make(
-            &child, nullptr, foo_block_id,
-            foo_block_cert, foo_block_cert_length));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_INVALID_BLOCK_HEIGHT
+            == dataservice_block_make(
+                    &child, nullptr, foo_block_id, foo_block_cert,
+                    foo_block_cert_length));
 
     /* clean up. */
     dispose((disposable_t*)&ctx);
     free(foo_cert);
     free(foo_block_cert);
-}
+END_TEST_F()
 
 /**
  * Test that appending a block with an invalid previous block ID will fail.
  */
-TEST_F(dataservice_test, transaction_make_block_bad_prev_block_id)
-{
+BEGIN_TEST_F(transaction_make_block_bad_prev_block_id)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3704,7 +3813,7 @@ TEST_F(dataservice_test, transaction_make_block_bad_prev_block_id)
     dataservice_child_context_t child;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3717,10 +3826,10 @@ TEST_F(dataservice_test, transaction_make_block_bad_prev_block_id)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3739,45 +3848,48 @@ TEST_F(dataservice_test, transaction_make_block_bad_prev_block_id)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create foo transaction. */
-    ASSERT_EQ(0,
-        create_dummy_transaction(
-            foo_key, foo_prev, foo_artifact, &foo_cert, &foo_cert_length));
+    TEST_ASSERT(
+        0
+            == fixture.create_dummy_transaction(
+                    foo_key, foo_prev, foo_artifact, &foo_cert,
+                    &foo_cert_length));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_cert,
-            foo_cert_length));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_cert,
+                    foo_cert_length));
 
     /* create foo block with invalid previous block ID. */
-    ASSERT_EQ(0,
-        create_dummy_block(
-            &builder_opts,
-            foo_block_id, zero_uuid, 1,
-            &foo_block_cert, &foo_block_cert_length,
-            foo_cert, foo_cert_length,
-            nullptr));
+    TEST_ASSERT(
+        0
+            == create_dummy_block(
+                    &fixture.builder_opts, foo_block_id, fixture.zero_uuid, 1,
+                    &foo_block_cert, &foo_block_cert_length, foo_cert,
+                    foo_cert_length, nullptr));
 
     /* make block fails due to invalid previous block ID. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_PREVIOUS_BLOCK_UUID,
-        dataservice_block_make(
-            &child, nullptr, foo_block_id,
-            foo_block_cert, foo_block_cert_length));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_INVALID_PREVIOUS_BLOCK_UUID
+            == dataservice_block_make(
+                    &child, nullptr, foo_block_id, foo_block_cert,
+                    foo_block_cert_length));
 
     /* clean up. */
     dispose((disposable_t*)&ctx);
     free(foo_cert);
     free(foo_block_cert);
-}
+END_TEST_F()
 
 /**
  * Test that appending a block with an invalid block ID will fail.
  */
-TEST_F(dataservice_test, transaction_make_block_bad_block_id)
-{
+BEGIN_TEST_F(transaction_make_block_bad_block_id)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3803,7 +3915,7 @@ TEST_F(dataservice_test, transaction_make_block_bad_block_id)
     dataservice_child_context_t child;
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3816,10 +3928,10 @@ TEST_F(dataservice_test, transaction_make_block_bad_block_id)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3838,46 +3950,50 @@ TEST_F(dataservice_test, transaction_make_block_bad_block_id)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* create foo transaction. */
-    ASSERT_EQ(0,
-        create_dummy_transaction(
-            foo_key, foo_prev, foo_artifact, &foo_cert, &foo_cert_length));
+    TEST_ASSERT(
+        0
+            == fixture.create_dummy_transaction(
+                    foo_key, foo_prev, foo_artifact, &foo_cert,
+                    &foo_cert_length));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_cert,
-            foo_cert_length));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_cert,
+                    foo_cert_length));
 
     /* create foo block with invalid block ID (root block ID). */
-    ASSERT_EQ(0,
-        create_dummy_block(
-            &builder_opts,
-            vccert_certificate_type_uuid_root_block,
-            vccert_certificate_type_uuid_root_block, 1,
-            &foo_block_cert, &foo_block_cert_length,
-            foo_cert, foo_cert_length,
-            nullptr));
+    TEST_ASSERT(
+        0
+            == create_dummy_block(
+                    &fixture.builder_opts,
+                    vccert_certificate_type_uuid_root_block,
+                    vccert_certificate_type_uuid_root_block, 1, &foo_block_cert,
+                    &foo_block_cert_length, foo_cert, foo_cert_length,
+                    nullptr));
 
     /* make block fails due to invalid block ID. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_INVALID_BLOCK_UUID,
-        dataservice_block_make(
-            &child, nullptr, foo_block_id,
-            foo_block_cert, foo_block_cert_length));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_INVALID_BLOCK_UUID
+            == dataservice_block_make(
+                    &child, nullptr, foo_block_id, foo_block_cert,
+                    foo_block_cert_length));
 
     /* clean up. */
     dispose((disposable_t*)&ctx);
     free(foo_cert);
     free(foo_block_cert);
-}
+END_TEST_F()
 
 /**
  * Test that dataservice_api_node_ref_is_beginning matches against a begin node.
  */
-TEST_F(dataservice_test, node_ref_is_beginning)
-{
+BEGIN_TEST_F(node_ref_is_beginning)
     const uint8_t BEGINNING[16] = {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -3887,15 +4003,14 @@ TEST_F(dataservice_test, node_ref_is_beginning)
         0x95, 0x28, 0x3a, 0xb2, 0x55, 0x15, 0xbc, 0x05
     };
 
-    EXPECT_TRUE(dataservice_api_node_ref_is_beginning(BEGINNING));
-    EXPECT_FALSE(dataservice_api_node_ref_is_beginning(NOT_BEGINNING));
-}
+    TEST_EXPECT(dataservice_api_node_ref_is_beginning(BEGINNING));
+    TEST_EXPECT(!dataservice_api_node_ref_is_beginning(NOT_BEGINNING));
+END_TEST_F()
 
 /**
  * Test that dataservice_api_node_ref_is_beginning matches against an end node.
  */
-TEST_F(dataservice_test, node_ref_is_end)
-{
+BEGIN_TEST_F(node_ref_is_end)
     const uint8_t END[16] = {
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
@@ -3905,15 +4020,14 @@ TEST_F(dataservice_test, node_ref_is_end)
         0x95, 0x28, 0x3a, 0xb2, 0x55, 0x15, 0xbc, 0x05
     };
 
-    EXPECT_TRUE(dataservice_api_node_ref_is_end(END));
-    EXPECT_FALSE(dataservice_api_node_ref_is_end(NOT_END));
-}
+    TEST_EXPECT(dataservice_api_node_ref_is_end(END));
+    TEST_EXPECT(!dataservice_api_node_ref_is_end(NOT_END));
+END_TEST_F()
 
 /**
  * Getting the root block's next block id succeeds once we make a block.
  */
-TEST_F(dataservice_test, transaction_empty_root_next_block_id)
-{
+BEGIN_TEST_F(transaction_empty_root_next_block_id)
     uint8_t foo_key[16] = {
         0x9b, 0xfe, 0xec, 0xc9, 0x28, 0x5d, 0x44, 0xba,
         0x84, 0xdf, 0xd6, 0xfd, 0x3e, 0xe8, 0x79, 0x2f
@@ -3950,7 +4064,7 @@ TEST_F(dataservice_test, transaction_empty_root_next_block_id)
     uint8_t latest_block_id[16];
 
     /* create the directory for this test. */
-    ASSERT_EQ(0, createDirectoryName(__COUNTER__, DB_PATH));
+    TEST_ASSERT(0 == fixture.createDirectoryName(__COUNTER__, DB_PATH));
 
     BITCAP(reducedcaps, DATASERVICE_API_CAP_BITS_MAX);
 
@@ -3963,10 +4077,10 @@ TEST_F(dataservice_test, transaction_empty_root_next_block_id)
     BITCAP_SET_TRUE(ctx.apicaps, DATASERVICE_API_CAP_LL_ROOT_CONTEXT_CREATE);
 
     /* initialize the root context given a test data directory. */
-    ASSERT_EQ(
-        0,
-        dataservice_root_context_init(
-            &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
+    TEST_ASSERT(
+        0
+            == dataservice_root_context_init(
+                    &ctx, DEFAULT_DATABASE_SIZE, DB_PATH.c_str()));
 
     /* create a reduced capabilities set for the child context. */
     BITCAP_INIT_FALSE(reducedcaps);
@@ -3993,139 +4107,161 @@ TEST_F(dataservice_test, transaction_empty_root_next_block_id)
         DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CREATE);
 
     /* create a child context using this reduced capabilities set. */
-    ASSERT_EQ(0, dataservice_child_context_create(&ctx, &child, reducedcaps));
+    TEST_ASSERT(
+        0 == dataservice_child_context_create(&ctx, &child, reducedcaps));
 
     /* verify that our block does not exist. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_block_get(
-            &child, nullptr, foo_block_id, &block_node,
-            &block_txn_bytes, &block_txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_block_get(
+                    &child, nullptr, foo_block_id, &block_node,
+                    &block_txn_bytes, &block_txn_size));
 
     /* verify that a block ID does not exist for block height 1. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_block_id_by_height_get(
-            &child, nullptr, 1, block_id_for_height_1));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_block_id_by_height_get(
+                    &child, nullptr, 1, block_id_for_height_1));
 
     /* verify that the latest block id get call returns the root UUID. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_latest_block_id_get(
-            &child, nullptr, latest_block_id));
-    ASSERT_EQ(0, memcmp(latest_block_id, vccert_certificate_type_uuid_root_block, 16));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_latest_block_id_get(
+                    &child, nullptr, latest_block_id));
+    TEST_ASSERT(
+        0
+            == memcmp(
+                    latest_block_id, vccert_certificate_type_uuid_root_block,
+                    16));
 
     /* verify that if we try to get the root block id, we get nothing. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_block_get(
-            &child, nullptr, vccert_certificate_type_uuid_root_block,
-            &block_node, &block_txn_bytes, &block_txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_block_get(
+                    &child, nullptr, vccert_certificate_type_uuid_root_block,
+                    &block_node, &block_txn_bytes, &block_txn_size));
 
     /* verify that our artifact does not exist. */
     /* getting the artifact record by artifact id should return not found. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_artifact_get(
-            &child, nullptr, foo_artifact, &foo_artifact_record));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_artifact_get(
+                    &child, nullptr, foo_artifact, &foo_artifact_record));
 
     /* create foo transaction. */
-    ASSERT_EQ(0,
-        create_dummy_transaction(
-            foo_key, foo_prev, foo_artifact, &foo_cert, &foo_cert_length));
+    TEST_ASSERT(
+        0
+            == fixture.create_dummy_transaction(
+                    foo_key, foo_prev, foo_artifact, &foo_cert,
+                    &foo_cert_length));
 
     /* submit foo transaction. */
-    ASSERT_EQ(0,
-        dataservice_transaction_submit(
-            &child, nullptr, foo_key, foo_artifact, foo_cert,
-            foo_cert_length));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_submit(
+                    &child, nullptr, foo_key, foo_artifact, foo_cert,
+                    foo_cert_length));
 
     /* getting the transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
     free(txn_bytes);
 
     /* create foo block. */
-    ASSERT_EQ(0,
-        create_dummy_block(
-            &builder_opts,
-            foo_block_id, vccert_certificate_type_uuid_root_block, 1,
-            &foo_block_cert, &foo_block_cert_length,
-            foo_cert, foo_cert_length,
-            nullptr));
+    TEST_ASSERT(
+        0
+            == create_dummy_block(
+                    &fixture.builder_opts, foo_block_id,
+                    vccert_certificate_type_uuid_root_block, 1, &foo_block_cert,
+                    &foo_block_cert_length, foo_cert, foo_cert_length,
+                    nullptr));
 
     /* getting the block transaction by id should return not found. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_block_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_block_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* make block. */
-    ASSERT_EQ(0,
-        dataservice_block_make(
-            &child, nullptr, foo_block_id,
-            foo_block_cert, foo_block_cert_length));
+    TEST_ASSERT(
+        0
+            == dataservice_block_make(
+                    &child, nullptr, foo_block_id, foo_block_cert,
+                    foo_block_cert_length));
 
     /* getting the transaction by id should return not found. */
-    ASSERT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND,
-        dataservice_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        AGENTD_ERROR_DATASERVICE_NOT_FOUND
+            == dataservice_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
 
     /* getting the block transaction by id should return success. */
-    ASSERT_EQ(0,
-        dataservice_block_transaction_get(
-            &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_block_transaction_get(
+                    &child, nullptr, foo_key, &node, &txn_bytes, &txn_size));
     free(txn_bytes);
 
     /* getting the block record by block id should return success. */
-    ASSERT_EQ(0,
-        dataservice_block_get(
-            &child, nullptr, foo_block_id, &block_node,
-            &block_txn_bytes, &block_txn_size));
+    TEST_ASSERT(
+        0
+            == dataservice_block_get(
+                    &child, nullptr, foo_block_id, &block_node,
+                    &block_txn_bytes, &block_txn_size));
     /* the key should match our block id. */
-    ASSERT_EQ(0, memcmp(block_node.key, foo_block_id, 16));
-    ASSERT_EQ(0, memcmp(block_node.first_transaction_id, foo_key, 16));
-    ASSERT_EQ(1U, ntohll(block_node.net_block_height));
+    TEST_ASSERT(0 == memcmp(block_node.key, foo_block_id, 16));
+    TEST_ASSERT(0 == memcmp(block_node.first_transaction_id, foo_key, 16));
+    TEST_ASSERT(1U == ntohll(block_node.net_block_height));
 
     /* verify that a block ID exists for block height 1. */
-    ASSERT_EQ(0,
-        dataservice_block_id_by_height_get(
-            &child, nullptr, 1, block_id_for_height_1));
+    TEST_ASSERT(
+        0
+            == dataservice_block_id_by_height_get(
+                    &child, nullptr, 1, block_id_for_height_1));
     /* this block ID matches our block ID. */
-    EXPECT_EQ(0, memcmp(foo_block_id, block_id_for_height_1, 16));
+    TEST_EXPECT(0 == memcmp(foo_block_id, block_id_for_height_1, 16));
 
     /* verify that the latest block id matches our block id. */
-    ASSERT_EQ(0,
-        dataservice_latest_block_id_get(
-            &child, nullptr, latest_block_id));
+    TEST_ASSERT(
+        0
+            == dataservice_latest_block_id_get(
+                    &child, nullptr, latest_block_id));
     /* this block ID matches our block ID. */
-    EXPECT_EQ(0, memcmp(foo_block_id, latest_block_id, 16));
+    TEST_EXPECT(0 == memcmp(foo_block_id, latest_block_id, 16));
 
     /* getting the artifact record by artifact id should return success. */
-    ASSERT_EQ(0,
-        dataservice_artifact_get(
-            &child, nullptr, foo_artifact, &foo_artifact_record));
+    TEST_ASSERT(
+        0
+            == dataservice_artifact_get(
+                    &child, nullptr, foo_artifact, &foo_artifact_record));
     /* the key should match the artifact ID. */
-    ASSERT_EQ(0, memcmp(foo_artifact_record.key, foo_artifact, 16));
+    TEST_ASSERT(0 == memcmp(foo_artifact_record.key, foo_artifact, 16));
     /* the first transaction should be the foo transaction. */
-    ASSERT_EQ(0, memcmp(foo_artifact_record.txn_first, foo_key, 16));
+    TEST_ASSERT(0 == memcmp(foo_artifact_record.txn_first, foo_key, 16));
     /* the latest transaction should be the foo transaction. */
-    ASSERT_EQ(0, memcmp(foo_artifact_record.txn_latest, foo_key, 16));
+    TEST_ASSERT(0 == memcmp(foo_artifact_record.txn_latest, foo_key, 16));
     /* the first height for this artifact should be 1. */
-    ASSERT_EQ(1U, ntohll(foo_artifact_record.net_height_first));
+    TEST_ASSERT(1U == ntohll(foo_artifact_record.net_height_first));
     /* the latest height for this artifact should be 1. */
-    ASSERT_EQ(1U, ntohll(foo_artifact_record.net_height_latest));
+    TEST_ASSERT(1U == ntohll(foo_artifact_record.net_height_latest));
 
     /* verify that if we try to get the root block id, we get nothing. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_block_get(
-            &child, nullptr, vccert_certificate_type_uuid_root_block,
-            &block_node, &root_block_txn_bytes, &root_block_txn_size));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_block_get(
+                    &child, nullptr, vccert_certificate_type_uuid_root_block,
+                    &block_node, &root_block_txn_bytes, &root_block_txn_size));
 
     /* the next value should be our block. */
-    EXPECT_EQ(0, memcmp(foo_block_id, block_node.next, 16));
-    ASSERT_NE(nullptr, root_block_txn_bytes);
-    ASSERT_EQ(0U, root_block_txn_size);
+    TEST_EXPECT(0 == memcmp(foo_block_id, block_node.next, 16));
+    TEST_ASSERT(nullptr != root_block_txn_bytes);
+    TEST_ASSERT(0U == root_block_txn_size);
 
     /* clean up. */
     dispose((disposable_t*)&ctx);
     free(foo_cert);
     free(foo_block_cert);
     free(block_txn_bytes);
-}
-#endif
+END_TEST_F()

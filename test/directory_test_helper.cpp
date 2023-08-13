@@ -3,7 +3,7 @@
  *
  * Helper class for managing building unique test directory names.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <cstring>
@@ -17,7 +17,7 @@ const uint8_t directory_test_helper::zero_uuid[16] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-void directory_test_helper::SetUp(const uint8_t* _dir_key, const char* dir_path)
+void directory_test_helper::setUp(const uint8_t* _dir_key, const char* dir_path)
 {
     memcpy(dir_key, _dir_key, 32);
     dbDirPath = strdup(dir_path);
@@ -31,7 +31,7 @@ void directory_test_helper::SetUp(const uint8_t* _dir_key, const char* dir_path)
             VCCRYPT_BLOCK_ALGORITHM_AES_256_2X_CBC);
 }
 
-void directory_test_helper::TearDown()
+void directory_test_helper::tearDown()
 {
     if (dircrypt_options_init_result == 0)
     {
