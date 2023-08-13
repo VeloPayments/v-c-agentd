@@ -3,14 +3,11 @@
  *
  * Helpers for the dataservice unit test.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <vccert/fields.h>
 #include <vccert/certificate_types.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_dataservice.h"
 
@@ -38,7 +35,7 @@ const uint8_t dataservice_test::zero_uuid[16] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-void dataservice_test::SetUp()
+void dataservice_test::setUp()
 {
     vccrypt_suite_register_velo_v1();
     vccrypt_block_register_AES_256_2X_CBC();
@@ -54,12 +51,12 @@ void dataservice_test::SetUp()
         vccert_builder_options_init(
             &builder_opts, &alloc_opts, &crypto_suite);
 
-    directory_test_helper::SetUp(dir_key, "build/host/checked/databases/");
+    directory_test_helper::setUp(dir_key, "build/host/checked/databases/");
 }
 
-void dataservice_test::TearDown()
+void dataservice_test::tearDown()
 {
-    directory_test_helper::TearDown();
+    directory_test_helper::tearDown();
 
     if (builder_opts_init_result == 0)
     {
@@ -324,4 +321,3 @@ dispose_builder:
 done:
     return retval;
 }
-#endif

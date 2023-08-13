@@ -3,7 +3,7 @@
  *
  * Helper class for managing building unique test directory names.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_DIRECTORY_TEST_HELPER_HEADER_GUARD
@@ -20,9 +20,9 @@
 #endif /*! defined(__cplusplus)*/
 
 class directory_test_helper {
-protected:
-    void SetUp(const uint8_t* _dir_key, const char* dir_path);
-    void TearDown();
+public:
+    void setUp(const uint8_t* _dir_key, const char* dir_path);
+    void tearDown();
 
     int setDirectoryName(std::uint64_t offset, std::string& dname);
     int createDirectoryName(std::uint64_t arg, std::string& dname);
