@@ -25,14 +25,14 @@ PACKAGE_NAME=agentd-${1}.tar.xz
 CONF_FILE=$2
 
 #get the TAR binary
-TAR=`which gtar`
+TAR=`which gtar 2>/dev/null`
 if [ "$TAR" == "" ]; then
-TAR=`which tar`
+TAR=`which tar 2>/dev/null`
 fi
 
 #verify that this is GNU Tar
 if ($TAR --version | grep -q GNU); then
-echo "GNU tar detected."
+    : #do nothing
 else
 echo "GNU tar required."
 exit 1
