@@ -3,38 +3,40 @@
  *
  * Test the boostrap configuration functions.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/bootstrap_config.h>
+#include <cstdlib>
+#include <cstring>
+#include <minunit/minunit.h>
 #include <vpr/disposable.h>
 
-/* GTEST DISABLED */
-#if 0
-
 using namespace std;
+
+TEST_SUITE(bootstrap_config_test);
 
 /**
  * \brief Initializing the bootstrap config structure empties all values.
  */
-TEST(bootstrap_config_test, bootstrap_config_init)
+TEST(bootstrap_config_init)
 {
     bootstrap_config_t bconf;
 
     bootstrap_config_init(&bconf);
 
     /* by default, agentd runs as a daemon. */
-    EXPECT_FALSE(bconf.foreground);
+    TEST_EXPECT(!bconf.foreground);
     /* by default, command is NULL. */
-    EXPECT_EQ(nullptr, bconf.command);
+    TEST_EXPECT(nullptr == bconf.command);
     /* by default, private_command is NULL. */
-    EXPECT_EQ(nullptr, bconf.private_command);
+    TEST_EXPECT(nullptr == bconf.private_command);
     /* by default, the config file is set to /etc/agentd.conf. */
-    EXPECT_STREQ("/etc/agentd.conf", bconf.config_file);
+    TEST_EXPECT(!strcmp("/etc/agentd.conf", bconf.config_file));
     /* by default, config_file_override is false. */
-    EXPECT_FALSE(bconf.config_file_override);
+    TEST_EXPECT(!bconf.config_file_override);
     /* by default, init mode is set to false. */
-    EXPECT_FALSE(bconf.init_mode);
+    TEST_EXPECT(!bconf.init_mode);
 
     dispose((disposable_t*)&bconf);
 }
@@ -42,20 +44,20 @@ TEST(bootstrap_config_test, bootstrap_config_init)
 /**
  * \brief bootstrap_config_set_foreground sets the foreground field.
  */
-TEST(bootstrap_config_test, bootstrap_config_set_foreground)
+TEST(bootstrap_config_set_foreground)
 {
     bootstrap_config_t bconf;
 
     bootstrap_config_init(&bconf);
 
     /* Precondition: foreground is false. */
-    ASSERT_FALSE(bconf.foreground);
+    TEST_ASSERT(!bconf.foreground);
 
     /* run bootstrap_config_set_foreground. */
     bootstrap_config_set_foreground(&bconf, true);
 
     /* Postcondition: foreground is true. */
-    EXPECT_TRUE(bconf.foreground);
+    TEST_EXPECT(bconf.foreground);
 
     dispose((disposable_t*)&bconf);
 }
@@ -63,20 +65,20 @@ TEST(bootstrap_config_test, bootstrap_config_set_foreground)
 /**
  * \brief bootstrap_config_set_init_mode sets the init_mode field.
  */
-TEST(bootstrap_config_test, bootstrap_config_set_init_mode)
+TEST(bootstrap_config_set_init_mode)
 {
     bootstrap_config_t bconf;
 
     bootstrap_config_init(&bconf);
 
     /* Precondition: foreground is false. */
-    ASSERT_FALSE(bconf.init_mode);
+    TEST_ASSERT(!bconf.init_mode);
 
     /* run bootstrap_config_set_init_mode. */
     bootstrap_config_set_init_mode(&bconf, true);
 
     /* Postcondition: foreground is true. */
-    EXPECT_TRUE(bconf.init_mode);
+    TEST_EXPECT(bconf.init_mode);
 
     dispose((disposable_t*)&bconf);
 }
@@ -84,20 +86,20 @@ TEST(bootstrap_config_test, bootstrap_config_set_init_mode)
 /**
  * \brief bootstrap_config_set_command sets the command field.
  */
-TEST(bootstrap_config_test, bootstrap_config_set_command)
+TEST(bootstrap_config_set_command)
 {
     bootstrap_config_t bconf;
 
     bootstrap_config_init(&bconf);
 
     /* Precondition: command is NULL. */
-    ASSERT_EQ(nullptr, bconf.command);
+    TEST_ASSERT(nullptr == bconf.command);
 
     /* run bootstrap_config_set_command. */
     bootstrap_config_set_command(&bconf, (bootstrap_config_command_t)0x1234);
 
     /* Postcondition: command is set. */
-    EXPECT_EQ((bootstrap_config_command_t)0x1234, bconf.command);
+    TEST_EXPECT((bootstrap_config_command_t)0x1234 == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -105,22 +107,22 @@ TEST(bootstrap_config_test, bootstrap_config_set_command)
 /**
  * \brief bootstrap_config_set_private_command sets the private_command field.
  */
-TEST(bootstrap_config_test, bootstrap_config_set_private_command)
+TEST(bootstrap_config_set_private_command)
 {
     bootstrap_config_t bconf;
 
     bootstrap_config_init(&bconf);
 
     /* Precondition: private_command is NULL. */
-    ASSERT_EQ(nullptr, bconf.private_command);
+    TEST_ASSERT(nullptr == bconf.private_command);
 
     /* run bootstrap_config_set_private_command. */
     bootstrap_config_set_private_command(
         &bconf, (bootstrap_config_private_command_t)0x1234);
 
     /* Postcondition: private_command is set. */
-    EXPECT_EQ(
-        (bootstrap_config_private_command_t)0x1234, bconf.private_command);
+    TEST_EXPECT(
+        (bootstrap_config_private_command_t)0x1234 == bconf.private_command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -128,24 +130,24 @@ TEST(bootstrap_config_test, bootstrap_config_set_private_command)
 /**
  * \brief bootstrap_config_set_config_file sets the config file.
  */
-TEST(bootstrap_config_test, bootstrap_config_set_config_file)
+TEST(bootstrap_config_set_config_file)
 {
     bootstrap_config_t bconf;
 
     bootstrap_config_init(&bconf);
 
     /* Precondition: config file is set to the default name. */
-    ASSERT_STREQ("/etc/agentd.conf", bconf.config_file);
+    TEST_ASSERT(!strcmp("/etc/agentd.conf", bconf.config_file));
     /* Precondition: config file override is false. */
-    ASSERT_FALSE(bconf.config_file_override);
+    TEST_ASSERT(!bconf.config_file_override);
 
     /* Change the config file location. */
     bootstrap_config_set_config_file(&bconf, "etc/awesome_agentd.conf");
 
     /* Postcondition: config file is updated. */
-    EXPECT_STREQ("etc/awesome_agentd.conf", bconf.config_file);
+    TEST_EXPECT(!strcmp("etc/awesome_agentd.conf", bconf.config_file));
     /* Postcondition: config file override is true. */
-    EXPECT_TRUE(bconf.config_file_override);
+    TEST_EXPECT(bconf.config_file_override);
 
     dispose((disposable_t*)&bconf);
 }
@@ -154,7 +156,7 @@ TEST(bootstrap_config_test, bootstrap_config_set_config_file)
  * \brief bootstrap_config_set_binary sets the absolute location of the binary
  * provided.
  */
-TEST(bootstrap_config_test, bootstrap_config_set_binary)
+TEST(bootstrap_config_set_binary)
 {
     bootstrap_config_t bconf;
     const char* CATLOC = getenv("TEST_BIN");
@@ -162,13 +164,13 @@ TEST(bootstrap_config_test, bootstrap_config_set_binary)
     bootstrap_config_init(&bconf);
 
     /* Precondition: binary name is null by default. */
-    ASSERT_EQ(NULL, bconf.binary);
+    TEST_ASSERT(NULL == bconf.binary);
 
     /* Set the binary name. */
-    ASSERT_EQ(0, bootstrap_config_set_binary(&bconf, "cat"));
+    TEST_ASSERT(0 == bootstrap_config_set_binary(&bconf, "cat"));
 
     /* Postcondition: binary name is correct. */
-    EXPECT_STREQ(CATLOC, bconf.binary);
+    TEST_EXPECT(!strcmp(CATLOC, bconf.binary));
 
     dispose((disposable_t*)&bconf);
 }
@@ -176,18 +178,17 @@ TEST(bootstrap_config_test, bootstrap_config_set_binary)
 /**
  * \brief bootstrap_config_set_binary fails if the binary can't be found.
  */
-TEST(bootstrap_config_test, bootstrap_config_set_binary_bad_binary)
+TEST(bootstrap_config_set_binary_bad_binary)
 {
     bootstrap_config_t bconf;
 
     bootstrap_config_init(&bconf);
 
     /* Precondition: binary name is null by default. */
-    ASSERT_EQ(NULL, bconf.binary);
+    TEST_ASSERT(NULL == bconf.binary);
 
     /* Set the binary name. */
-    ASSERT_NE(0, bootstrap_config_set_binary(&bconf, "esathualceuhalrou"));
+    TEST_ASSERT(0 != bootstrap_config_set_binary(&bconf, "esathualceuhalrou"));
 
     dispose((disposable_t*)&bconf);
 }
-#endif
