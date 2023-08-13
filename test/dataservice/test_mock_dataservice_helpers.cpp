@@ -9,9 +9,6 @@
 #include <vccert/fields.h>
 #include <vccert/certificate_types.h>
 
-/* GTEST DISABLED */
-#if 0
-
 #include "test_mock_dataservice.h"
 
 using namespace std;
@@ -31,7 +28,7 @@ const uint8_t mock_dataservice_test::zero_uuid[16] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-void mock_dataservice_test::SetUp()
+void mock_dataservice_test::setUp()
 {
     vccrypt_suite_register_velo_v1();
     vccrypt_block_register_AES_256_2X_CBC();
@@ -58,7 +55,7 @@ void mock_dataservice_test::SetUp()
     nonblockdatasock_configured = false;
 }
 
-void mock_dataservice_test::TearDown()
+void mock_dataservice_test::tearDown()
 {
     /* destroy the mock dataservice. */
     mock.reset(nullptr);
@@ -244,4 +241,3 @@ void mock_dataservice_test::nonblock_write(
 
     that->onWrite();
 }
-#endif

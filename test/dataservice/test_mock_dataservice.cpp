@@ -3,28 +3,37 @@
  *
  * Test the mock data service private API.
  *
- * \copyright 2019-2022 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/dataservice/api.h>
 #include <agentd/status_codes.h>
+#include <minunit/minunit.h>
 #include <ostream>
 #include <vccert/certificate_types.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_mock_dataservice.h"
 #include "../mocks/dataservice.h"
 
 using namespace std;
 
+TEST_SUITE(mock_dataservice_test);
+
+#define BEGIN_TEST_F(name) \
+TEST(name) \
+{ \
+    mock_dataservice_test fixture; \
+    fixture.setUp();
+
+#define END_TEST_F() \
+    fixture.tearDown(); \
+}
+
 /**
  * If the artifact get mock callback is not set,
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_artifact_get)
-{
+BEGIN_TEST_F(default_artifact_get)
     data_artifact_record_t artifact_rec;
     uint8_t artifact_id[16] = {
         0x0b, 0x62, 0xf6, 0xdf, 0x44, 0xc4, 0x41, 0x3c,
@@ -35,23 +44,24 @@ TEST_F(mock_dataservice_test, default_artifact_get)
     uint32_t status = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_artifact_get_old(
-                        &nonblockdatasock, &offset, &status, &artifact_rec);
+                        &fixture.nonblockdatasock, &offset, &status,
+                        &artifact_rec);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -61,24 +71,23 @@ TEST_F(mock_dataservice_test, default_artifact_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_artifact_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        artifact_id);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, artifact_id);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent artifact get request.
  */
-TEST_F(mock_dataservice_test, matches_artifact_get)
-{
+BEGIN_TEST_F(matches_artifact_get)
     data_artifact_record_t artifact_rec;
     uint8_t artifact_id[16] = {
         0x0b, 0x62, 0xf6, 0xdf, 0x44, 0xc4, 0x41, 0x3c,
@@ -89,23 +98,24 @@ TEST_F(mock_dataservice_test, matches_artifact_get)
     uint32_t status = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_artifact_get_old(
-                        &nonblockdatasock, &offset, &status, &artifact_rec);
+                        &fixture.nonblockdatasock, &offset, &status,
+                        &artifact_rec);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -115,32 +125,31 @@ TEST_F(mock_dataservice_test, matches_artifact_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_artifact_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        artifact_id);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, artifact_id);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_payload_artifact_read(
+    TEST_EXPECT(
+        fixture.mock->request_matches_payload_artifact_read(
             child_context, artifact_id));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the artifact get request.
  */
-TEST_F(mock_dataservice_test, no_match_artifact_get)
-{
+BEGIN_TEST_F(no_match_artifact_get)
     uint8_t artifact_id[16] = {
         0x0b, 0x62, 0xf6, 0xdf, 0x44, 0xc4, 0x41, 0x3c,
         0xa7, 0xdc, 0xf2, 0x6f, 0xeb, 0x2e, 0xc6, 0x3a
@@ -148,23 +157,22 @@ TEST_F(mock_dataservice_test, no_match_artifact_get)
     uint32_t child_context = 1023;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* the match will fail. */
-    EXPECT_FALSE(
-        mock->request_matches_payload_artifact_read(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_payload_artifact_read(
             child_context, artifact_id));
-}
+END_TEST_F()
 
 /**
  * If the artifact get mock callback is set,
  * then the status code and data it returns is returned in the API call.
  */
-TEST_F(mock_dataservice_test, artifact_get_override)
-{
+BEGIN_TEST_F(artifact_get_override)
     data_artifact_record_t artifact_rec;
     uint8_t artifact_id[16] = {
         0x0b, 0x62, 0xf6, 0xdf, 0x44, 0xc4, 0x41, 0x3c,
@@ -186,7 +194,7 @@ TEST_F(mock_dataservice_test, artifact_get_override)
     const uint32_t ARTIFACT_STATE = 5;
 
     /* mock the artifact_get api call. */
-    mock->register_callback_payload_artifact_read(
+    fixture.mock->register_callback_payload_artifact_read(
         [&](const dataservice_request_payload_artifact_read_t&,
             std::ostream& payout) {
             void* payload = nullptr;
@@ -210,23 +218,24 @@ TEST_F(mock_dataservice_test, artifact_get_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_artifact_get_old(
-                        &nonblockdatasock, &offset, &status, &artifact_rec);
+                        &fixture.nonblockdatasock, &offset, &status,
+                        &artifact_rec);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -236,38 +245,38 @@ TEST_F(mock_dataservice_test, artifact_get_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_artifact_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        artifact_id);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, artifact_id);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the data key matches the artifact id. */
-    EXPECT_EQ(0, memcmp(artifact_id, artifact_rec.key, 16));
+    TEST_EXPECT(0 == memcmp(artifact_id, artifact_rec.key, 16));
     /* the data first txn matches our first txn. */
-    EXPECT_EQ(0, memcmp(txn_first_id, artifact_rec.txn_first, 16));
+    TEST_EXPECT(0 == memcmp(txn_first_id, artifact_rec.txn_first, 16));
     /* the data latest txn matches our latest txn. */
-    EXPECT_EQ(0, memcmp(txn_last_id, artifact_rec.txn_latest, 16));
+    TEST_EXPECT(0 == memcmp(txn_last_id, artifact_rec.txn_latest, 16));
     /* the first height matches. */
-    EXPECT_EQ((uint64_t)ntohll(TXN_HEIGHT_FIRST),
-        artifact_rec.net_height_first);
+    TEST_EXPECT(
+        (uint64_t)ntohll(TXN_HEIGHT_FIRST) == artifact_rec.net_height_first);
     /* the latest height matches. */
-    EXPECT_EQ((uint64_t)ntohll(TXN_HEIGHT_LAST),
-        artifact_rec.net_height_latest);
+    TEST_EXPECT(
+        (uint64_t)ntohll(TXN_HEIGHT_LAST) == artifact_rec.net_height_latest);
     /* the state matches. */
-    EXPECT_EQ((uint32_t)ntohl(ARTIFACT_STATE), artifact_rec.net_state_latest);
-}
+    TEST_EXPECT(
+        (uint32_t)ntohl(ARTIFACT_STATE) == artifact_rec.net_state_latest);
+END_TEST_F()
 
 /**
  * If the block id by height read mock is not set, then
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_block_id_by_height_read)
-{
+BEGIN_TEST_F(default_block_id_by_height_read)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -275,7 +284,7 @@ TEST_F(mock_dataservice_test, default_block_id_by_height_read)
     uint8_t block_id[16];
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* precondition: block id is zeroes. */
     memset(block_id, 0, sizeof(block_id));
@@ -283,18 +292,18 @@ TEST_F(mock_dataservice_test, default_block_id_by_height_read)
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_id_by_height_get_old(
-                        &nonblockdatasock, &offset, &status, block_id);
+                        &fixture.nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -304,23 +313,23 @@ TEST_F(mock_dataservice_test, default_block_id_by_height_read)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_id_by_height_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context, height);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, height);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent block id by height read request.
  */
-TEST_F(mock_dataservice_test, matches_block_id_by_height_read)
-{
+BEGIN_TEST_F(matches_block_id_by_height_read)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -328,7 +337,7 @@ TEST_F(mock_dataservice_test, matches_block_id_by_height_read)
     uint8_t block_id[16];
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* precondition: block id is zeroes. */
     memset(block_id, 0, sizeof(block_id));
@@ -336,18 +345,18 @@ TEST_F(mock_dataservice_test, matches_block_id_by_height_read)
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_id_by_height_get_old(
-                        &nonblockdatasock, &offset, &status, block_id);
+                        &fixture.nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -357,52 +366,51 @@ TEST_F(mock_dataservice_test, matches_block_id_by_height_read)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_id_by_height_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context, height);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, height);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_block_id_by_height_read(
+    TEST_EXPECT(
+        fixture.mock->request_matches_block_id_by_height_read(
             child_context, height));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the block id by height read request.
  */
-TEST_F(mock_dataservice_test, no_match_block_id_by_height_read)
-{
+BEGIN_TEST_F(no_match_block_id_by_height_read)
     uint32_t child_context = 1023;
     uint64_t height = 777;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_block_id_by_height_read(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_block_id_by_height_read(
             child_context, height));
-}
+END_TEST_F()
 
 /**
  * If the block id by height read mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, block_id_by_height_read_override)
-{
+BEGIN_TEST_F(block_id_by_height_read_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -414,7 +422,7 @@ TEST_F(mock_dataservice_test, block_id_by_height_read_override)
     };
 
     /* mock the block id by height api call. */
-    mock->register_callback_block_id_by_height_read(
+    fixture.mock->register_callback_block_id_by_height_read(
         [&](const dataservice_request_block_id_by_height_read_t&,
             std::ostream& payout) {
             void* payload = nullptr;
@@ -437,7 +445,7 @@ TEST_F(mock_dataservice_test, block_id_by_height_read_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* precondition: block id is zeroes. */
     memset(block_id, 0, sizeof(block_id));
@@ -445,18 +453,18 @@ TEST_F(mock_dataservice_test, block_id_by_height_read_override)
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_id_by_height_get_old(
-                        &nonblockdatasock, &offset, &status, block_id);
+                        &fixture.nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -466,32 +474,32 @@ TEST_F(mock_dataservice_test, block_id_by_height_read_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_id_by_height_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context, height);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, height);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the block id should be the expected block id. */
-    EXPECT_EQ(0, memcmp(block_id, EXPECTED_BLOCK_ID, 16));
-}
+    TEST_EXPECT(0 == memcmp(block_id, EXPECTED_BLOCK_ID, 16));
+END_TEST_F()
 
 /**
  * If the block id latest read mock is not set, then
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_block_id_latest_read)
-{
+BEGIN_TEST_F(default_block_id_latest_read)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
     uint8_t block_id[16];
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* precondition: block id is zeroes. */
     memset(block_id, 0, sizeof(block_id));
@@ -499,18 +507,18 @@ TEST_F(mock_dataservice_test, default_block_id_latest_read)
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_latest_block_id_get_old(
-                        &nonblockdatasock, &offset, &status, block_id);
+                        &fixture.nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -520,30 +528,30 @@ TEST_F(mock_dataservice_test, default_block_id_latest_read)
             {
                 sendreq_status =
                     dataservice_api_sendreq_latest_block_id_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent block id latest read request.
  */
-TEST_F(mock_dataservice_test, matches_block_id_latest_read)
-{
+BEGIN_TEST_F(matches_block_id_latest_read)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
     uint8_t block_id[16];
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* precondition: block id is zeroes. */
     memset(block_id, 0, sizeof(block_id));
@@ -551,18 +559,18 @@ TEST_F(mock_dataservice_test, matches_block_id_latest_read)
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_latest_block_id_get_old(
-                        &nonblockdatasock, &offset, &status, block_id);
+                        &fixture.nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -572,51 +580,50 @@ TEST_F(mock_dataservice_test, matches_block_id_latest_read)
             {
                 sendreq_status =
                     dataservice_api_sendreq_latest_block_id_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_block_id_latest_read(
+    TEST_EXPECT(
+        fixture.mock->request_matches_block_id_latest_read(
             child_context));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the block id latest read request.
  */
-TEST_F(mock_dataservice_test, no_match_block_id_latest_read)
-{
+BEGIN_TEST_F(no_match_block_id_latest_read)
     uint32_t child_context = 1023;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_block_id_latest_read(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_block_id_latest_read(
             child_context));
-}
+END_TEST_F()
 
 /**
  * If the block id latest read mock is set, then
  * the status code and data it returns is returned in the api cal.
  */
-TEST_F(mock_dataservice_test, block_id_latest_read_override)
-{
+BEGIN_TEST_F(block_id_latest_read_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -627,7 +634,7 @@ TEST_F(mock_dataservice_test, block_id_latest_read_override)
     };
 
     /* mock the latest block id api call. */
-    mock->register_callback_block_id_latest_read(
+    fixture.mock->register_callback_block_id_latest_read(
         [&](const dataservice_request_block_id_latest_read_t&,
             std::ostream& payout) {
             void* payload = nullptr;
@@ -650,7 +657,7 @@ TEST_F(mock_dataservice_test, block_id_latest_read_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* precondition: block id is zeroes. */
     memset(block_id, 0, sizeof(block_id));
@@ -658,18 +665,18 @@ TEST_F(mock_dataservice_test, block_id_latest_read_override)
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_latest_block_id_get_old(
-                        &nonblockdatasock, &offset, &status, block_id);
+                        &fixture.nonblockdatasock, &offset, &status, block_id);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -679,25 +686,25 @@ TEST_F(mock_dataservice_test, block_id_latest_read_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_latest_block_id_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the block id should be the expected block id. */
-    EXPECT_EQ(0, memcmp(block_id, EXPECTED_BLOCK_ID, 16));
-}
+    TEST_EXPECT(0 == memcmp(block_id, EXPECTED_BLOCK_ID, 16));
+END_TEST_F()
 
 /**
  * If the block make mock is not set, then
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_block_make)
-{
+BEGIN_TEST_F(default_block_make)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -708,23 +715,23 @@ TEST_F(mock_dataservice_test, default_block_make)
     const uint8_t EXPECTED_BLOCK_CERT[4] = { 0x00, 0x01, 0x02, 0x03 };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_make_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -734,25 +741,24 @@ TEST_F(mock_dataservice_test, default_block_make)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_make_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
                         sizeof(EXPECTED_BLOCK_CERT));
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match agaist the sent block make request.
  */
-TEST_F(mock_dataservice_test, matches_block_make)
-{
+BEGIN_TEST_F(matches_block_make)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -763,23 +769,23 @@ TEST_F(mock_dataservice_test, matches_block_make)
     const uint8_t EXPECTED_BLOCK_CERT[4] = { 0x00, 0x01, 0x02, 0x03 };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_make_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -789,34 +795,33 @@ TEST_F(mock_dataservice_test, matches_block_make)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_make_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
                         sizeof(EXPECTED_BLOCK_CERT));
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_block_make(
+    TEST_EXPECT(
+        fixture.mock->request_matches_block_make(
             child_context, EXPECTED_BLOCK_ID, sizeof(EXPECTED_BLOCK_CERT),
             EXPECTED_BLOCK_CERT));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match agaist the block make request.
  */
-TEST_F(mock_dataservice_test, no_match_block_make)
-{
+BEGIN_TEST_F(no_match_block_make)
     uint32_t child_context = 1023;
     const uint8_t EXPECTED_BLOCK_ID[16] = {
         0xcc, 0x05, 0x7c, 0xf1, 0xa2, 0x80, 0x45, 0x33,
@@ -825,24 +830,23 @@ TEST_F(mock_dataservice_test, no_match_block_make)
     const uint8_t EXPECTED_BLOCK_CERT[4] = { 0x00, 0x01, 0x02, 0x03 };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_block_make(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_block_make(
             child_context, EXPECTED_BLOCK_ID, sizeof(EXPECTED_BLOCK_CERT),
             EXPECTED_BLOCK_CERT));
-}
+END_TEST_F()
 
 /**
  * If the block make mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, block_make_override)
-{
+BEGIN_TEST_F(block_make_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -853,7 +857,7 @@ TEST_F(mock_dataservice_test, block_make_override)
     const uint8_t EXPECTED_BLOCK_CERT[4] = { 0x00, 0x01, 0x02, 0x03 };
 
     /* mock the block make api call. */
-    mock->register_callback_block_make(
+    fixture.mock->register_callback_block_make(
         [&](const dataservice_request_block_make_t&,
             std::ostream&) {
             /* success. */
@@ -861,23 +865,23 @@ TEST_F(mock_dataservice_test, block_make_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_make_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -887,25 +891,24 @@ TEST_F(mock_dataservice_test, block_make_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_make_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_BLOCK_ID, EXPECTED_BLOCK_CERT,
                         sizeof(EXPECTED_BLOCK_CERT));
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
-}
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
+END_TEST_F()
 
 /**
  * If the block read mock is not set, then
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_block_read)
-{
+BEGIN_TEST_F(default_block_read)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -918,24 +921,24 @@ TEST_F(mock_dataservice_test, default_block_read)
     size_t data_size = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_get_old(
-                        &nonblockdatasock, &offset, &status, &block_node,
+                        &fixture.nonblockdatasock, &offset, &status, &block_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -945,24 +948,23 @@ TEST_F(mock_dataservice_test, default_block_read)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_BLOCK_ID, true);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_BLOCK_ID, true);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the block read request.
  */
-TEST_F(mock_dataservice_test, matches_block_read)
-{
+BEGIN_TEST_F(matches_block_read)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -975,24 +977,24 @@ TEST_F(mock_dataservice_test, matches_block_read)
     size_t data_size = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_get_old(
-                        &nonblockdatasock, &offset, &status, &block_node,
+                        &fixture.nonblockdatasock, &offset, &status, &block_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1002,32 +1004,31 @@ TEST_F(mock_dataservice_test, matches_block_read)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_BLOCK_ID, true);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_BLOCK_ID, true);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_block_read(
+    TEST_EXPECT(
+        fixture.mock->request_matches_block_read(
             child_context, EXPECTED_BLOCK_ID));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the block read request.
  */
-TEST_F(mock_dataservice_test, no_match_block_read)
-{
+BEGIN_TEST_F(no_match_block_read)
     uint32_t child_context = 1023;
     const uint8_t EXPECTED_BLOCK_ID[16] = {
         0x77, 0xee, 0xdd, 0xe5, 0xf7, 0x1b, 0x4f, 0x36,
@@ -1035,23 +1036,22 @@ TEST_F(mock_dataservice_test, no_match_block_read)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_block_read(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_block_read(
             child_context, EXPECTED_BLOCK_ID));
-}
+END_TEST_F()
 
 /**
  * If the block read mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, block_read_override)
-{
+BEGIN_TEST_F(block_read_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -1079,7 +1079,7 @@ TEST_F(mock_dataservice_test, block_read_override)
     size_t data_size = 0U;
 
     /* mock the block read api call. */
-    mock->register_callback_block_read(
+    fixture.mock->register_callback_block_read(
         [&](const dataservice_request_block_read_t&,
             std::ostream& payout) {
             void* payload = nullptr;
@@ -1087,9 +1087,10 @@ TEST_F(mock_dataservice_test, block_read_override)
 
             int retval =
                 dataservice_encode_response_block_read(
-                    &payload, &payload_size, EXPECTED_BLOCK_ID, EXPECTED_PREV_ID,
-                    EXPECTED_NEXT_ID, EXPECTED_FIRST_TXN_ID, EXPECTED_BLOCK_HEIGHT,
-                    true, EXPECTED_CERT, EXPECTED_CERT_SIZE);
+                    &payload, &payload_size, EXPECTED_BLOCK_ID,
+                    EXPECTED_PREV_ID, EXPECTED_NEXT_ID, EXPECTED_FIRST_TXN_ID,
+                    EXPECTED_BLOCK_HEIGHT, true, EXPECTED_CERT,
+                    EXPECTED_CERT_SIZE);
             if (AGENTD_STATUS_SUCCESS != retval)
                 return retval;
 
@@ -1104,24 +1105,24 @@ TEST_F(mock_dataservice_test, block_read_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_block_get_old(
-                        &nonblockdatasock, &offset, &status, &block_node,
-                        &data, &data_size);
+                        &fixture.nonblockdatasock, &offset, &status,
+                        &block_node, &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1131,37 +1132,39 @@ TEST_F(mock_dataservice_test, block_read_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_block_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_BLOCK_ID, true);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_BLOCK_ID, true);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the node data is correct. */
-    EXPECT_EQ(0, memcmp(EXPECTED_BLOCK_ID, block_node.key, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_PREV_ID, block_node.prev, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_NEXT_ID, block_node.next, 16));
-    EXPECT_EQ(0,
-        memcmp(EXPECTED_FIRST_TXN_ID, block_node.first_transaction_id, 16));
-    EXPECT_EQ((int64_t)EXPECTED_BLOCK_HEIGHT,
-        ntohll(block_node.net_block_height));
-    EXPECT_EQ((int64_t)EXPECTED_CERT_SIZE,
-        ntohll(block_node.net_block_cert_size));
-    ASSERT_EQ(EXPECTED_CERT_SIZE, data_size);
-    ASSERT_NE(nullptr, data);
-    EXPECT_EQ(0, memcmp(EXPECTED_CERT, data, data_size));
-}
+    TEST_EXPECT(0 == memcmp(EXPECTED_BLOCK_ID, block_node.key, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_PREV_ID, block_node.prev, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_NEXT_ID, block_node.next, 16));
+    TEST_EXPECT(
+        0
+            == memcmp(
+                    EXPECTED_FIRST_TXN_ID, block_node.first_transaction_id,
+                    16));
+    TEST_EXPECT(
+        (int64_t)EXPECTED_BLOCK_HEIGHT == ntohll(block_node.net_block_height));
+    TEST_EXPECT(
+        (int64_t)EXPECTED_CERT_SIZE == ntohll(block_node.net_block_cert_size));
+    TEST_ASSERT(EXPECTED_CERT_SIZE == data_size);
+    TEST_ASSERT(nullptr != data);
+    TEST_EXPECT(0 == memcmp(EXPECTED_CERT, data, data_size));
+END_TEST_F()
 
 /**
  * If the canonized transaction get mock is not set,
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_canonized_transaction_get)
-{
+BEGIN_TEST_F(default_canonized_transaction_get)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -1174,24 +1177,24 @@ TEST_F(mock_dataservice_test, default_canonized_transaction_get)
     size_t data_size = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_canonized_transaction_get_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1201,24 +1204,23 @@ TEST_F(mock_dataservice_test, default_canonized_transaction_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_canonized_transaction_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID, true);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID, true);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent canonized transaction get request.
  */
-TEST_F(mock_dataservice_test, matches_canonized_transaction_get)
-{
+BEGIN_TEST_F(matches_canonized_transaction_get)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -1231,24 +1233,24 @@ TEST_F(mock_dataservice_test, matches_canonized_transaction_get)
     size_t data_size = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_canonized_transaction_get_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1258,32 +1260,31 @@ TEST_F(mock_dataservice_test, matches_canonized_transaction_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_canonized_transaction_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID, true);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID, true);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_canonized_transaction_get(
+    TEST_EXPECT(
+        fixture.mock->request_matches_canonized_transaction_get(
             child_context, EXPECTED_TXN_ID));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the canonized transaction get request.
  */
-TEST_F(mock_dataservice_test, no_match_canonized_transaction_get)
-{
+BEGIN_TEST_F(no_match_canonized_transaction_get)
     uint32_t child_context = 1023;
     const uint8_t EXPECTED_TXN_ID[16] = {
         0x82, 0xfd, 0xa8, 0xd1, 0x6e, 0x45, 0x4e, 0xbf,
@@ -1291,23 +1292,22 @@ TEST_F(mock_dataservice_test, no_match_canonized_transaction_get)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_canonized_transaction_get(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_canonized_transaction_get(
             child_context, EXPECTED_TXN_ID));
-}
+END_TEST_F()
 
 /**
  * If the canonized transaction get mock is set,
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, canonized_transaction_get_override)
-{
+BEGIN_TEST_F(canonized_transaction_get_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -1340,7 +1340,7 @@ TEST_F(mock_dataservice_test, canonized_transaction_get_override)
     size_t data_size = 0U;
 
     /* mock the canonized transaction read api call. */
-    mock->register_callback_canonized_transaction_get(
+    fixture.mock->register_callback_canonized_transaction_get(
         [&](const dataservice_request_canonized_transaction_get_t&,
             std::ostream& payout) {
             void* payload = nullptr;
@@ -1366,24 +1366,24 @@ TEST_F(mock_dataservice_test, canonized_transaction_get_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_canonized_transaction_get_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1393,56 +1393,56 @@ TEST_F(mock_dataservice_test, canonized_transaction_get_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_canonized_transaction_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID, true);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID, true);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the node data is correct. */
-    EXPECT_EQ(0, memcmp(EXPECTED_TXN_ID, txn_node.key, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_PREV_ID, txn_node.prev, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_NEXT_ID, txn_node.next, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_ARTIFACT_ID, txn_node.artifact_id, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_BLOCK_ID, txn_node.block_id, 16));
-    EXPECT_EQ((int64_t)EXPECTED_CERT_SIZE, ntohll(txn_node.net_txn_cert_size));
-    ASSERT_EQ(EXPECTED_CERT_SIZE, data_size);
-    ASSERT_NE(nullptr, data);
-    EXPECT_EQ(0, memcmp(EXPECTED_CERT, data, data_size));
-}
+    TEST_EXPECT(0 == memcmp(EXPECTED_TXN_ID, txn_node.key, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_PREV_ID, txn_node.prev, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_NEXT_ID, txn_node.next, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_ARTIFACT_ID, txn_node.artifact_id, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_BLOCK_ID, txn_node.block_id, 16));
+    TEST_EXPECT(
+        (int64_t)EXPECTED_CERT_SIZE == ntohll(txn_node.net_txn_cert_size));
+    TEST_ASSERT(EXPECTED_CERT_SIZE == data_size);
+    TEST_ASSERT(nullptr != data);
+    TEST_EXPECT(0 == memcmp(EXPECTED_CERT, data, data_size));
+END_TEST_F()
 
 /**
  * If the child context close mock is not set,
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_child_context_close)
-{
+BEGIN_TEST_F(default_child_context_close)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_child_context_close_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1452,45 +1452,45 @@ TEST_F(mock_dataservice_test, default_child_context_close)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent artifact get request.
  */
-TEST_F(mock_dataservice_test, matches_child_context_close)
-{
+BEGIN_TEST_F(matches_child_context_close)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_child_context_close_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1500,57 +1500,56 @@ TEST_F(mock_dataservice_test, matches_child_context_close)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_child_context_close(
+    TEST_EXPECT(
+        fixture.mock->request_matches_child_context_close(
             child_context));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the artifact get request.
  */
-TEST_F(mock_dataservice_test, no_match_child_context_close)
-{
+BEGIN_TEST_F(no_match_child_context_close)
     uint32_t child_context = 1023;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_child_context_close(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_child_context_close(
             child_context));
-}
+END_TEST_F()
 
 /**
  * If the child context close mock is set,
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, child_context_close_override)
-{
+BEGIN_TEST_F(child_context_close_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
 
     /* mock the child context close api call. */
-    mock->register_callback_child_context_close(
+    fixture.mock->register_callback_child_context_close(
         [&](const dataservice_request_child_context_close_t&,
             std::ostream&) {
             /* success. */
@@ -1558,23 +1557,23 @@ TEST_F(mock_dataservice_test, child_context_close_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_child_context_close_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1584,46 +1583,46 @@ TEST_F(mock_dataservice_test, child_context_close_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_close_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
-}
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
+END_TEST_F()
 
 /**
  * If the child context create mock is not set,
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_child_context_create)
-{
+BEGIN_TEST_F(default_child_context_create)
     uint32_t offset = 0U;
     uint32_t status = 0U;
     uint32_t child = 0U;
     BITCAP(childcaps, DATASERVICE_API_CAP_BITS_MAX);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_child_context_create_old(
-                        &nonblockdatasock, &offset, &status, &child);
+                        &fixture.nonblockdatasock, &offset, &status, &child);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1633,47 +1632,46 @@ TEST_F(mock_dataservice_test, default_child_context_create)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_create_old(
-                        &nonblockdatasock, &alloc_opts, childcaps,
-                        sizeof(childcaps));
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        childcaps, sizeof(childcaps));
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent child context create request.
  */
-TEST_F(mock_dataservice_test, matches_child_context_create)
-{
+BEGIN_TEST_F(matches_child_context_create)
     uint32_t offset = 0U;
     uint32_t status = 0U;
     uint32_t child = 0U;
     BITCAP(childcaps, DATASERVICE_API_CAP_BITS_MAX);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_child_context_create_old(
-                        &nonblockdatasock, &offset, &status, &child);
+                        &fixture.nonblockdatasock, &offset, &status, &child);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1683,52 +1681,50 @@ TEST_F(mock_dataservice_test, matches_child_context_create)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_create_old(
-                        &nonblockdatasock, &alloc_opts, childcaps,
-                        sizeof(childcaps));
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        childcaps, sizeof(childcaps));
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.mock->request_matches_child_context_create(
             childcaps));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the child context create request.
  */
-TEST_F(mock_dataservice_test, no_match_child_context_create)
-{
+BEGIN_TEST_F(no_match_child_context_create)
     BITCAP(childcaps, DATASERVICE_API_CAP_BITS_MAX);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_child_context_create(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_child_context_create(
             childcaps));
-}
+END_TEST_F()
 
 /**
  * If the child context create mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, child_context_create_override)
-{
+BEGIN_TEST_F(child_context_create_override)
     uint32_t offset = 0U;
     uint32_t status = 0U;
     uint32_t child = 0U;
@@ -1736,7 +1732,7 @@ TEST_F(mock_dataservice_test, child_context_create_override)
     BITCAP(childcaps, DATASERVICE_API_CAP_BITS_MAX);
 
     /* mock the child context create api call. */
-    mock->register_callback_child_context_create(
+    fixture.mock->register_callback_child_context_create(
         [&](const dataservice_request_child_context_create_t&,
             std::ostream& payout) {
             void* payload = nullptr;
@@ -1759,23 +1755,23 @@ TEST_F(mock_dataservice_test, child_context_create_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_child_context_create_old(
-                        &nonblockdatasock, &offset, &status, &child);
+                        &fixture.nonblockdatasock, &offset, &status, &child);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -1785,54 +1781,55 @@ TEST_F(mock_dataservice_test, child_context_create_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_child_context_create_old(
-                        &nonblockdatasock, &alloc_opts, childcaps,
-                        sizeof(childcaps));
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        childcaps, sizeof(childcaps));
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the child context is correct. */
-    EXPECT_EQ(EXPECTED_CHILD, child);
-}
+    TEST_EXPECT(EXPECTED_CHILD == child);
+END_TEST_F()
 
 /**
  * If the global setting mock callback is not set,
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_global_setting_get)
-{
+BEGIN_TEST_F(default_global_setting_get)
     uint32_t offset = 0U;
     uint32_t status = 0U;
     uint8_t buffer[32];
     size_t response_size = sizeof(buffer);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send the global settings get request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_sendreq_global_settings_get_block(
-            datasock, &alloc_opts, 0U, 0U));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_sendreq_global_settings_get_block(
+                    fixture.datasock, &fixture.alloc_opts, 0U, 0U));
 
     /* we should be able to get a response from this request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_recvresp_global_settings_get_block(
-            datasock, &offset, &status, buffer, &response_size));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_recvresp_global_settings_get_block(
+                    fixture.datasock, &offset, &status, buffer,
+                    &response_size));
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent artifact get request.
  */
-TEST_F(mock_dataservice_test, matches_global_setting_get)
-{
+BEGIN_TEST_F(matches_global_setting_get)
     uint32_t child_context = 17U;
     uint64_t key = 93880U;
     uint32_t offset = 0U;
@@ -1841,63 +1838,64 @@ TEST_F(mock_dataservice_test, matches_global_setting_get)
     size_t response_size = sizeof(buffer);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send the global settings get request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_sendreq_global_settings_get_block(
-            datasock, &alloc_opts, child_context, key));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_sendreq_global_settings_get_block(
+                    fixture.datasock, &fixture.alloc_opts, child_context, key));
 
     /* we should be able to get a response from this request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_recvresp_global_settings_get_block(
-            datasock, &offset, &status, buffer, &response_size));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_recvresp_global_settings_get_block(
+                    fixture.datasock, &offset, &status, buffer,
+                    &response_size));
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_global_setting_get(
+    TEST_EXPECT(
+        fixture.mock->request_matches_global_setting_get(
             child_context, key));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the artifact get request.
  */
-TEST_F(mock_dataservice_test, no_match_global_setting_get)
-{
+BEGIN_TEST_F(no_match_global_setting_get)
     uint32_t child_context = 17U;
     uint64_t key = 93880U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_global_setting_get(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_global_setting_get(
             child_context, key));
-}
+END_TEST_F()
 
 /**
  * We can override the global setting get call to return an arbitrary value.
  */
-TEST_F(mock_dataservice_test, global_setting_get_override)
-{
+BEGIN_TEST_F(global_setting_get_override)
     uint32_t offset = 0U;
     uint32_t status = 0U;
     uint8_t buffer[32];
     size_t response_size = sizeof(buffer);
 
     /* set the mock to write a default value. */
-    mock->register_callback_global_setting_get(
+    fixture.mock->register_callback_global_setting_get(
         [](const dataservice_request_global_setting_get_t&, ostream& out) {
             uint64_t dummy = 321;
             out.write((const char*)&dummy, sizeof(dummy));
@@ -1905,64 +1903,68 @@ TEST_F(mock_dataservice_test, global_setting_get_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send the global settings get request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_sendreq_global_settings_get_block(
-            datasock, &alloc_opts, 0U, 0U));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_sendreq_global_settings_get_block(
+                    fixture.datasock, &fixture.alloc_opts, 0U, 0U));
 
     /* we should be able to get a response from this request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_recvresp_global_settings_get_block(
-            datasock, &offset, &status, buffer, &response_size));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_recvresp_global_settings_get_block(
+                    fixture.datasock, &offset, &status, buffer,
+                    &response_size));
 
     /* status should be successful from the mock. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == (int)status);
 
     /* the size of the response should be equal to sizeof(uint64_t). */
-    ASSERT_EQ(sizeof(uint64_t), response_size);
+    TEST_ASSERT(sizeof(uint64_t) == response_size);
 
     /* the response should equal what the mock wrote. */
     uint64_t dummy = 0;
     memcpy(&dummy, buffer, sizeof(uint64_t));
-    ASSERT_EQ(321UL, dummy);
-}
+    TEST_ASSERT(321UL == dummy);
+END_TEST_F()
 
 /**
  * If the global setting set mock callback is not set,
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_global_setting_set)
-{
+BEGIN_TEST_F(default_global_setting_set)
     uint32_t offset = 0U;
     uint32_t status = 0U;
     const uint8_t EXPECTED_VAL[5] = { 0x01, 0x02, 0x03, 0x04, 0x05 };
     const size_t EXPECTED_VAL_SIZE = sizeof(EXPECTED_VAL);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send the global settings get request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_sendreq_global_settings_set_block(
-            datasock, &alloc_opts, 0U, 0U, EXPECTED_VAL, EXPECTED_VAL_SIZE));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_sendreq_global_settings_set_block(
+                    fixture.datasock, &fixture.alloc_opts, 0U, 0U, EXPECTED_VAL,
+                    EXPECTED_VAL_SIZE));
 
     /* we should be able to get a response from this request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_recvresp_global_settings_set_block(
-            datasock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_recvresp_global_settings_set_block(
+                    fixture.datasock, &offset, &status));
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent global setting set request.
  */
-TEST_F(mock_dataservice_test, matches_global_setting_set)
-{
+BEGIN_TEST_F(matches_global_setting_set)
     uint32_t child_context = 17U;
     uint64_t key = 93880U;
     uint32_t offset = 0U;
@@ -1971,93 +1973,95 @@ TEST_F(mock_dataservice_test, matches_global_setting_set)
     const size_t EXPECTED_VAL_SIZE = sizeof(EXPECTED_VAL);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send the global settings get request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_sendreq_global_settings_set_block(
-            datasock, &alloc_opts, child_context, key, EXPECTED_VAL,
-            EXPECTED_VAL_SIZE));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_sendreq_global_settings_set_block(
+                    fixture.datasock, &fixture.alloc_opts, child_context, key,
+                    EXPECTED_VAL, EXPECTED_VAL_SIZE));
 
     /* we should be able to get a response from this request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_recvresp_global_settings_set_block(
-            datasock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_recvresp_global_settings_set_block(
+                    fixture.datasock, &offset, &status));
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_global_setting_set(
+    TEST_EXPECT(
+        fixture.mock->request_matches_global_setting_set(
             child_context, key, EXPECTED_VAL_SIZE, EXPECTED_VAL));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the global setting set request.
  */
-TEST_F(mock_dataservice_test, no_match_global_setting_set)
-{
+BEGIN_TEST_F(no_match_global_setting_set)
     uint32_t child_context = 17U;
     uint64_t key = 93880U;
     const uint8_t EXPECTED_VAL[5] = { 0x01, 0x02, 0x03, 0x04, 0x05 };
     const size_t EXPECTED_VAL_SIZE = sizeof(EXPECTED_VAL);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_global_setting_set(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_global_setting_set(
             child_context, key, EXPECTED_VAL_SIZE, EXPECTED_VAL));
-}
+END_TEST_F()
 
 /**
  * We can override the global setting set call to return an arbitrary value.
  */
-TEST_F(mock_dataservice_test, global_setting_set_override)
-{
+BEGIN_TEST_F(global_setting_set_override)
     uint32_t offset = 0U;
     uint32_t status = 0U;
     const uint8_t EXPECTED_VAL[5] = { 0x01, 0x02, 0x03, 0x04, 0x05 };
     const size_t EXPECTED_VAL_SIZE = sizeof(EXPECTED_VAL);
 
     /* set the mock to write a default value. */
-    mock->register_callback_global_setting_set(
+    fixture.mock->register_callback_global_setting_set(
         [](const dataservice_request_global_setting_set_t&, ostream&) {
             return AGENTD_STATUS_SUCCESS;
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send the global settings get request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_sendreq_global_settings_set_block(
-            datasock, &alloc_opts, 0U, 0U, EXPECTED_VAL, EXPECTED_VAL_SIZE));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_sendreq_global_settings_set_block(
+                    fixture.datasock, &fixture.alloc_opts, 0U, 0U, EXPECTED_VAL,
+                    EXPECTED_VAL_SIZE));
 
     /* we should be able to get a response from this request. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        dataservice_api_recvresp_global_settings_set_block(
-            datasock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == dataservice_api_recvresp_global_settings_set_block(
+                    fixture.datasock, &offset, &status));
 
     /* the mock should return a success status. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
-}
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
+END_TEST_F()
 
 /**
  * If the transaction drop mock is not set, then
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_transaction_drop)
-{
+BEGIN_TEST_F(default_transaction_drop)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2067,23 +2071,23 @@ TEST_F(mock_dataservice_test, default_transaction_drop)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_drop_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2093,24 +2097,23 @@ TEST_F(mock_dataservice_test, default_transaction_drop)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_drop_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent transaction drop request.
  */
-TEST_F(mock_dataservice_test, matches_transaction_drop)
-{
+BEGIN_TEST_F(matches_transaction_drop)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2120,23 +2123,23 @@ TEST_F(mock_dataservice_test, matches_transaction_drop)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_drop_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2146,32 +2149,31 @@ TEST_F(mock_dataservice_test, matches_transaction_drop)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_drop_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_transaction_drop(
+    TEST_EXPECT(
+        fixture.mock->request_matches_transaction_drop(
             child_context, EXPECTED_TXN_ID));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the transaction drop request.
  */
-TEST_F(mock_dataservice_test, no_match_transaction_drop)
-{
+BEGIN_TEST_F(no_match_transaction_drop)
     uint32_t child_context = 1023;
     const uint8_t EXPECTED_TXN_ID[16] = {
         0x3a, 0x38, 0x9f, 0x37, 0x39, 0xf0, 0x41, 0x28,
@@ -2179,23 +2181,22 @@ TEST_F(mock_dataservice_test, no_match_transaction_drop)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_transaction_drop(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_transaction_drop(
             child_context, EXPECTED_TXN_ID));
-}
+END_TEST_F()
 
 /**
  * If the transaction drop mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, transaction_drop_override)
-{
+BEGIN_TEST_F(transaction_drop_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2205,7 +2206,7 @@ TEST_F(mock_dataservice_test, transaction_drop_override)
     };
 
     /* mock the transaction drop api call. */
-    mock->register_callback_transaction_drop(
+    fixture.mock->register_callback_transaction_drop(
         [&](const dataservice_request_transaction_drop_t&,
             std::ostream&) {
             /* success. */
@@ -2213,23 +2214,23 @@ TEST_F(mock_dataservice_test, transaction_drop_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_drop_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2239,24 +2240,23 @@ TEST_F(mock_dataservice_test, transaction_drop_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_drop_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
-}
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
+END_TEST_F()
 
 /**
  * If the transaction promote mock is not set, then
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_transaction_promote)
-{
+BEGIN_TEST_F(default_transaction_promote)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2266,23 +2266,23 @@ TEST_F(mock_dataservice_test, default_transaction_promote)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_promote_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2292,24 +2292,23 @@ TEST_F(mock_dataservice_test, default_transaction_promote)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_promote_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent transaction promote request.
  */
-TEST_F(mock_dataservice_test, matches_transaction_promote)
-{
+BEGIN_TEST_F(matches_transaction_promote)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2319,23 +2318,23 @@ TEST_F(mock_dataservice_test, matches_transaction_promote)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_promote_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2345,32 +2344,31 @@ TEST_F(mock_dataservice_test, matches_transaction_promote)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_promote_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_transaction_promote(
+    TEST_EXPECT(
+        fixture.mock->request_matches_transaction_promote(
             child_context, EXPECTED_TXN_ID));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the transaction promote request.
  */
-TEST_F(mock_dataservice_test, no_match_transaction_promote)
-{
+BEGIN_TEST_F(no_match_transaction_promote)
     uint32_t child_context = 1023;
     const uint8_t EXPECTED_TXN_ID[16] = {
         0x3a, 0x38, 0x9f, 0x37, 0x39, 0xf0, 0x41, 0x28,
@@ -2378,23 +2376,22 @@ TEST_F(mock_dataservice_test, no_match_transaction_promote)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_transaction_promote(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_transaction_promote(
             child_context, EXPECTED_TXN_ID));
-}
+END_TEST_F()
 
 /**
  * If the transaction promote mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, transaction_promote_override)
-{
+BEGIN_TEST_F(transaction_promote_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2404,7 +2401,7 @@ TEST_F(mock_dataservice_test, transaction_promote_override)
     };
 
     /* mock the transaction promote api call. */
-    mock->register_callback_transaction_promote(
+    fixture.mock->register_callback_transaction_promote(
         [&](const dataservice_request_transaction_promote_t&,
             std::ostream&) {
             /* success. */
@@ -2412,23 +2409,23 @@ TEST_F(mock_dataservice_test, transaction_promote_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_promote_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2438,24 +2435,23 @@ TEST_F(mock_dataservice_test, transaction_promote_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_promote_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
-}
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
+END_TEST_F()
 
 /**
  * If the transaction get mock is not set,
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_transaction_get)
-{
+BEGIN_TEST_F(default_transaction_get)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2468,24 +2464,24 @@ TEST_F(mock_dataservice_test, default_transaction_get)
     size_t data_size = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_get_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2495,24 +2491,23 @@ TEST_F(mock_dataservice_test, default_transaction_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent transaction get request.
  */
-TEST_F(mock_dataservice_test, matches_transaction_get)
-{
+BEGIN_TEST_F(matches_transaction_get)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2525,24 +2520,24 @@ TEST_F(mock_dataservice_test, matches_transaction_get)
     size_t data_size = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_get_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2552,32 +2547,31 @@ TEST_F(mock_dataservice_test, matches_transaction_get)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_transaction_get(
+    TEST_EXPECT(
+        fixture.mock->request_matches_transaction_get(
             child_context, EXPECTED_TXN_ID));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the transaction get request.
  */
-TEST_F(mock_dataservice_test, no_match_transaction_get)
-{
+BEGIN_TEST_F(no_match_transaction_get)
     uint32_t child_context = 1023;
     const uint8_t EXPECTED_TXN_ID[16] = {
         0x82, 0xfd, 0xa8, 0xd1, 0x6e, 0x45, 0x4e, 0xbf,
@@ -2585,23 +2579,22 @@ TEST_F(mock_dataservice_test, no_match_transaction_get)
     };
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_transaction_get(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_transaction_get(
             child_context, EXPECTED_TXN_ID));
-}
+END_TEST_F()
 
 /**
  * If the transaction get mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, transaction_get_override)
-{
+BEGIN_TEST_F(transaction_get_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2630,7 +2623,7 @@ TEST_F(mock_dataservice_test, transaction_get_override)
     size_t data_size = 0U;
 
     /* mock the canonized transaction read api call. */
-    mock->register_callback_transaction_get(
+    fixture.mock->register_callback_transaction_get(
         [&](const dataservice_request_transaction_get_t&,
             std::ostream& payout) {
             void* payload = nullptr;
@@ -2655,24 +2648,24 @@ TEST_F(mock_dataservice_test, transaction_get_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_get_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2682,34 +2675,34 @@ TEST_F(mock_dataservice_test, transaction_get_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the node data is correct. */
-    EXPECT_EQ(0, memcmp(EXPECTED_TXN_ID, txn_node.key, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_PREV_ID, txn_node.prev, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_NEXT_ID, txn_node.next, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_ARTIFACT_ID, txn_node.artifact_id, 16));
-    EXPECT_EQ(EXPECTED_NET_TXN_STATE, txn_node.net_txn_state);
-    EXPECT_EQ((int64_t)EXPECTED_CERT_SIZE, ntohll(txn_node.net_txn_cert_size));
-    ASSERT_EQ(EXPECTED_CERT_SIZE, data_size);
-    ASSERT_NE(nullptr, data);
-    EXPECT_EQ(0, memcmp(EXPECTED_CERT, data, data_size));
-}
+    TEST_EXPECT(0 == memcmp(EXPECTED_TXN_ID, txn_node.key, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_PREV_ID, txn_node.prev, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_NEXT_ID, txn_node.next, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_ARTIFACT_ID, txn_node.artifact_id, 16));
+    TEST_EXPECT(EXPECTED_NET_TXN_STATE == txn_node.net_txn_state);
+    TEST_EXPECT(
+        (int64_t)EXPECTED_CERT_SIZE == ntohll(txn_node.net_txn_cert_size));
+    TEST_ASSERT(EXPECTED_CERT_SIZE == data_size);
+    TEST_ASSERT(nullptr != data);
+    TEST_EXPECT(0 == memcmp(EXPECTED_CERT, data, data_size));
+END_TEST_F()
 
 /**
  * If the transaction get first mock is not set, then
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_transaction_get_first)
-{
+BEGIN_TEST_F(default_transaction_get_first)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2718,24 +2711,24 @@ TEST_F(mock_dataservice_test, default_transaction_get_first)
     size_t data_size = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_get_first_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2745,23 +2738,23 @@ TEST_F(mock_dataservice_test, default_transaction_get_first)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_first_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent transaction get first request.
  */
-TEST_F(mock_dataservice_test, matches_transaction_get_first)
-{
+BEGIN_TEST_F(matches_transaction_get_first)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2770,24 +2763,24 @@ TEST_F(mock_dataservice_test, matches_transaction_get_first)
     size_t data_size = 0U;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_get_first_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2797,51 +2790,50 @@ TEST_F(mock_dataservice_test, matches_transaction_get_first)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_first_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_transaction_get_first(
+    TEST_EXPECT(
+        fixture.mock->request_matches_transaction_get_first(
             child_context));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the transaction get first request.
  */
-TEST_F(mock_dataservice_test, no_match_transaction_get_first)
-{
+BEGIN_TEST_F(no_match_transaction_get_first)
     uint32_t child_context = 1023;
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_transaction_get_first(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_transaction_get_first(
             child_context));
-}
+END_TEST_F()
 
 /**
  * If the transaction get first mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, transaction_get_first_override)
-{
+BEGIN_TEST_F(transaction_get_first_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2870,7 +2862,7 @@ TEST_F(mock_dataservice_test, transaction_get_first_override)
     size_t data_size = 0U;
 
     /* mock the canonized transaction read api call. */
-    mock->register_callback_transaction_get_first(
+    fixture.mock->register_callback_transaction_get_first(
         [&](const dataservice_request_transaction_get_first_t&,
             std::ostream& payout) {
             void* payload = nullptr;
@@ -2895,24 +2887,24 @@ TEST_F(mock_dataservice_test, transaction_get_first_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_get_first_old(
-                        &nonblockdatasock, &offset, &status, &txn_node,
+                        &fixture.nonblockdatasock, &offset, &status, &txn_node,
                         &data, &data_size);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2922,32 +2914,33 @@ TEST_F(mock_dataservice_test, transaction_get_first_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_get_first_old(
-                        &nonblockdatasock, &alloc_opts, child_context);
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the node data is correct. */
-    EXPECT_EQ(0, memcmp(EXPECTED_TXN_ID, txn_node.key, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_PREV_ID, txn_node.prev, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_NEXT_ID, txn_node.next, 16));
-    EXPECT_EQ(0, memcmp(EXPECTED_ARTIFACT_ID, txn_node.artifact_id, 16));
-    EXPECT_EQ((int64_t)EXPECTED_CERT_SIZE, ntohll(txn_node.net_txn_cert_size));
-    ASSERT_EQ(EXPECTED_CERT_SIZE, data_size);
-    ASSERT_NE(nullptr, data);
-    EXPECT_EQ(0, memcmp(EXPECTED_CERT, data, data_size));
-}
+    TEST_EXPECT(0 == memcmp(EXPECTED_TXN_ID, txn_node.key, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_PREV_ID, txn_node.prev, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_NEXT_ID, txn_node.next, 16));
+    TEST_EXPECT(0 == memcmp(EXPECTED_ARTIFACT_ID, txn_node.artifact_id, 16));
+    TEST_EXPECT(
+        (int64_t)EXPECTED_CERT_SIZE == ntohll(txn_node.net_txn_cert_size));
+    TEST_ASSERT(EXPECTED_CERT_SIZE == data_size);
+    TEST_ASSERT(nullptr != data);
+    TEST_EXPECT(0 == memcmp(EXPECTED_CERT, data, data_size));
+END_TEST_F()
 
 /**
  * If the transaction submit mock is not set, then
  * the AGENTD_ERROR_DATASERVICE_NOT_FOUND status is returned.
  */
-TEST_F(mock_dataservice_test, default_transaction_submit)
-{
+BEGIN_TEST_F(default_transaction_submit)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -2963,23 +2956,23 @@ TEST_F(mock_dataservice_test, default_transaction_submit)
     const size_t EXPECTED_TXN_CERT_SIZE = sizeof(EXPECTED_TXN_CERT);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_submit_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -2989,25 +2982,24 @@ TEST_F(mock_dataservice_test, default_transaction_submit)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
-}
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can match against the sent transaction submit request.
  */
-TEST_F(mock_dataservice_test, matches_transaction_submit)
-{
+BEGIN_TEST_F(matches_transaction_submit)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -3023,23 +3015,23 @@ TEST_F(mock_dataservice_test, matches_transaction_submit)
     const size_t EXPECTED_TXN_CERT_SIZE = sizeof(EXPECTED_TXN_CERT);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_submit_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -3049,34 +3041,33 @@ TEST_F(mock_dataservice_test, matches_transaction_submit)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the status code for an empty mock should be
      * AGENTD_ERROR_DATASERVICE_NOT_FOUND. */
-    EXPECT_EQ(AGENTD_ERROR_DATASERVICE_NOT_FOUND, (int)status);
+    TEST_EXPECT(AGENTD_ERROR_DATASERVICE_NOT_FOUND == (int)status);
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_TRUE(
-        mock->request_matches_transaction_submit(
+    TEST_EXPECT(
+        fixture.mock->request_matches_transaction_submit(
             child_context, EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
             EXPECTED_TXN_CERT_SIZE, EXPECTED_TXN_CERT));
-}
+END_TEST_F()
 
 /**
  * Test that we can fail to match against the transaction submit request.
  */
-TEST_F(mock_dataservice_test, no_match_transaction_submit)
-{
+BEGIN_TEST_F(no_match_transaction_submit)
     uint32_t child_context = 1023;
     const uint8_t EXPECTED_TXN_ID[16] = {
         0x33, 0x0c, 0xf2, 0xb2, 0xcc, 0xec, 0x48, 0xf3,
@@ -3090,24 +3081,23 @@ TEST_F(mock_dataservice_test, no_match_transaction_submit)
     const size_t EXPECTED_TXN_CERT_SIZE = sizeof(EXPECTED_TXN_CERT);
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* stop the mock to ensure that the remote test logging socket is closed. */
-    mock->stop();
+    fixture.mock->stop();
 
     /* we can match the request we sent. */
-    EXPECT_FALSE(
-        mock->request_matches_transaction_submit(
+    TEST_EXPECT(
+        !fixture.mock->request_matches_transaction_submit(
             child_context, EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
             EXPECTED_TXN_CERT_SIZE, EXPECTED_TXN_CERT));
-}
+END_TEST_F()
 
 /**
  * If the transaction submit mock is set, then
  * the status code and data it returns is returned in the api call.
  */
-TEST_F(mock_dataservice_test, transaction_submit_override)
-{
+BEGIN_TEST_F(transaction_submit_override)
     uint32_t child_context = 1023;
     uint32_t offset = 0U;
     uint32_t status = 0U;
@@ -3123,7 +3113,7 @@ TEST_F(mock_dataservice_test, transaction_submit_override)
     const size_t EXPECTED_TXN_CERT_SIZE = sizeof(EXPECTED_TXN_CERT);
 
     /* mock the transaction submit api call. */
-    mock->register_callback_transaction_submit(
+    fixture.mock->register_callback_transaction_submit(
         [&](const dataservice_request_transaction_submit_t&,
             std::ostream&) {
             /* success. */
@@ -3131,23 +3121,23 @@ TEST_F(mock_dataservice_test, transaction_submit_override)
         });
 
     /* start the mock dataservice. */
-    mock->start();
+    fixture.mock->start();
 
     /* we should be able to send and receive the request / resp */
     int sendreq_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
     int recvresp_status = AGENTD_ERROR_IPC_WOULD_BLOCK;
-    nonblockmode(
+    fixture.nonblockmode(
         /* onRead. */
         [&]() {
             if (recvresp_status == AGENTD_ERROR_IPC_WOULD_BLOCK)
             {
                 recvresp_status =
                     dataservice_api_recvresp_transaction_submit_old(
-                        &nonblockdatasock, &offset, &status);
+                        &fixture.nonblockdatasock, &offset, &status);
 
                 if (recvresp_status != AGENTD_ERROR_IPC_WOULD_BLOCK)
                 {
-                    ipc_exit_loop(&loop);
+                    ipc_exit_loop(&fixture.loop);
                 }
             }
         },
@@ -3157,16 +3147,15 @@ TEST_F(mock_dataservice_test, transaction_submit_override)
             {
                 sendreq_status =
                     dataservice_api_sendreq_transaction_submit_old(
-                        &nonblockdatasock, &alloc_opts, child_context,
-                        EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
+                        &fixture.nonblockdatasock, &fixture.alloc_opts,
+                        child_context, EXPECTED_TXN_ID, EXPECTED_ARTIFACT_ID,
                         EXPECTED_TXN_CERT, EXPECTED_TXN_CERT_SIZE);
             }
         });
 
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, sendreq_status);
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS, recvresp_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == sendreq_status);
+    TEST_ASSERT(AGENTD_STATUS_SUCCESS == recvresp_status);
 
     /* the mock returns success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
-}
-#endif
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
+END_TEST_F()
