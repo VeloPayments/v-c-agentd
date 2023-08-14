@@ -3,45 +3,47 @@
  *
  * Test the path_resolve method.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/commandline.h>
 #include <agentd/command.h>
 #include <agentd/path.h>
+#include <cstring>
 #include <limits.h>
+#include <minunit/minunit.h>
 #include <string>
+#include <unistd.h>
 #include <vpr/disposable.h>
 
-/* GTEST DISABLED */
-#if 0
-
 using namespace std;
+
+TEST_SUITE(path_resolve);
 
 /**
  * \brief It is not possible to resolve a non-existent binary from an empty
  * path.
  */
-TEST(path_resolve, empty_path_no_local)
+TEST(empty_path_no_local)
 {
     char* resolved = nullptr;
 
-    ASSERT_NE(0, path_resolve("foosh", "", &resolved));
+    TEST_ASSERT(0 != path_resolve("foosh", "", &resolved));
 
-    EXPECT_EQ(nullptr, resolved);
+    TEST_EXPECT(nullptr == resolved);
 }
 
 /**
  * \brief It is possible to resolve a binary from a simple path.
  */
-TEST(path_resolve, simple_path)
+TEST(simple_path)
 {
     char* resolved = nullptr;
     const char* CATLOC = getenv("TEST_BIN");
 
-    ASSERT_EQ(0, path_resolve("cat", "/bin", &resolved));
+    TEST_ASSERT(0 == path_resolve("cat", "/bin", &resolved));
 
-    EXPECT_STREQ(CATLOC, resolved);
+    TEST_EXPECT(!strcmp(CATLOC, resolved));
 
     free(resolved);
 }
@@ -49,27 +51,29 @@ TEST(path_resolve, simple_path)
 /**
  * \brief A non-existent binary and a simple path do not resolve.
  */
-TEST(path_resolve, simple_path_non_existent_binary)
+TEST(simple_path_non_existent_binary)
 {
     char* resolved = nullptr;
 
-    ASSERT_NE(0, path_resolve("foosh", "/bin", &resolved));
+    TEST_ASSERT(0 != path_resolve("foosh", "/bin", &resolved));
 
-    EXPECT_EQ(nullptr, resolved);
+    TEST_EXPECT(nullptr == resolved);
 }
 
 /**
  * \brief It is possible to resolve a binary from a multi path.
  */
-TEST(path_resolve, multi_path)
+TEST(multi_path)
 {
     char* resolved = nullptr;
     const char* CATLOC = getenv("TEST_BIN");
 
-    ASSERT_EQ(0,
-        path_resolve("cat", "/etasuetheoasu:/teasuthoseu:/bin", &resolved));
+    TEST_ASSERT(
+        0
+            == path_resolve(
+                    "cat", "/etasuetheoasu:/teasuthoseu:/bin", &resolved));
 
-    EXPECT_STREQ(CATLOC, resolved);
+    TEST_EXPECT(!strcmp(CATLOC, resolved));
 
     free(resolved);
 }
@@ -77,41 +81,43 @@ TEST(path_resolve, multi_path)
 /**
  * \brief A non-existent binary and a multi path do not resolve.
  */
-TEST(path_resolve, multi_path_non_existent_binary)
+TEST(multi_path_non_existent_binary)
 {
     char* resolved = nullptr;
 
-    ASSERT_NE(0,
-        path_resolve("foosh", "/etasuetheoasu:/teasuthoseu:/bin", &resolved));
+    TEST_ASSERT(
+        0
+            != path_resolve(
+                    "foosh", "/etasuetheoasu:/teasuthoseu:/bin", &resolved));
 
-    EXPECT_EQ(nullptr, resolved);
+    TEST_EXPECT(nullptr == resolved);
 }
 
 /**
  * \brief If a binary is an absolute path but it does not exist, then
  * path_resolve fails.
  */
-TEST(path_resolve, nonexistent_absolute_path)
+TEST(nonexistent_absolute_path)
 {
     char* resolved = nullptr;
 
-    ASSERT_NE(0, path_resolve("/bin/fooshsthsthsth", "", &resolved));
+    TEST_ASSERT(0 != path_resolve("/bin/fooshsthsthsth", "", &resolved));
 
-    EXPECT_EQ(nullptr, resolved);
+    TEST_EXPECT(nullptr == resolved);
 }
 
 /**
  * \brief If a binary is an absolute path and it exists, then resolved is
  * updated to the canonical path for this value and path_resolve succeeds.
  */
-TEST(path_resolve, canonical_absolute_path)
+TEST(canonical_absolute_path)
 {
     char* resolved = nullptr;
     const char* CATLOC = getenv("TEST_BIN");
 
-    ASSERT_EQ(0, path_resolve("/bin//cat", "", &resolved));
+    TEST_ASSERT(0 == path_resolve("/bin//cat", "", &resolved));
 
-    EXPECT_STREQ(CATLOC, resolved);
+    TEST_EXPECT(!strcmp(CATLOC, resolved));
 
     free(resolved);
 }
@@ -120,20 +126,20 @@ TEST(path_resolve, canonical_absolute_path)
  * \brief If a relative path starting with "." is encountered, attempt to
  * canonicalize it.  If it cannot be resolved, fail.
  */
-TEST(path_resolve, canonical_relative_path_fail)
+TEST(canonical_relative_path_fail)
 {
     char* resolved = nullptr;
 
-    ASSERT_NE(0, path_resolve("./bin//cat", "", &resolved));
+    TEST_ASSERT(0 != path_resolve("./bin//cat", "", &resolved));
 
-    EXPECT_EQ(nullptr, resolved);
+    TEST_EXPECT(nullptr == resolved);
 }
 
 /**
  * \brief If a relative path starting with "." is encountered, attempt to
  * canonicalize it.  If it can be resolved and is executable, succeed.
  */
-TEST(path_resolve, canonical_relative_path)
+TEST(canonical_relative_path)
 {
     char buf[PATH_MAX];
     char* resolved = nullptr;
@@ -141,12 +147,11 @@ TEST(path_resolve, canonical_relative_path)
     char* agentd_path = getenv("AGENTD_PATH");
     string expected_resolved = string(agentd_path) + "/agentd";
 
-    ASSERT_EQ(0, chdir(agentd_path));
-    ASSERT_EQ(0,
-        path_resolve("./agentd", "", &resolved));
-    ASSERT_EQ(0, chdir(pwd));
+    TEST_ASSERT(0 == chdir(agentd_path));
+    TEST_ASSERT(0 == path_resolve("./agentd", "", &resolved));
+    TEST_ASSERT(0 == chdir(pwd));
 
-    EXPECT_STREQ(expected_resolved.c_str(), resolved);
+    TEST_EXPECT(!strcmp(expected_resolved.c_str(), resolved));
 
     free(resolved);
 }
@@ -155,7 +160,7 @@ TEST(path_resolve, canonical_relative_path)
  * \brief If a relative path NOT starting with "." is encountered, attempt to
  * canonicalize it.  If it can be resolved and is executable, succeed.
  */
-TEST(path_resolve, canonical_relative_path2)
+TEST(canonical_relative_path2)
 {
     char buf[PATH_MAX];
     char* resolved = nullptr;
@@ -163,13 +168,11 @@ TEST(path_resolve, canonical_relative_path2)
     char* agentd_path = getenv("AGENTD_PATH");
     string expected_resolved = string(agentd_path) + "/agentd";
 
-    ASSERT_EQ(0, chdir(agentd_path));
-    ASSERT_EQ(0,
-        path_resolve("agentd", "", &resolved));
-    ASSERT_EQ(0, chdir(pwd));
+    TEST_ASSERT(0 == chdir(agentd_path));
+    TEST_ASSERT(0 == path_resolve("agentd", "", &resolved));
+    TEST_ASSERT(0 == chdir(pwd));
 
-    EXPECT_STREQ(expected_resolved.c_str(), resolved);
+    TEST_EXPECT(!strcmp(expected_resolved.c_str(), resolved));
 
     free(resolved);
 }
-#endif
