@@ -3,7 +3,7 @@
  *
  * Private header for the mock notificationservice unit tests.
  *
- * \copyright 2022 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2022-2023 Velo Payments, Inc.  All rights reserved.
  */
 
 #pragma once
@@ -15,13 +15,12 @@
 
 #include <agentd/notificationservice.h>
 #include <agentd/notificationservice/api.h>
-#include <gtest/gtest.h>
 #include "../mocks/notificationservice.h"
 
-class mock_notificationservice_test : public ::testing::Test {
-protected:
-    void SetUp() override;
-    void TearDown() override;
+class mock_notificationservice_test {
+public:
+    void setUp();
+    void tearDown();
 
     std::unique_ptr<mock_notificationservice::mock_notificationservice> mock;
     int notifysock;
