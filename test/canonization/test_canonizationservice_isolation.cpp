@@ -3,58 +3,68 @@
  *
  * Isolation tests for the canonization service.
  *
- * \copyright 2019-2020 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2019-2023 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/config.h>
 #include <agentd/canonizationservice/api.h>
 #include <agentd/status_codes.h>
 #include <iostream>
+#include <minunit/minunit.h>
 #include <string>
 #include <unistd.h>
 #include <vccert/certificate_types.h>
 #include <vccrypt/compare.h>
 #include <vpr/disposable.h>
 
-/* GTEST DISABLED */
-#if 0
-
 #include "test_canonizationservice_isolation.h"
+
+TEST_SUITE(canonizationservice_isolation_test);
+
+#define BEGIN_TEST_F(name) \
+TEST(name) \
+{ \
+    canonizationservice_isolation_test fixture; \
+    fixture.setUp();
+
+#define END_TEST_F() \
+    fixture.tearDown(); \
+}
 
 /**
  * Test that we can spawn the canonization service.
  */
-TEST_F(canonizationservice_isolation_test, simple_spawn)
-{
-    ASSERT_EQ(0, canonization_proc_status);
-}
+BEGIN_TEST_F(simple_spawn)
+    TEST_ASSERT(0 == fixture.canonization_proc_status);
+END_TEST_F()
 
 /**
  * Test that calling start before calling configure results in an error.
  */
-TEST_F(canonizationservice_isolation_test, start_before_configure_fail)
-{
+BEGIN_TEST_F(start_before_configure_fail)
     uint32_t offset = 0, status = AGENTD_STATUS_SUCCESS;
 
     /* we should be able to successfully call start. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_sendreq_start(controlsock));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_sendreq_start(fixture.controlsock));
 
     /* we should be able to receive a response from the start call. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_recvresp_start(
-            controlsock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_recvresp_start(
+                    fixture.controlsock, &offset, &status));
 
     /* the status should NOT be success. */
-    ASSERT_EQ(
-        AGENTD_ERROR_CANONIZATIONSERVICE_START_BEFORE_CONFIGURE, (int)status);
-}
+    TEST_ASSERT(
+        AGENTD_ERROR_CANONIZATIONSERVICE_START_BEFORE_CONFIGURE
+            == (int)status);
+END_TEST_F()
 
 /**
  * Test that we can configure the canonization service.
  */
-TEST_F(canonizationservice_isolation_test, configure)
-{
+BEGIN_TEST_F(configure)
     agent_config_t conf;
     uint32_t offset = 999, status = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
 
@@ -65,24 +75,26 @@ TEST_F(canonizationservice_isolation_test, configure)
     conf.block_max_transactions = 1000;
 
     /* we should be able to successfully call config. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_sendreq_configure(controlsock, &conf));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_sendreq_configure(fixture.controlsock, &conf));
 
     /* we should be able to receive a response from config. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_recvresp_configure(controlsock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_recvresp_configure(
+                    fixture.controlsock, &offset, &status));
 
     /* the status should be success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the offset should be zero. */
-    EXPECT_EQ(0U, offset);
-}
+    TEST_EXPECT(0U == offset);
+END_TEST_F()
 
 /**
  * Test that we can set the private key for the canonization service.
  */
-TEST_F(canonizationservice_isolation_test, set_private_key)
-{
+BEGIN_TEST_F(set_private_key)
     uint32_t offset = 999, status = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
     const uint8_t entity_id[16] = {
         0x33, 0xa5, 0x17, 0x73, 0xbd, 0x72, 0x41, 0xc9,
@@ -93,59 +105,64 @@ TEST_F(canonizationservice_isolation_test, set_private_key)
     vccrypt_buffer_t entity_signing_privkey;
 
     /* create dummy entity encryption pubkey. */
-    ASSERT_EQ(
-        VCCRYPT_STATUS_SUCCESS,
-        vccrypt_buffer_init(&entity_encryption_pubkey, &alloc_opts, 32));
+    TEST_ASSERT(
+        VCCRYPT_STATUS_SUCCESS
+            == vccrypt_buffer_init(
+                    &entity_encryption_pubkey, &fixture.alloc_opts, 32));
     memset(entity_encryption_pubkey.data, 0xFF, 32);
 
     /* create dummy entity encryption privkey. */
-    ASSERT_EQ(
-        VCCRYPT_STATUS_SUCCESS,
-        vccrypt_buffer_init(&entity_encryption_privkey, &alloc_opts, 32));
+    TEST_ASSERT(
+        VCCRYPT_STATUS_SUCCESS
+            == vccrypt_buffer_init(
+                    &entity_encryption_privkey, &fixture.alloc_opts, 32));
     memset(entity_encryption_privkey.data, 0xFF, 32);
 
     /* create dummy entity signing pubkey. */
-    ASSERT_EQ(
-        VCCRYPT_STATUS_SUCCESS,
-        vccrypt_buffer_init(&entity_signing_pubkey, &alloc_opts, 32));
+    TEST_ASSERT(
+        VCCRYPT_STATUS_SUCCESS
+            == vccrypt_buffer_init(
+                    &entity_signing_pubkey, &fixture.alloc_opts, 32));
     memset(entity_signing_pubkey.data, 0xFF, 32);
 
     /* create dummy entity signing privkey. */
-    ASSERT_EQ(
-        VCCRYPT_STATUS_SUCCESS,
-        vccrypt_buffer_init(&entity_signing_privkey, &alloc_opts, 64));
+    TEST_ASSERT(
+        VCCRYPT_STATUS_SUCCESS
+            == vccrypt_buffer_init(
+                    &entity_signing_privkey, &fixture.alloc_opts, 64));
     memset(entity_signing_privkey.data, 0xFF, 64);
 
     /* we should be able to successfully call private_key_set. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_sendreq_private_key_set(
-            controlsock, &alloc_opts, entity_id,
-            &entity_encryption_pubkey, &entity_encryption_privkey,
-            &entity_signing_pubkey, &entity_signing_privkey));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_sendreq_private_key_set(
+                    fixture.controlsock, &fixture.alloc_opts, entity_id,
+                    &entity_encryption_pubkey, &entity_encryption_privkey,
+                    &entity_signing_pubkey, &entity_signing_privkey));
 
     /* we should be able to receive a response from private_key_set. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_recvresp_private_key_set(
-            controlsock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_recvresp_private_key_set(
+                    fixture.controlsock, &offset, &status));
 
     /* the status should be success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the offset should be zero. */
-    EXPECT_EQ(0U, offset);
+    TEST_EXPECT(0U == offset);
 
     /* clean up. */
     dispose((disposable_t*)&entity_encryption_pubkey);
     dispose((disposable_t*)&entity_encryption_privkey);
     dispose((disposable_t*)&entity_signing_pubkey);
     dispose((disposable_t*)&entity_signing_privkey);
-}
+END_TEST_F()
 
 /**
  * Test that we can't start the canonization service until setting the private
  * key.
  */
-TEST_F(canonizationservice_isolation_test, start_without_private_key_set)
-{
+BEGIN_TEST_F(start_without_private_key_set)
     agent_config_t conf;
     uint32_t offset = 999, status = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
 
@@ -156,40 +173,43 @@ TEST_F(canonizationservice_isolation_test, start_without_private_key_set)
     conf.block_max_transactions = 1000;
 
     /* we should be able to successfully call config. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_sendreq_configure(controlsock, &conf));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_sendreq_configure(fixture.controlsock, &conf));
 
     /* we should be able to receive a response from config. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_recvresp_configure(
-            controlsock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_recvresp_configure(
+                    fixture.controlsock, &offset, &status));
 
     /* the status should be success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the offset should be zero. */
-    EXPECT_EQ(0U, offset);
+    TEST_EXPECT(0U == offset);
 
     /* we should be able to successfully call start. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_sendreq_start(controlsock));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_sendreq_start(fixture.controlsock));
 
     /* we should be able to receive a response from the start call. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_recvresp_start(
-            controlsock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_recvresp_start(
+                    fixture.controlsock, &offset, &status));
 
     /* starting should have failed, because the private key is not set. */
-    EXPECT_NE(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS != (int)status);
     /* the offset should be zero. */
-    EXPECT_EQ(0U, offset);
-}
+    TEST_EXPECT(0U == offset);
+END_TEST_F()
 
 /**
  * Test that we can start the canonization service after configuring it and
  * setting the private key.
  */
-TEST_F(canonizationservice_isolation_test, start)
-{
+BEGIN_TEST_F(start)
     agent_config_t conf;
     uint32_t offset = 999, status = AGENTD_ERROR_GENERAL_OUT_OF_MEMORY;
     const uint8_t entity_id[16] = {
@@ -201,45 +221,51 @@ TEST_F(canonizationservice_isolation_test, start)
     vccrypt_buffer_t entity_signing_privkey;
 
     /* create dummy entity encryption pubkey. */
-    ASSERT_EQ(
-        VCCRYPT_STATUS_SUCCESS,
-        vccrypt_buffer_init(&entity_encryption_pubkey, &alloc_opts, 32));
+    TEST_ASSERT(
+        VCCRYPT_STATUS_SUCCESS
+            == vccrypt_buffer_init(
+                    &entity_encryption_pubkey, &fixture.alloc_opts, 32));
     memset(entity_encryption_pubkey.data, 0xFF, 32);
 
     /* create dummy entity encryption privkey. */
-    ASSERT_EQ(
-        VCCRYPT_STATUS_SUCCESS,
-        vccrypt_buffer_init(&entity_encryption_privkey, &alloc_opts, 32));
+    TEST_ASSERT(
+        VCCRYPT_STATUS_SUCCESS
+            == vccrypt_buffer_init(
+                    &entity_encryption_privkey, &fixture.alloc_opts, 32));
     memset(entity_encryption_privkey.data, 0xFF, 32);
 
     /* create dummy entity signing pubkey. */
-    ASSERT_EQ(
-        VCCRYPT_STATUS_SUCCESS,
-        vccrypt_buffer_init(&entity_signing_pubkey, &alloc_opts, 32));
+    TEST_ASSERT(
+        VCCRYPT_STATUS_SUCCESS
+            == vccrypt_buffer_init(
+                    &entity_signing_pubkey, &fixture.alloc_opts, 32));
     memset(entity_signing_pubkey.data, 0xFF, 32);
 
     /* create dummy entity signing privkey. */
-    ASSERT_EQ(
-        VCCRYPT_STATUS_SUCCESS,
-        vccrypt_buffer_init(&entity_signing_privkey, &alloc_opts, 64));
+    TEST_ASSERT(
+        VCCRYPT_STATUS_SUCCESS
+            == vccrypt_buffer_init(
+                    &entity_signing_privkey, &fixture.alloc_opts, 64));
     memset(entity_signing_privkey.data, 0xFF, 64);
 
     /* we should be able to successfully call private_key_set. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_sendreq_private_key_set(
-            controlsock, &alloc_opts, entity_id,
-            &entity_encryption_pubkey, &entity_encryption_privkey,
-            &entity_signing_pubkey, &entity_signing_privkey));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_sendreq_private_key_set(
+                    fixture.controlsock, &fixture.alloc_opts, entity_id,
+                    &entity_encryption_pubkey, &entity_encryption_privkey,
+                    &entity_signing_pubkey, &entity_signing_privkey));
 
     /* we should be able to receive a response from private_key_set. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_recvresp_private_key_set(
-            controlsock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_recvresp_private_key_set(
+                    fixture.controlsock, &offset, &status));
 
     /* the status should be success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the offset should be zero. */
-    EXPECT_EQ(0U, offset);
+    TEST_EXPECT(0U == offset);
 
     /* set config values for canonization service. */
     conf.block_max_milliseconds_set = true;
@@ -248,58 +274,61 @@ TEST_F(canonizationservice_isolation_test, start)
     conf.block_max_transactions = 1000;
 
     /* we should be able to successfully call config. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_sendreq_configure(controlsock, &conf));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_sendreq_configure(fixture.controlsock, &conf));
 
     /* we should be able to receive a response from config. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_recvresp_configure(
-            controlsock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_recvresp_configure(
+                    fixture.controlsock, &offset, &status));
 
     /* the status should be success. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the offset should be zero. */
-    EXPECT_EQ(0U, offset);
+    TEST_EXPECT(0U == offset);
 
     /* we should be able to successfully call start. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_sendreq_start(controlsock));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_sendreq_start(fixture.controlsock));
 
     /* we should be able to receive a response from the start call. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonization_api_recvresp_start(
-            controlsock, &offset, &status));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == canonization_api_recvresp_start(
+                    fixture.controlsock, &offset, &status));
 
     /* starting should have failed, because the private key is not set. */
-    EXPECT_EQ(AGENTD_STATUS_SUCCESS, (int)status);
+    TEST_EXPECT(AGENTD_STATUS_SUCCESS == (int)status);
     /* the offset should be zero. */
-    EXPECT_EQ(0U, offset);
+    TEST_EXPECT(0U == offset);
 
     /* clean up. */
     dispose((disposable_t*)&entity_encryption_pubkey);
     dispose((disposable_t*)&entity_encryption_privkey);
     dispose((disposable_t*)&entity_signing_pubkey);
     dispose((disposable_t*)&entity_signing_privkey);
-}
+END_TEST_F()
 
 /**
  * Test that the canonization service tries again when there are no
  * transactions.
  */
-TEST_F(canonizationservice_isolation_test, no_txn_retry)
-{
+BEGIN_TEST_F(no_txn_retry)
     /* register dataservice helper mocks. */
-    ASSERT_EQ(0, dataservice_mock_register_helper());
+    TEST_ASSERT(0 == fixture.dataservice_mock_register_helper());
 
     /* mock the transaction query api call. */
-    dataservice->register_callback_transaction_get_first(
+    fixture.dataservice->register_callback_transaction_get_first(
         [&](const dataservice_request_transaction_get_first_t&,
             std::ostream&) {
             return AGENTD_ERROR_DATASERVICE_NOT_FOUND;
         });
 
     /* mock the latest block id query api call. */
-    dataservice->register_callback_block_id_latest_read(
+    fixture.dataservice->register_callback_block_id_latest_read(
         [&](const dataservice_request_block_id_latest_read_t&,
             std::ostream& out) {
             out.write((const char*)vccert_certificate_type_uuid_root_block, 16);
@@ -308,17 +337,18 @@ TEST_F(canonizationservice_isolation_test, no_txn_retry)
         });
 
     /* start the mocks. */
-    dataservice->start();
-    notificationservice->start();
+    fixture.dataservice->start();
+    fixture.notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonizationservice_configure_and_start(1, 10));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == fixture.canonizationservice_configure_and_start(1, 10));
 
     usleep(30000);
 
     /* stop the mock. */
-    dataservice->stop();
+    fixture.dataservice->stop();
 
     /* set our expected caps. */
     BITCAP(EXPECTED_CAPS, DATASERVICE_API_CAP_BITS_MAX);
@@ -337,52 +367,51 @@ TEST_F(canonizationservice_isolation_test, no_txn_retry)
         EXPECTED_CAPS, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a second get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
-}
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
+END_TEST_F()
 
 /**
  * Test that the canonization service tries again when there are no
  * transactions and a block exists.
  */
-TEST_F(canonizationservice_isolation_test, no_txn_retry_with_block)
-{
+BEGIN_TEST_F(no_txn_retry_with_block)
     const uint8_t dummy_block_id[16] = {
         0x53, 0x25, 0xb2, 0xa7, 0xc8, 0xa9, 0x45, 0x60,
         0xb9, 0xea, 0xca, 0x23, 0xc3, 0xf7, 0xb0, 0x72
@@ -405,17 +434,17 @@ TEST_F(canonizationservice_isolation_test, no_txn_retry_with_block)
     };
 
     /* register dataservice helper mocks. */
-    ASSERT_EQ(0, dataservice_mock_register_helper());
+    TEST_ASSERT(0 == fixture.dataservice_mock_register_helper());
 
     /* mock the transaction query api call. */
-    dataservice->register_callback_transaction_get_first(
+    fixture.dataservice->register_callback_transaction_get_first(
         [&](const dataservice_request_transaction_get_first_t&,
             std::ostream&) {
             return AGENTD_ERROR_DATASERVICE_NOT_FOUND;
         });
 
     /* mock the latest block id query api call. */
-    dataservice->register_callback_block_id_latest_read(
+    fixture.dataservice->register_callback_block_id_latest_read(
         [&](const dataservice_request_block_id_latest_read_t&,
             std::ostream& out) {
             out.write((const char*)dummy_block_id, 16);
@@ -424,7 +453,7 @@ TEST_F(canonizationservice_isolation_test, no_txn_retry_with_block)
         });
 
     /* mock the block read call. */
-    dataservice->register_callback_block_read(
+    fixture.dataservice->register_callback_block_read(
         [&](const dataservice_request_block_read_t&,
             std::ostream& out) {
             uint64_t height = htonll(16);
@@ -442,17 +471,18 @@ TEST_F(canonizationservice_isolation_test, no_txn_retry_with_block)
         });
 
     /* start the mocks. */
-    dataservice->start();
-    notificationservice->start();
+    fixture.dataservice->start();
+    fixture.notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonizationservice_configure_and_start(1, 10));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == fixture.canonizationservice_configure_and_start(1, 10));
 
     usleep(30000);
 
     /* stop the mock. */
-    dataservice->stop();
+    fixture.dataservice->stop();
 
     /* set our expected caps. */
     BITCAP(EXPECTED_CAPS, DATASERVICE_API_CAP_BITS_MAX);
@@ -471,62 +501,61 @@ TEST_F(canonizationservice_isolation_test, no_txn_retry_with_block)
         EXPECTED_CAPS, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get block call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_read(
-            EXPECTED_CHILD_INDEX, dummy_block_id));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_read(
+            fixture.EXPECTED_CHILD_INDEX, dummy_block_id));
 
     /* a get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get block call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_read(
-            EXPECTED_CHILD_INDEX, dummy_block_id));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_read(
+            fixture.EXPECTED_CHILD_INDEX, dummy_block_id));
 
     /* a second get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
-}
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
+END_TEST_F()
 
 /**
  * Test that the canonization service tries again when the first transaction
  * hasn't been attested.
  */
-TEST_F(canonizationservice_isolation_test, no_attested_retry)
-{
+BEGIN_TEST_F(no_attested_retry)
     const uint8_t EXPECTED_TRANSACTION_ID[16] = {
         0xb8, 0x4e, 0x5b, 0xe9, 0x0c, 0x4b, 0x49, 0x88,
         0x92, 0x50, 0xe0, 0xb0, 0x3f, 0xb2, 0xfe, 0x36
@@ -547,10 +576,10 @@ TEST_F(canonizationservice_isolation_test, no_attested_retry)
     const size_t EXPECTED_CERT_SIZE = sizeof(EXPECTED_CERT);
 
     /* register dataservice helper mocks. */
-    ASSERT_EQ(0, dataservice_mock_register_helper());
+    TEST_ASSERT(0 == fixture.dataservice_mock_register_helper());
 
     /* mock the transaction query api call. */
-    dataservice->register_callback_transaction_get_first(
+    fixture.dataservice->register_callback_transaction_get_first(
         [&](const dataservice_request_transaction_get_first_t&,
             std::ostream& out) {
             void* payload;
@@ -575,7 +604,7 @@ TEST_F(canonizationservice_isolation_test, no_attested_retry)
         });
 
     /* mock the latest block id query api call. */
-    dataservice->register_callback_block_id_latest_read(
+    fixture.dataservice->register_callback_block_id_latest_read(
         [&](const dataservice_request_block_id_latest_read_t&,
             std::ostream& out) {
             out.write((const char*)vccert_certificate_type_uuid_root_block, 16);
@@ -584,17 +613,18 @@ TEST_F(canonizationservice_isolation_test, no_attested_retry)
         });
 
     /* start the mocks. */
-    dataservice->start();
-    notificationservice->start();
+    fixture.dataservice->start();
+    fixture.notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonizationservice_configure_and_start(1, 10));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == fixture.canonizationservice_configure_and_start(1, 10));
 
     usleep(30000);
 
     /* stop the mock. */
-    dataservice->stop();
+    fixture.dataservice->stop();
 
     /* set our expected caps. */
     BITCAP(EXPECTED_CAPS, DATASERVICE_API_CAP_BITS_MAX);
@@ -613,52 +643,51 @@ TEST_F(canonizationservice_isolation_test, no_attested_retry)
         EXPECTED_CAPS, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a second get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
-}
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
+END_TEST_F()
 
 /**
  * Test that the canonization service builds a block with a single attested
  * record.
  */
-TEST_F(canonizationservice_isolation_test, one_attested_block)
-{
+BEGIN_TEST_F(one_attested_block)
     const uint8_t EXPECTED_TRANSACTION_ID[16] = {
         0xb8, 0x4e, 0x5b, 0xe9, 0x0c, 0x4b, 0x49, 0x88,
         0x92, 0x50, 0xe0, 0xb0, 0x3f, 0xb2, 0xfe, 0x36
@@ -679,11 +708,11 @@ TEST_F(canonizationservice_isolation_test, one_attested_block)
     const size_t EXPECTED_CERT_SIZE = sizeof(EXPECTED_CERT);
 
     /* register dataservice helper mocks. */
-    ASSERT_EQ(0, dataservice_mock_register_helper());
+    TEST_ASSERT(0 == fixture.dataservice_mock_register_helper());
 
     /* mock the first transaction query api call. */
     bool first_run = true;
-    dataservice->register_callback_transaction_get_first(
+    fixture.dataservice->register_callback_transaction_get_first(
         [&](const dataservice_request_transaction_get_first_t&,
             std::ostream& out) {
             /* only return a result the first time. */
@@ -718,7 +747,7 @@ TEST_F(canonizationservice_isolation_test, one_attested_block)
         });
 
     /* mock the transaction query api call. */
-    dataservice->register_callback_transaction_get(
+    fixture.dataservice->register_callback_transaction_get(
         [&](const dataservice_request_transaction_get_t&,
             std::ostream&) {
             /* only the first record is found. */
@@ -726,7 +755,7 @@ TEST_F(canonizationservice_isolation_test, one_attested_block)
         });
 
     /* mock the latest block id query api call. */
-    dataservice->register_callback_block_id_latest_read(
+    fixture.dataservice->register_callback_block_id_latest_read(
         [&](const dataservice_request_block_id_latest_read_t&,
             std::ostream& out) {
             out.write((const char*)vccert_certificate_type_uuid_root_block, 16);
@@ -735,17 +764,18 @@ TEST_F(canonizationservice_isolation_test, one_attested_block)
         });
 
     /* start the mocks. */
-    dataservice->start();
-    notificationservice->start();
+    fixture.dataservice->start();
+    fixture.notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonizationservice_configure_and_start(1, 10));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == fixture.canonizationservice_configure_and_start(1, 10));
 
     usleep(30000);
 
     /* stop the mock. */
-    dataservice->stop();
+    fixture.dataservice->stop();
 
     /* set our expected caps. */
     BITCAP(EXPECTED_CAPS, DATASERVICE_API_CAP_BITS_MAX);
@@ -764,57 +794,56 @@ TEST_F(canonizationservice_isolation_test, one_attested_block)
         EXPECTED_CAPS, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a block make call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_make(
-            EXPECTED_CHILD_INDEX, NULL, 0, NULL));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_make(
+            fixture.EXPECTED_CHILD_INDEX, NULL, 0, NULL));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a second get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
-}
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
+END_TEST_F()
 
 /**
  * Test that the canonization service builds a block with a multiple attested
  * records.
  */
-TEST_F(canonizationservice_isolation_test, multiple_attested_txns_one_block)
-{
+BEGIN_TEST_F(multiple_attested_txns_one_block)
     const uint8_t EXPECTED_TRANSACTION_ID_01[16] = {
         0xb8, 0x4e, 0x5b, 0xe9, 0x0c, 0x4b, 0x49, 0x88,
         0x92, 0x50, 0xe0, 0xb0, 0x3f, 0xb2, 0xfe, 0x36
@@ -843,11 +872,11 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_txns_one_block)
     const size_t EXPECTED_CERT_SIZE = sizeof(EXPECTED_CERT);
 
     /* register dataservice helper mocks. */
-    ASSERT_EQ(0, dataservice_mock_register_helper());
+    TEST_ASSERT(0 == fixture.dataservice_mock_register_helper());
 
     /* mock the first transaction query api call. */
     bool first_run = true;
-    dataservice->register_callback_transaction_get_first(
+    fixture.dataservice->register_callback_transaction_get_first(
         [&](const dataservice_request_transaction_get_first_t&,
             std::ostream& out) {
             /* only return a result the first time. */
@@ -882,7 +911,7 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_txns_one_block)
         });
 
     /* mock the transaction query api call. */
-    dataservice->register_callback_transaction_get(
+    fixture.dataservice->register_callback_transaction_get(
         [&](const dataservice_request_transaction_get_t& txn,
             std::ostream& out) {
             void* payload;
@@ -935,7 +964,7 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_txns_one_block)
         });
 
     /* mock the latest block id query api call. */
-    dataservice->register_callback_block_id_latest_read(
+    fixture.dataservice->register_callback_block_id_latest_read(
         [&](const dataservice_request_block_id_latest_read_t&,
             std::ostream& out) {
             out.write((const char*)vccert_certificate_type_uuid_root_block, 16);
@@ -944,17 +973,18 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_txns_one_block)
         });
 
     /* start the mocks. */
-    dataservice->start();
-    notificationservice->start();
+    fixture.dataservice->start();
+    fixture.notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonizationservice_configure_and_start(1, 10));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == fixture.canonizationservice_configure_and_start(1, 10));
 
     usleep(30000);
 
     /* stop the mock. */
-    dataservice->stop();
+    fixture.dataservice->stop();
 
     /* set our expected caps. */
     BITCAP(EXPECTED_CAPS, DATASERVICE_API_CAP_BITS_MAX);
@@ -973,67 +1003,66 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_txns_one_block)
         EXPECTED_CAPS, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get(
-            EXPECTED_CHILD_INDEX, EXPECTED_TRANSACTION_ID_02));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get(
+            fixture.EXPECTED_CHILD_INDEX, EXPECTED_TRANSACTION_ID_02));
 
     /* a get call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get(
-            EXPECTED_CHILD_INDEX, EXPECTED_TRANSACTION_ID_03));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get(
+            fixture.EXPECTED_CHILD_INDEX, EXPECTED_TRANSACTION_ID_03));
 
     /* a block make call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_make(
-            EXPECTED_CHILD_INDEX, NULL, 0, NULL));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_make(
+            fixture.EXPECTED_CHILD_INDEX, NULL, 0, NULL));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a second get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
-}
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
+END_TEST_F()
 
 /**
  * Test that the canonization service builds multiple blocks with attested
  * transactions in them.
  */
-TEST_F(canonizationservice_isolation_test, multiple_attested_multiple_blocks)
-{
+BEGIN_TEST_F(multiple_attested_multiple_blocks)
     const uint8_t EXPECTED_TRANSACTION_ID_01[16] = {
         0xb8, 0x4e, 0x5b, 0xe9, 0x0c, 0x4b, 0x49, 0x88,
         0x92, 0x50, 0xe0, 0xb0, 0x3f, 0xb2, 0xfe, 0x36
@@ -1062,11 +1091,11 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_multiple_blocks)
     const size_t EXPECTED_CERT_SIZE = sizeof(EXPECTED_CERT);
 
     /* register dataservice helper mocks. */
-    ASSERT_EQ(0, dataservice_mock_register_helper());
+    TEST_ASSERT(0 == fixture.dataservice_mock_register_helper());
 
     /* mock the first transaction query api call. */
     int run_count = 0;
-    dataservice->register_callback_transaction_get_first(
+    fixture.dataservice->register_callback_transaction_get_first(
         [&](const dataservice_request_transaction_get_first_t&,
             std::ostream& out) {
             void* payload;
@@ -1146,7 +1175,7 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_multiple_blocks)
         });
 
     /* mock the transaction query api call. */
-    dataservice->register_callback_transaction_get(
+    fixture.dataservice->register_callback_transaction_get(
         [&](const dataservice_request_transaction_get_t& txn,
             std::ostream& out) {
             void* payload;
@@ -1173,7 +1202,7 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_multiple_blocks)
         });
 
     /* mock the latest block id query api call. */
-    dataservice->register_callback_block_id_latest_read(
+    fixture.dataservice->register_callback_block_id_latest_read(
         [&](const dataservice_request_block_id_latest_read_t&,
             std::ostream& out) {
             out.write((const char*)vccert_certificate_type_uuid_root_block, 16);
@@ -1182,17 +1211,18 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_multiple_blocks)
         });
 
     /* start the mocks. */
-    dataservice->start();
-    notificationservice->start();
+    fixture.dataservice->start();
+    fixture.notificationservice->start();
 
     /* we should be able to configure and start the canonization service. */
-    ASSERT_EQ(AGENTD_STATUS_SUCCESS,
-        canonizationservice_configure_and_start(1, 1));
+    TEST_ASSERT(
+        AGENTD_STATUS_SUCCESS
+            == fixture.canonizationservice_configure_and_start(1, 1));
 
     usleep(40000);
 
     /* stop the mock. */
-    dataservice->stop();
+    fixture.dataservice->stop();
 
     /* set our expected caps. */
     BITCAP(EXPECTED_CAPS, DATASERVICE_API_CAP_BITS_MAX);
@@ -1211,98 +1241,97 @@ TEST_F(canonizationservice_isolation_test, multiple_attested_multiple_blocks)
         EXPECTED_CAPS, DATASERVICE_API_CAP_LL_CHILD_CONTEXT_CLOSE);
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a block make call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_make(
-            EXPECTED_CHILD_INDEX, NULL, 0, NULL));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_make(
+            fixture.EXPECTED_CHILD_INDEX, NULL, 0, NULL));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a block make call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_make(
-            EXPECTED_CHILD_INDEX, NULL, 0, NULL));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_make(
+            fixture.EXPECTED_CHILD_INDEX, NULL, 0, NULL));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a block make call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_make(
-            EXPECTED_CHILD_INDEX, NULL, 0, NULL));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_make(
+            fixture.EXPECTED_CHILD_INDEX, NULL, 0, NULL));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child create should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_create(
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_create(
             EXPECTED_CAPS));
 
     /* a get latest block id call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_block_id_latest_read(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_block_id_latest_read(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a second get first call should have been made. */
-    EXPECT_TRUE(
-        dataservice->request_matches_transaction_get_first(
-            EXPECTED_CHILD_INDEX));
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_transaction_get_first(
+            fixture.EXPECTED_CHILD_INDEX));
 
     /* a child close should have occurred. */
-    EXPECT_TRUE(
-        dataservice->request_matches_child_context_close(
-            EXPECTED_CHILD_INDEX));
-}
-#endif
+    TEST_EXPECT(
+        fixture.dataservice->request_matches_child_context_close(
+            fixture.EXPECTED_CHILD_INDEX));
+END_TEST_F()
