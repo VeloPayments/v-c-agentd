@@ -3,7 +3,7 @@
  *
  * Private header for the protocol service isolation tests.
  *
- * \copyright 2021 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2021-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #pragma once
@@ -16,7 +16,6 @@
 #include <agentd/ipc.h>
 #include <agentd/string.h>
 #include <functional>
-#include <gtest/gtest.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -58,13 +57,11 @@ std::map<std::string, capabilities_entry> capabilities_map;
  * mechanism so that data can be sent to the service and received from the
  * service.
  */
-class protocolservice_isolation_test :
-    public ::testing::Test, public directory_test_helper
+class protocolservice_isolation_test : public directory_test_helper
 {
-protected:
-    /* Google Test overrides. */
-    void SetUp() override;
-    void TearDown() override;
+public:
+    void setUp();
+    void tearDown();
 
     bootstrap_config_t bconf;
     agent_config_t conf;

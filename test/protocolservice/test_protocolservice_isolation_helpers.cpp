@@ -3,7 +3,7 @@
  *
  * Helpers for the protocol service isolation test.
  *
- * \copyright 2021 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2021-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <algorithm>
@@ -11,13 +11,12 @@
 #include <agentd/protocolservice/control_api.h>
 #include <agentd/randomservice.h>
 #include <agentd/status_codes.h>
+#include <iostream>
 #include <rcpr/uuid.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <vpr/allocator/malloc_allocator.h>
 
-/* GTEST DISABLED */
-#if 0
 #include "test_protocolservice_isolation.h"
 
 using namespace std;
@@ -191,7 +190,7 @@ const capabilities_map protocolservice_isolation_test::global_caps{
             protocolservice_isolation_test::verb_extended_api_resp,
             protocolservice_isolation_test::blank_uuid } } };
 
-void protocolservice_isolation_test::SetUp()
+void protocolservice_isolation_test::setUp()
 {
     status retval;
 
@@ -326,12 +325,12 @@ void protocolservice_isolation_test::SetUp()
 
     /* set up directory test helper. */
     string dbpath = "build/test/isolation/databases/";
-    directory_test_helper::SetUp(dir_key, dbpath.c_str());
+    directory_test_helper::setUp(dir_key, dbpath.c_str());
 }
 
-void protocolservice_isolation_test::TearDown()
+void protocolservice_isolation_test::tearDown()
 {
-    directory_test_helper::TearDown();
+    directory_test_helper::tearDown();
 
     /* terminate the random service. */
     if (0 == random_proc_status)
@@ -782,4 +781,3 @@ cleanup_agent_enc_pubkey:
 done:
     return retval;
 }
-#endif
