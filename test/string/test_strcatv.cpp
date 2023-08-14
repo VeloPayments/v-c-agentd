@@ -3,57 +3,58 @@
  *
  * Test variable strcat.
  *
- * \copyright 2018 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/string.h>
-
-/* GTEST DISABLED */
-#if 0
+#include <cstdlib>
+#include <cstring>
+#include <minunit/minunit.h>
 
 using namespace std;
+
+TEST_SUITE(strcatv);
 
 /**
  * \brief Passing NULL as the first argument of strcatv returns an empty string.
  */
-TEST(strcatv, param_null)
+TEST(param_null)
 {
     char* str = strcatv(nullptr);
-    ASSERT_NE(nullptr, str);
-    EXPECT_STREQ("", str);
+    TEST_ASSERT(nullptr != str);
+    TEST_EXPECT(!strcmp("", str));
     free(str);
 }
 
 /**
  * \brief We can concatenate one string and null.
  */
-TEST(strcatv, one_param)
+TEST(one_param)
 {
     char* str = strcatv("foo", nullptr);
-    ASSERT_NE(nullptr, str);
-    EXPECT_STREQ("foo", str);
+    TEST_ASSERT(nullptr != str);
+    TEST_EXPECT(!strcmp("foo", str));
     free(str);
 }
 
 /**
  * \brief We can concatenate two strings and null.
  */
-TEST(strcatv, two_params)
+TEST(two_params)
 {
     char* str = strcatv("foo", "bar", nullptr);
-    ASSERT_NE(nullptr, str);
-    EXPECT_STREQ("foobar", str);
+    TEST_ASSERT(nullptr != str);
+    TEST_EXPECT(!strcmp("foobar", str));
     free(str);
 }
 
 /**
  * \brief We can concatenate many strings.
  */
-TEST(strcatv, many_params)
+TEST(many_params)
 {
     char* str = strcatv("f", "o", "o", "", "b", "a", "r", "!", nullptr);
-    ASSERT_NE(nullptr, str);
-    EXPECT_STREQ("foobar!", str);
+    TEST_ASSERT(nullptr != str);
+    TEST_EXPECT(!strcmp("foobar!", str));
     free(str);
 }
-#endif
