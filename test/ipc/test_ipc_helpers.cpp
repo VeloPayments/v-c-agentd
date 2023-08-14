@@ -3,13 +3,10 @@
  *
  * Helpers used by the ipc unit tests.
  *
- * \copyright 2019 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <vpr/allocator/malloc_allocator.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_ipc.h"
 
@@ -18,7 +15,7 @@ using namespace std;
 /**
  * \brief Set up a unit test.
  */
-void ipc_test::SetUp()
+void ipc_test::setUp()
 {
     /* register the Velo V1 crypto suite. */
     vccrypt_suite_register_velo_v1();
@@ -41,7 +38,7 @@ void ipc_test::SetUp()
 /**
  * \brief Tear down a unit test.
  */
-void ipc_test::TearDown()
+void ipc_test::tearDown()
 {
     if (nonblockdatasock_configured)
     {
@@ -158,4 +155,3 @@ void ipc_test::timermode_teardown()
         nonblockdatasock_configured = false;
     }
 }
-#endif
