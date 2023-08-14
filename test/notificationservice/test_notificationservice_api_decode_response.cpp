@@ -4,23 +4,23 @@
  *
  * \brief Test notificationservice_api_decode_response.
  *
- * \copyright 2022 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2022-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/inet.h>
 #include <agentd/notificationservice/api.h>
 #include <agentd/status_codes.h>
-
-/* GTEST DISABLED */
-#if 0
+#include <minunit/minunit.h>
 
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_resource;
 
+TEST_SUITE(notificationservice_api_decode_response_test);
+
 /**
  * \brief Test that command-line parameters are null checked.
  */
-TEST(notificationservice_api_decode_response_test, argument_nullchecks)
+TEST(argument_nullchecks)
 {
     const uint8_t buf[] = { 'T', 'e', 's', 't' };
     size_t size = sizeof(buf);
@@ -31,52 +31,52 @@ TEST(notificationservice_api_decode_response_test, argument_nullchecks)
     size_t payload_size = 0U;
 
     /* If the buffer is null, an error is returned. */
-    EXPECT_EQ(
-        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_decode_response(
-            nullptr, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT
+            == notificationservice_api_decode_response(
+                    nullptr, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* If the method_id is null, an error is returned. */
-    EXPECT_EQ(
-        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_decode_response(
-            buf, size, nullptr, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT
+            == notificationservice_api_decode_response(
+                    buf, size, nullptr, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* If the status_code is null, an error is returned. */
-    EXPECT_EQ(
-        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, nullptr, &offset, &payload,
-            &payload_size));
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, nullptr, &offset, &payload,
+                    &payload_size));
 
     /* If the offset is null, an error is returned. */
-    EXPECT_EQ(
-        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, nullptr, &payload,
-            &payload_size));
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, nullptr, &payload,
+                    &payload_size));
 
     /* If the payload is null, an error is returned. */
-    EXPECT_EQ(
-        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, nullptr,
-            &payload_size));
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, nullptr,
+                    &payload_size));
 
     /* If the payload_size is null, an error is returned. */
-    EXPECT_EQ(
-        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            nullptr));
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    nullptr));
 }
 
 /**
  * \brief If the size is too small, an error is returned.
  */
-TEST(notificationservice_api_decode_response_test, size_too_small)
+TEST(size_too_small)
 {
     const uint8_t buf[] = { 'T', 'e', 's', 't' };
     size_t size = sizeof(buf);
@@ -87,18 +87,18 @@ TEST(notificationservice_api_decode_response_test, size_too_small)
     size_t payload_size = 0U;
 
     /* If the size is too small, an error is returned. */
-    EXPECT_EQ(
-        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_API_BAD_ARGUMENT
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 }
 
 /**
  * \brief A buffer without a payload encoded by the encode method can be decoded
  * by the decode method.
  */
-TEST(notificationservice_api_decode_response_test, encode_decode_no_payload)
+TEST(encode_decode_no_payload)
 {
     rcpr_allocator* alloc;
     uint8_t* buf = NULL;
@@ -116,49 +116,50 @@ TEST(notificationservice_api_decode_response_test, encode_decode_no_payload)
     size_t payload_size;
 
     /* create an allocator instance. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_malloc_allocator_create(&alloc));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_malloc_allocator_create(&alloc));
 
     /* The encode request succeeds. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_encode_response(
-            &buf, &size, alloc, EXPECTED_METHOD_ID, EXPECTED_STATUS_CODE,
-            EXPECTED_OFFSET, EXPECTED_PAYLOAD, EXPECTED_PAYLOAD_SIZE));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_encode_response(
+                    &buf, &size, alloc, EXPECTED_METHOD_ID,
+                    EXPECTED_STATUS_CODE, EXPECTED_OFFSET, EXPECTED_PAYLOAD,
+                    EXPECTED_PAYLOAD_SIZE));
 
     /* the returned buffer is not null. */
-    ASSERT_NE(nullptr, buf);
+    TEST_ASSERT(nullptr != buf);
 
     /* the decode request succeeds. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* the method id matches. */
-    EXPECT_EQ(EXPECTED_METHOD_ID, method_id);
+    TEST_EXPECT(EXPECTED_METHOD_ID == method_id);
 
     /* the status code matches. */
-    EXPECT_EQ(EXPECTED_STATUS_CODE, status_code);
+    TEST_EXPECT(EXPECTED_STATUS_CODE == status_code);
 
     /* the offset matches. */
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
 
     /* the payload is NULL. */
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        resource_release(rcpr_allocator_resource_handle(alloc)));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(alloc, buf));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(rcpr_allocator_resource_handle(alloc)));
 }
 
 /**
  * \brief A buffer with a payload encoded by the encode method can be decoded
  * by the decode method.
  */
-TEST(notificationservice_api_decode_response_test, encode_decode_with_payload)
+TEST(encode_decode_with_payload)
 {
     rcpr_allocator* alloc;
     uint8_t* buf = NULL;
@@ -176,47 +177,47 @@ TEST(notificationservice_api_decode_response_test, encode_decode_with_payload)
     size_t payload_size;
 
     /* create an allocator instance. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_malloc_allocator_create(&alloc));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_malloc_allocator_create(&alloc));
 
     /* The encode request succeeds. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_encode_response(
-            &buf, &size, alloc, EXPECTED_METHOD_ID, EXPECTED_STATUS_CODE,
-            EXPECTED_OFFSET, EXPECTED_PAYLOAD, EXPECTED_PAYLOAD_SIZE));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_encode_response(
+                    &buf, &size, alloc, EXPECTED_METHOD_ID,
+                    EXPECTED_STATUS_CODE, EXPECTED_OFFSET, EXPECTED_PAYLOAD,
+                    EXPECTED_PAYLOAD_SIZE));
 
     /* the returned buffer is not null. */
-    ASSERT_NE(nullptr, buf);
+    TEST_ASSERT(nullptr != buf);
 
     /* the decode request succeeds. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* the method id matches. */
-    EXPECT_EQ(EXPECTED_METHOD_ID, method_id);
+    TEST_EXPECT(EXPECTED_METHOD_ID == method_id);
 
     /* the status code matches. */
-    EXPECT_EQ(EXPECTED_STATUS_CODE, status_code);
+    TEST_EXPECT(EXPECTED_STATUS_CODE == status_code);
 
     /* the offset matches. */
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
 
     /* the payload is NOT NULL. */
-    ASSERT_NE(nullptr, payload);
+    TEST_ASSERT(nullptr != payload);
 
     /* the payload size matches the expected payload size. */
-    ASSERT_EQ(EXPECTED_PAYLOAD_SIZE, payload_size);
+    TEST_ASSERT(EXPECTED_PAYLOAD_SIZE == payload_size);
 
     /* the payload matches the expected payload. */
-    EXPECT_EQ(0, memcmp(payload, EXPECTED_PAYLOAD, payload_size));
+    TEST_EXPECT(0 == memcmp(payload, EXPECTED_PAYLOAD, payload_size));
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        resource_release(rcpr_allocator_resource_handle(alloc)));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(alloc, buf));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(rcpr_allocator_resource_handle(alloc)));
 }
-#endif
