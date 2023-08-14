@@ -3,14 +3,13 @@
  *
  * Private header for the ipc unit tests.
  *
- * \copyright 2019 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_IPC_HEADER_GUARD
 #define TEST_IPC_HEADER_GUARD
 
 #include <agentd/ipc.h>
-#include <gtest/gtest.h>
 
 /* this header will only work for C++. */
 #if !defined(__cplusplus)
@@ -32,11 +31,11 @@ struct test_timer_context
  * with the data service.  It provides a registration mechanism so that
  * data can be sent to the data service and received from the data service.
  */
-class ipc_test : public ::testing::Test {
-protected:
-    /* Google Test overrides. */
-    void SetUp() override;
-    void TearDown() override;
+class ipc_test
+{
+public:
+    void setUp();
+    void tearDown();
 
     void nonblockmode(
         int datasock,
