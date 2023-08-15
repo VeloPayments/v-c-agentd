@@ -3,7 +3,7 @@
  *
  * Private header for the random service isolation tests.
  *
- * \copyright 2020-2022 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2020-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_RANDOM_SERVICE_ISOLATION_HEADER_GUARD
@@ -13,7 +13,6 @@
 #include <agentd/ipc.h>
 #include <agentd/string.h>
 #include <functional>
-#include <gtest/gtest.h>
 #include <rcpr/allocator.h>
 #include <rcpr/psock.h>
 #include <string>
@@ -30,11 +29,10 @@
  * communicating with the random service.  It provides a registration mechanism
  * so that data can be sent to the service and received from the service.
  */
-class random_service_isolation_test : public ::testing::Test {
-protected:
-    /* Google Test overrides. */
-    void SetUp() override;
-    void TearDown() override;
+class random_service_isolation_test {
+public:
+    void setUp();
+    void tearDown();
 
     bootstrap_config_t bconf;
     agent_config_t conf;
