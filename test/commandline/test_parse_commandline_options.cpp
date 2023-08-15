@@ -3,23 +3,24 @@
  *
  * Test parsing command-line options.
  *
- * \copyright 2018-2021 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2018-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/commandline.h>
 #include <agentd/command.h>
+#include <cstring>
+#include <minunit/minunit.h>
 #include <vpr/disposable.h>
 
-/* GTEST DISABLED */
-#if 0
-
 using namespace std;
+
+TEST_SUITE(parse_commandline_options_test);
 
 /**
  * \brief Parsing an empty set of command-line options should result in a
  * default bootstrap config.
  */
-TEST(parse_commandline_options_test, empty_arguments)
+TEST(empty_arguments)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -32,9 +33,9 @@ TEST(parse_commandline_options_test, empty_arguments)
         &bconf, sizeof(empty_args) / sizeof(char*), empty_args);
 
     /* by default, agentd runs as a daemon. */
-    EXPECT_FALSE(bconf.foreground);
+    TEST_EXPECT(!bconf.foreground);
     /* the help command is set. */
-    EXPECT_EQ(&command_help, bconf.command);
+    TEST_EXPECT(&command_help == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -42,7 +43,7 @@ TEST(parse_commandline_options_test, empty_arguments)
 /**
  * \brief Parsing a -F option should set foreground to true.
  */
-TEST(parse_commandline_options_test, foreground_option)
+TEST(foreground_option)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -56,9 +57,9 @@ TEST(parse_commandline_options_test, foreground_option)
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* agentd has been set to run in the foreground. */
-    EXPECT_TRUE(bconf.foreground);
+    TEST_EXPECT(bconf.foreground);
     /* the help command is set. */
-    EXPECT_EQ(&command_help, bconf.command);
+    TEST_EXPECT(&command_help == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -66,7 +67,7 @@ TEST(parse_commandline_options_test, foreground_option)
 /**
  * \brief Parsing a -I option should set init_mode to true.
  */
-TEST(parse_commandline_options_test, init_mode_option)
+TEST(init_mode_option)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -77,15 +78,15 @@ TEST(parse_commandline_options_test, init_mode_option)
     bootstrap_config_init(&bconf);
 
     /* init_mode is false by default. */
-    ASSERT_FALSE(bconf.init_mode);
+    TEST_ASSERT(!bconf.init_mode);
 
     parse_commandline_options(
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* agentd has been set to run in init mode. */
-    EXPECT_TRUE(bconf.init_mode);
+    TEST_EXPECT(bconf.init_mode);
     /* the help command is set. */
-    EXPECT_EQ(&command_help, bconf.command);
+    TEST_EXPECT(&command_help == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -93,7 +94,7 @@ TEST(parse_commandline_options_test, init_mode_option)
 /**
  * \brief Parsing a -c config should set the config file name.
  */
-TEST(parse_commandline_options_test, config_option_space)
+TEST(config_option_space)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -108,9 +109,9 @@ TEST(parse_commandline_options_test, config_option_space)
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* agentd has its config file overridden. */
-    EXPECT_STREQ("other.conf", bconf.config_file);
+    TEST_EXPECT(!strcmp("other.conf", bconf.config_file));
     /* the help command is set. */
-    EXPECT_EQ(&command_help, bconf.command);
+    TEST_EXPECT(&command_help == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -118,7 +119,7 @@ TEST(parse_commandline_options_test, config_option_space)
 /**
  * \brief Parsing a -c config should set the config file name (no space).
  */
-TEST(parse_commandline_options_test, config_option_no_space)
+TEST(config_option_no_space)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -133,9 +134,9 @@ TEST(parse_commandline_options_test, config_option_no_space)
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* agentd has its config file overridden. */
-    EXPECT_STREQ("other.conf", bconf.config_file);
+    TEST_EXPECT(!strcmp("other.conf", bconf.config_file));
     /* the help command is set. */
-    EXPECT_EQ(&command_help, bconf.command);
+    TEST_EXPECT(&command_help == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -143,7 +144,7 @@ TEST(parse_commandline_options_test, config_option_no_space)
 /**
  * \brief Parsing a -v should request version information.
  */
-TEST(parse_commandline_options_test, version_request)
+TEST(version_request)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -156,9 +157,9 @@ TEST(parse_commandline_options_test, version_request)
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* agentd has the version request set. */
-    EXPECT_TRUE(bconf.version_request);
+    TEST_EXPECT(bconf.version_request);
     /* the version command is set. */
-    EXPECT_EQ(&command_version, bconf.command);
+    TEST_EXPECT(&command_version == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -166,7 +167,7 @@ TEST(parse_commandline_options_test, version_request)
 /**
  * \brief Parsing an invalid options raises an error and prints usage.
  */
-TEST(parse_commandline_options_test, invalid_option)
+TEST(invalid_option)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -180,7 +181,7 @@ TEST(parse_commandline_options_test, invalid_option)
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* the error_usage command is set. */
-    EXPECT_EQ(&command_error_usage, bconf.command);
+    TEST_EXPECT(&command_error_usage == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -188,7 +189,7 @@ TEST(parse_commandline_options_test, invalid_option)
 /**
  * \brief Parsing an invalid command returns an error.
  */
-TEST(parse_commandline_options_test, invalid_command)
+TEST(invalid_command)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -201,7 +202,7 @@ TEST(parse_commandline_options_test, invalid_command)
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* the error_usage command is set. */
-    EXPECT_EQ(&command_error_usage, bconf.command);
+    TEST_EXPECT(&command_error_usage == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -209,7 +210,7 @@ TEST(parse_commandline_options_test, invalid_command)
 /**
  * \brief A command is required.
  */
-TEST(parse_commandline_options_test, no_command_fails)
+TEST(no_command_fails)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -221,7 +222,7 @@ TEST(parse_commandline_options_test, no_command_fails)
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* the error_usage command is set. */
-    EXPECT_EQ(&command_error_usage, bconf.command);
+    TEST_EXPECT(&command_error_usage == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -229,7 +230,7 @@ TEST(parse_commandline_options_test, no_command_fails)
 /**
  * \brief The readconfig command is a valid command.
  */
-TEST(parse_commandline_options_test, readconfig_command)
+TEST(readconfig_command)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -239,13 +240,13 @@ TEST(parse_commandline_options_test, readconfig_command)
     bootstrap_config_init(&bconf);
 
     /* precondition: command should be NULL. */
-    ASSERT_EQ(nullptr, bconf.command);
+    TEST_ASSERT(nullptr == bconf.command);
 
     parse_commandline_options(
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* postcondition: command is set to command_readconfig. */
-    ASSERT_EQ(&command_readconfig, bconf.command);
+    TEST_ASSERT(&command_readconfig == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -254,7 +255,7 @@ TEST(parse_commandline_options_test, readconfig_command)
 /**
  * \brief The readconfig private command is a valid private command.
  */
-TEST(parse_commandline_options_test, readconfig_private_command)
+TEST(readconfig_private_command)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -265,17 +266,17 @@ TEST(parse_commandline_options_test, readconfig_private_command)
     bootstrap_config_init(&bconf);
 
     /* precondition: command should be NULL. */
-    ASSERT_EQ(nullptr, bconf.command);
+    TEST_ASSERT(nullptr == bconf.command);
     /* precondition: private_command should be NULL. */
-    ASSERT_EQ(nullptr, bconf.private_command);
+    TEST_ASSERT(nullptr == bconf.private_command);
 
     parse_commandline_options(
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* postcondition: command is set to NULL. */
-    ASSERT_EQ(nullptr, bconf.command);
+    TEST_ASSERT(nullptr == bconf.command);
     /* postcondition: private command is set to private_command_readconfig. */
-    ASSERT_EQ(&private_command_readconfig, bconf.private_command);
+    TEST_ASSERT(&private_command_readconfig == bconf.private_command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -283,7 +284,7 @@ TEST(parse_commandline_options_test, readconfig_private_command)
 /**
  * \brief An invalid private command calls error_usage.
  */
-TEST(parse_commandline_options_test, readconfig_invalid_private_command)
+TEST(readconfig_invalid_private_command)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -294,17 +295,17 @@ TEST(parse_commandline_options_test, readconfig_invalid_private_command)
     bootstrap_config_init(&bconf);
 
     /* precondition: command should be NULL. */
-    ASSERT_EQ(nullptr, bconf.command);
+    TEST_ASSERT(nullptr == bconf.command);
     /* precondition: private_command should be NULL. */
-    ASSERT_EQ(nullptr, bconf.private_command);
+    TEST_ASSERT(nullptr == bconf.private_command);
 
     parse_commandline_options(
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* postcondition: command is set to command_error_usage. */
-    ASSERT_EQ(&command_error_usage, bconf.command);
+    TEST_ASSERT(&command_error_usage == bconf.command);
     /* postcondition: private command is NULL. */
-    ASSERT_EQ(nullptr, bconf.private_command);
+    TEST_ASSERT(nullptr == bconf.private_command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -313,7 +314,7 @@ TEST(parse_commandline_options_test, readconfig_invalid_private_command)
 /**
  * \brief The start command is a valid command.
  */
-TEST(parse_commandline_options_test, start_command)
+TEST(start_command)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -323,13 +324,13 @@ TEST(parse_commandline_options_test, start_command)
     bootstrap_config_init(&bconf);
 
     /* precondition: command should be NULL. */
-    ASSERT_EQ(nullptr, bconf.command);
+    TEST_ASSERT(nullptr == bconf.command);
 
     parse_commandline_options(
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* postcondition: command is set to command_readconfig. */
-    ASSERT_EQ(&command_start, bconf.command);
+    TEST_ASSERT(&command_start == bconf.command);
 
     dispose((disposable_t*)&bconf);
 }
@@ -337,7 +338,7 @@ TEST(parse_commandline_options_test, start_command)
 /**
  * \brief The supervisor private command is a valid private command.
  */
-TEST(parse_commandline_options_test, supervisor_private_command)
+TEST(supervisor_private_command)
 {
     bootstrap_config_t bconf;
     char exename[] = { 'a', 'g', 'e', 'n', 't', 'd', 0 };
@@ -348,18 +349,17 @@ TEST(parse_commandline_options_test, supervisor_private_command)
     bootstrap_config_init(&bconf);
 
     /* precondition: command should be NULL. */
-    ASSERT_EQ(nullptr, bconf.command);
+    TEST_ASSERT(nullptr == bconf.command);
     /* precondition: private_command should be NULL. */
-    ASSERT_EQ(nullptr, bconf.private_command);
+    TEST_ASSERT(nullptr == bconf.private_command);
 
     parse_commandline_options(
         &bconf, sizeof(args) / sizeof(char*), args);
 
     /* postcondition: command is set to NULL. */
-    ASSERT_EQ(nullptr, bconf.command);
+    TEST_ASSERT(nullptr == bconf.command);
     /* postcondition: private command is set to private_command_readconfig. */
-    ASSERT_EQ(&private_command_supervisor, bconf.private_command);
+    TEST_ASSERT(&private_command_supervisor == bconf.private_command);
 
     dispose((disposable_t*)&bconf);
 }
-#endif
