@@ -3,13 +3,10 @@
  *
  * Helpers for the mock notificationservice unit test.
  *
- * \copyright 2022 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2022-2023 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/ipc.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_mock_notificationservice.h"
 
@@ -19,7 +16,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
-void mock_notificationservice_test::SetUp()
+void mock_notificationservice_test::setUp()
 {
     status retval;
 
@@ -54,7 +51,7 @@ void mock_notificationservice_test::SetUp()
     test_suite_valid = true;
 }
 
-void mock_notificationservice_test::TearDown()
+void mock_notificationservice_test::tearDown()
 {
     status release_retval;
 
@@ -71,4 +68,3 @@ void mock_notificationservice_test::TearDown()
         (void)release_retval;
     }
 }
-#endif
