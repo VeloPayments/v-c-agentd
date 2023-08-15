@@ -3,7 +3,7 @@
  *
  * Helpers for the random service isolation test.
  *
- * \copyright 2020-2022 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2020-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/randomservice.h>
@@ -11,9 +11,6 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <vpr/allocator/malloc_allocator.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_random_service_isolation.h"
 
@@ -23,7 +20,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
-void random_service_isolation_test::SetUp()
+void random_service_isolation_test::setUp()
 {
     /* log to standard error. */
     rlogsock = dup(STDERR_FILENO);
@@ -76,7 +73,7 @@ void random_service_isolation_test::SetUp()
     }
 }
 
-void random_service_isolation_test::TearDown()
+void random_service_isolation_test::tearDown()
 {
     /* if the random socket is in non-block mode, clean it up. */
     if (nonblockrandomsock_configured)
@@ -159,4 +156,3 @@ void random_service_isolation_test::nonblock_write(
 
     that->onWrite();
 }
-#endif
