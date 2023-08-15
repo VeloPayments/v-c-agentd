@@ -3,19 +3,18 @@
  *
  * Helpers for the canonization service isolation test.
  *
- * \copyright 2019-2020 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/canonizationservice.h>
 #include <agentd/canonizationservice/api.h>
 #include <agentd/randomservice.h>
 #include <agentd/status_codes.h>
+#include <minunit/minunit.h>
+#include <ostream>
 #include <signal.h>
 #include <sys/wait.h>
 #include <vpr/allocator/malloc_allocator.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_canonizationservice_isolation.h"
 
@@ -56,7 +55,7 @@ const uint8_t canonizationservice_isolation_test::agent_sign_privkey[64] = {
     0xeb, 0x20, 0xc7, 0xe8, 0x16, 0x7d, 0x9e, 0x82,
     0xa3, 0xf0, 0x1e, 0x34, 0x36, 0x23, 0x9e, 0x2a };
 
-void canonizationservice_isolation_test::SetUp()
+void canonizationservice_isolation_test::setUp()
 {
     vccrypt_suite_register_velo_v1();
 
@@ -137,7 +136,7 @@ void canonizationservice_isolation_test::SetUp()
             notifysock);
 }
 
-void canonizationservice_isolation_test::TearDown()
+void canonizationservice_isolation_test::tearDown()
 {
     /* terminate the random service. */
     if (0 == random_proc_status)
@@ -385,4 +384,3 @@ cleanup_entity_encryption_pubkey:
 done:
     return retval;
 }
-#endif

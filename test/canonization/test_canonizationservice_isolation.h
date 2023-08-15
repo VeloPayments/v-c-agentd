@@ -3,7 +3,7 @@
  *
  * Private header for the canonization service isolation tests.
  *
- * \copyright 2019-2020 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2019-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #ifndef TEST_CANONIZATIONSERVICE_ISOLATION_HEADER_GUARD
@@ -16,7 +16,7 @@
 #include <agentd/ipc.h>
 #include <agentd/string.h>
 #include <functional>
-#include <gtest/gtest.h>
+#include <minunit/minunit.h>
 #include <string>
 #include <vector>
 #include <vpr/disposable.h>
@@ -37,11 +37,10 @@ extern "C" {
  * mechanism so that data can be sent to the service and received from the
  * service.
  */
-class canonizationservice_isolation_test : public ::testing::Test {
-protected:
-    /* Google Test overrides. */
-    void SetUp() override;
-    void TearDown() override;
+class canonizationservice_isolation_test {
+public:
+    void setUp();
+    void tearDown();
 
     bootstrap_config_t bconf;
     agent_config_t conf;
