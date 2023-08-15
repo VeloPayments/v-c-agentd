@@ -3,17 +3,15 @@
  *
  * Helpers for the notificationservice isolation test.
  *
- * \copyright 2021 Velo-Payments, Inc.  All rights reserved.
+ * \copyright 2021-2023 Velo-Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/notificationservice.h>
 #include <agentd/notificationservice/api.h>
 #include <agentd/status_codes.h>
+#include <minunit/minunit.h>
 #include <signal.h>
 #include <sys/wait.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_notificationservice_isolation.h"
 
@@ -23,7 +21,7 @@ RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_psock;
 RCPR_IMPORT_resource;
 
-void notificationservice_isolation_test::SetUp()
+void notificationservice_isolation_test::setUp()
 {
     status retval;
 
@@ -99,7 +97,7 @@ void notificationservice_isolation_test::SetUp()
             false);
 }
 
-void notificationservice_isolation_test::TearDown()
+void notificationservice_isolation_test::tearDown()
 {
     /* terminate the notificationservice process. */
     if (0 == notify_proc_status)
@@ -131,4 +129,3 @@ void notificationservice_isolation_test::TearDown()
     resource_release(psock_resource_handle(client2));
     resource_release(rcpr_allocator_resource_handle(alloc));
 }
-#endif

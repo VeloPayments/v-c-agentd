@@ -13,7 +13,6 @@
 #include <agentd/ipc.h>
 #include <agentd/string.h>
 #include <functional>
-#include <gtest/gtest.h>
 #include <string>
 #include <vector>
 #include <vpr/allocator/malloc_allocator.h>
@@ -35,12 +34,11 @@ extern "C" {
  * mechanism so that data can be sent to the service and received from the
  * service.
  */
-class notificationservice_isolation_test : public ::testing::Test
+class notificationservice_isolation_test
 {
-protected:
-    /* Google Test overrides. */
-    void SetUp() override;
-    void TearDown() override;
+public:
+    void setUp();
+    void tearDown();
 
     bootstrap_config_t bconf;
     agent_config_t conf;

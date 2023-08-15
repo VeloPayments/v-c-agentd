@@ -3,19 +3,17 @@
  *
  * Isolation tests for the notificationservice.
  *
- * \copyright 2022 Velo Payments, Inc.  All rights reserved.
+ * \copyright 2022-2023 Velo Payments, Inc.  All rights reserved.
  */
 
 #include <agentd/bitcap.h>
 #include <agentd/notificationservice/api.h>
 #include <agentd/status_codes.h>
 #include <iostream>
+#include <minunit/minunit.h>
 #include <string>
 #include <unistd.h>
 #include <vpr/disposable.h>
-
-/* GTEST DISABLED */
-#if 0
 
 #include "test_notificationservice_isolation.h"
 
@@ -24,19 +22,29 @@ using namespace std;
 RCPR_IMPORT_allocator_as(rcpr);
 RCPR_IMPORT_uuid;
 
+TEST_SUITE(notificationservice_isolation_test);
+
+#define BEGIN_TEST_F(name) \
+TEST(name) \
+{ \
+    notificationservice_isolation_test fixture; \
+    fixture.setUp();
+
+#define END_TEST_F() \
+    fixture.tearDown(); \
+}
+
 /**
  * Test that we can spawn the notificationservice.
  */
-TEST_F(notificationservice_isolation_test, simple_spawn)
-{
-    ASSERT_EQ(0, notify_proc_status);
-}
+BEGIN_TEST_F(simple_spawn)
+    TEST_ASSERT(0 == fixture.notify_proc_status);
+END_TEST_F()
 
 /**
  * Test that we can reduce capabilities.
  */
-TEST_F(notificationservice_isolation_test, reduce_caps)
-{
+BEGIN_TEST_F(reduce_caps)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -51,41 +59,41 @@ TEST_F(notificationservice_isolation_test, reduce_caps)
     BITCAP_INIT_FALSE(reducedcaps);
 
     /* send reduce capabilities request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_reduce_caps(
-            client1, alloc, EXPECTED_OFFSET, reducedcaps,
-            sizeof(reducedcaps)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_reduce_caps(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    reducedcaps, sizeof(reducedcaps)));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify response. */
-    EXPECT_EQ(AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS, method_id);
-    EXPECT_EQ(0, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS == method_id);
+    TEST_EXPECT(0 == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * Test that reducing capabilities to nothing fails the second time due to an
  * authorization error.
  */
-TEST_F(notificationservice_isolation_test, reduce_caps_2x)
-{
+BEGIN_TEST_F(reduce_caps_2x)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -100,66 +108,68 @@ TEST_F(notificationservice_isolation_test, reduce_caps_2x)
     BITCAP_INIT_FALSE(reducedcaps);
 
     /* send reduce capabilities request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_reduce_caps(
-            client1, alloc, EXPECTED_OFFSET, reducedcaps,
-            sizeof(reducedcaps)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_reduce_caps(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    reducedcaps, sizeof(reducedcaps)));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify response. */
-    EXPECT_EQ(AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS, method_id);
-    EXPECT_EQ(0, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS == method_id);
+    TEST_EXPECT(0 == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* send second reduce capabilities request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_reduce_caps(
-            client1, alloc, EXPECTED_OFFSET, reducedcaps,
-            sizeof(reducedcaps)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_reduce_caps(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    reducedcaps, sizeof(reducedcaps)));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify response. */
-    EXPECT_EQ(AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS, method_id);
-    EXPECT_EQ(AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_REDUCE_CAPS == method_id);
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * Test that sending a block update returns a success status code.
  */
-TEST_F(notificationservice_isolation_test, block_update_simple)
-{
+BEGIN_TEST_F(block_update_simple)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -173,39 +183,40 @@ TEST_F(notificationservice_isolation_test, block_update_simple)
         0xaa, 0x1f, 0x4e, 0xf9, 0x8c, 0x1e, 0x3a, 0xac } };
 
     /* send block update request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_update(
-            client1, alloc, EXPECTED_OFFSET, &block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_update(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    &block_id));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify response. */
-    EXPECT_EQ(AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE, method_id);
-    EXPECT_EQ(0, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE == method_id);
+    TEST_EXPECT(0 == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * Test that a block update fails if not authorized.
  */
-TEST_F(notificationservice_isolation_test, block_update_not_authorized)
-{
+BEGIN_TEST_F(block_update_not_authorized)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -223,56 +234,58 @@ TEST_F(notificationservice_isolation_test, block_update_not_authorized)
     BITCAP_INIT_FALSE(reducedcaps);
 
     /* send reduce capabilities request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_reduce_caps(
-            client1, alloc, EXPECTED_OFFSET, reducedcaps,
-            sizeof(reducedcaps)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_reduce_caps(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    reducedcaps, sizeof(reducedcaps)));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* reclaim memory for the response buffer. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
 
     /* send block update request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_update(
-            client1, alloc, EXPECTED_OFFSET, &block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_update(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    &block_id));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify that the request failed. */
-    EXPECT_EQ(AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE, method_id);
-    EXPECT_EQ(AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE == method_id);
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * Test that we are immediately invalidated when the latest block has not been
  * set.
  */
-TEST_F(notificationservice_isolation_test, block_assertion_zero_block)
-{
+BEGIN_TEST_F(block_assertion_zero_block)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -286,42 +299,42 @@ TEST_F(notificationservice_isolation_test, block_assertion_zero_block)
         0xaa, 0x1f, 0x4e, 0xf9, 0x8c, 0x1e, 0x3a, 0xac } };
 
     /* send block assertion request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_assertion(
-            client1, alloc, EXPECTED_OFFSET, &block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_assertion(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    &block_id));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify response. */
-    EXPECT_EQ(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION,
-        method_id);
-    EXPECT_EQ(0, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION
+            == method_id);
+    TEST_EXPECT(0 == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * Test that a block assertion against a block other than the latest block
  * update returns with an immediate invalidation.
  */
-TEST_F(notificationservice_isolation_test, block_assertion_different_block)
-{
+BEGIN_TEST_F(block_assertion_different_block)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -338,57 +351,58 @@ TEST_F(notificationservice_isolation_test, block_assertion_different_block)
         0xaa, 0x1f, 0x4e, 0xf9, 0x8c, 0x1e, 0x3a, 0xac } };
 
     /* send block update request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_update(
-            client1, alloc, EXPECTED_OFFSET, &latest_block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_update(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    &latest_block_id));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* reclaim buffer. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
 
     /* send block assertion request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_assertion(
-            client1, alloc, EXPECTED_OFFSET, &block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_assertion(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    &block_id));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify response. */
-    EXPECT_EQ(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION,
-        method_id);
-    EXPECT_EQ(0, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION
+            == method_id);
+    TEST_EXPECT(0 == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * Test that a block assertion for the latest block does not return an
  * invalidation until the block is updated.
  */
-TEST_F(notificationservice_isolation_test, block_assertion_same_block)
-{
+BEGIN_TEST_F(block_assertion_same_block)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -406,87 +420,87 @@ TEST_F(notificationservice_isolation_test, block_assertion_same_block)
         0xaa, 0x1f, 0x4e, 0xf9, 0x8c, 0x1e, 0x3a, 0xac } };
 
     /* send block update request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_update(
-            client1, alloc, EXPECTED_BLOCK_UPDATE_OFFSET, &latest_block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_update(
+                    fixture.client1, fixture.alloc,
+                    EXPECTED_BLOCK_UPDATE_OFFSET, &latest_block_id));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* reclaim buffer. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
 
     /* send the block assertion request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_assertion(
-            client1, alloc, EXPECTED_OFFSET, &latest_block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_assertion(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    &latest_block_id));
 
     /* send the next block update request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_update(
-            client1, alloc, EXPECTED_BLOCK_UPDATE_OFFSET, &next_block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_update(
+                    fixture.client1, fixture.alloc,
+                    EXPECTED_BLOCK_UPDATE_OFFSET, &next_block_id));
 
     /* get a response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode the response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* it should be the invalidation for the assertion. */
-    EXPECT_EQ(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION,
-        method_id);
-    EXPECT_EQ(0, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION == method_id);
+    TEST_EXPECT(0 == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* reclaim buffer. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
 
     /* get the next response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode this response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* it should be the block update response. */
-    EXPECT_EQ(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE,
-        method_id);
-    EXPECT_EQ(0, status_code);
-    EXPECT_EQ(EXPECTED_BLOCK_UPDATE_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_UPDATE == method_id);
+    TEST_EXPECT(0 == status_code);
+    TEST_EXPECT(EXPECTED_BLOCK_UPDATE_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * Test that a block assertion fails if not authorized.
  * set.
  */
-TEST_F(notificationservice_isolation_test, block_assertion_not_authorized)
-{
+BEGIN_TEST_F(block_assertion_not_authorized)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -504,58 +518,58 @@ TEST_F(notificationservice_isolation_test, block_assertion_not_authorized)
     BITCAP_INIT_FALSE(reducedcaps);
 
     /* send reduce capabilities request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_reduce_caps(
-            client1, alloc, EXPECTED_OFFSET, reducedcaps,
-            sizeof(reducedcaps)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_reduce_caps(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    reducedcaps, sizeof(reducedcaps)));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* reclaim memory for the response buffer. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
 
     /* send block assertion request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_block_assertion(
-            client1, alloc, EXPECTED_OFFSET, &block_id));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_block_assertion(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    &block_id));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify response. */
-    EXPECT_EQ(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION,
-        method_id);
-    EXPECT_EQ(AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION == method_id);
+    TEST_EXPECT(
+        AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * When a block assertion has NOT been made, a block assertion cancellation
  * still succeeds.
  */
-TEST_F(notificationservice_isolation_test, block_assertion_cancellation_empty)
-{
+BEGIN_TEST_F(block_assertion_cancellation_empty)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -566,43 +580,40 @@ TEST_F(notificationservice_isolation_test, block_assertion_cancellation_empty)
     size_t payload_size = 0U;
 
     /* send block assertion cancellation request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_assertion_cancel(
-            client1, alloc, EXPECTED_OFFSET));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_assertion_cancel(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode the response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify that the cancellation succeeded. */
-    EXPECT_EQ(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL,
-        method_id);
-    EXPECT_EQ(0, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL
+            == method_id);
+    TEST_EXPECT(0 == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
 
 /**
  * Test that a block assertion cancellation request fails if not authorized.
  */
-TEST_F(
-    notificationservice_isolation_test,
-    block_assertion_cancellation_not_authorized)
-{
+BEGIN_TEST_F(block_assertion_cancellation_not_authorized)
     uint8_t* buf = nullptr;
     size_t size = 0U;
     const uint64_t EXPECTED_OFFSET = 7177;
@@ -617,49 +628,48 @@ TEST_F(
     BITCAP_INIT_FALSE(reducedcaps);
 
     /* send reduce capabilities request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_reduce_caps(
-            client1, alloc, EXPECTED_OFFSET, reducedcaps,
-            sizeof(reducedcaps)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_reduce_caps(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET,
+                    reducedcaps, sizeof(reducedcaps)));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* reclaim memory for the response buffer. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
 
     /* send block assertion cancellation request. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_sendreq_assertion_cancel(
-            client1, alloc, EXPECTED_OFFSET));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_sendreq_assertion_cancel(
+                    fixture.client1, fixture.alloc, EXPECTED_OFFSET));
 
     /* get response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_recvresp(
-            client1, alloc, &buf, &size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_recvresp(
+                    fixture.client1, fixture.alloc, &buf, &size));
 
     /* decode the response. */
-    ASSERT_EQ(
-        STATUS_SUCCESS,
-        notificationservice_api_decode_response(
-            buf, size, &method_id, &status_code, &offset, &payload,
-            &payload_size));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == notificationservice_api_decode_response(
+                    buf, size, &method_id, &status_code, &offset, &payload,
+                    &payload_size));
 
     /* verify that the cancellation failed due to access control. */
-    EXPECT_EQ(
-        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL,
-        method_id);
-    EXPECT_EQ(AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED, status_code);
-    EXPECT_EQ(EXPECTED_OFFSET, offset);
-    EXPECT_EQ(nullptr, payload);
+    TEST_EXPECT(
+        AGENTD_NOTIFICATIONSERVICE_API_METHOD_ID_BLOCK_ASSERTION_CANCEL
+            == method_id);
+    TEST_EXPECT(AGENTD_ERROR_NOTIFICATIONSERVICE_NOT_AUTHORIZED == status_code);
+    TEST_EXPECT(EXPECTED_OFFSET == offset);
+    TEST_EXPECT(nullptr == payload);
 
     /* clean up. */
-    ASSERT_EQ(STATUS_SUCCESS, rcpr_allocator_reclaim(alloc, buf));
-}
-#endif
+    TEST_ASSERT(STATUS_SUCCESS == rcpr_allocator_reclaim(fixture.alloc, buf));
+END_TEST_F()
