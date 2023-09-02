@@ -63,13 +63,6 @@ vcblockchain = dependency(
     fallback : ['vcblockchain', 'vcblockchain_dep']
 )
 
-gtest = dependency(
-    'gtest',
-    main : true,
-    required : true,
-    fallback : ['gtest', 'gtest_dep']
-)
-
 threads = dependency('threads')
 
 event_sub = cmake.subproject(
